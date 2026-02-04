@@ -43,13 +43,13 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("#") }}</th>
-                                        <th scope="col">{{__("Autor") }}</th>
-                                        <th scope="col">{{__("País") }}</th>
-                                        <th scope="col">{{__("Area de conocimiento")}}</th>
-                                        <th scope="col">{{__("Categoría del trabajo")}}</th>
-                                        <th scope="col">{{__("Título del trabajo")}}</th>
-                                        <th scope="col">{{__("Estado")}}</th>
-                                        <th scope="col">{{__("Acciones")}}</th>
+                                        <th scope="col">{{__("Author") }}</th>
+                                        <th scope="col">{{__("Country") }}</th>
+                                        <th scope="col">{{__("Knowledge area")}}</th>
+                                        <th scope="col">{{__("category")}}</th>
+                                        <th scope="col">{{__("Title")}}</th>
+                                        <th scope="col">{{__("Status")}}</th>
+                                        <th scope="col">{{__("Action")}}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -58,14 +58,14 @@
                                         @if( $userRole[0] == 'Calificador')
                                             <tr>
                                                 <td colspan="8" class="text-center">
-                                                    <h6 class="mt-2">{{__("Aún no tiene trabajos asignados para calificar.")}}</h6>
+                                                    <h6 class="mt-2">{{__("He does not yet have any jobs assigned to him to qualify.")}}</h6>
                                                 </td>
                                             </tr>
                                         @else
                                             <tr>
                                                 <td colspan="8" class="text-center">
-                                                    <h6 class="mt-2">{{__("No hay trabajos registrados")}}</h6>
-                                                    <a href="{{ route('works.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Nuevo Trabajo")}}</a>
+                                                    <h6 class="mt-2">{{__("There are no registered jobs")}}</h6>
+                                                    <a href="{{ route('works.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Work")}}</a>
                                                 </td>
                                             </tr>
                                         @endif

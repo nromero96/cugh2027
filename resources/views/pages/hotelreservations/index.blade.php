@@ -13,14 +13,14 @@
 
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <strong>{{__("¡Bien hecho!")}}</strong> {{__("Has actualizado la reservación correctamente.")}}
+                        <strong>{{__("¡Bien hecho!")}}</strong> {{__("You have successfully updated your reservation.")}}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
 
                 @if(session('error'))
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <strong>{{__("¡Atención!")}}</strong> {{__("No se pudo actualizar la reservación.")}}
+                        <strong>{{__("¡Atención!")}}</strong> {{__("The reservation could not be updated..")}}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
@@ -43,7 +43,7 @@
                     <div class="widget-header pt-4">
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 col-12 text-end">
-                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Reservar Nuevo")}}</a>
+                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
                             </div>
                         </div>
                     </div>
@@ -53,13 +53,13 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("ID")}}</th>
-                                        <th scope="col">{{__("Nombre")}}</th>
-                                        <th scope="col">{{__("Email")}}</th>
+                                        <th scope="col">{{__("Name")}}</th>
+                                        <th scope="col">{{__("E-mail")}}</th>
                                         <th scope="col">{{__("Hotel")}}</th>
-                                        <th scope="col">{{__("T. Habitación")}}</th>
-                                        <th scope="col">{{__("Entrada")}}</th>
-                                        <th scope="col">{{__("Salida")}}</th>
-                                        <th>{{ __("Estado") }}</th>
+                                        <th scope="col">{{__("T. Room")}}</th>
+                                        <th scope="col">{{__("Check-in")}}</th>
+                                        <th scope="col">{{__("Check-out")}}</th>
+                                        <th>{{ __("Status") }}</th>
                                         <th scope="col">{{__("")}}</th>
                                     </tr>
                                 </thead>
@@ -68,8 +68,8 @@
                                     @if ($hotelreservations->isEmpty())
                                         <tr>
                                             <td colspan="9" class="text-center">
-                                                <h6 class="mt-2">{{__("No hay reservaciones registradas")}}</h6>
-                                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Reservar Nuevo")}}</a>
+                                                <h6 class="mt-2">{{__("There are no reservations registered")}}</h6>
+                                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
                                             </td>
                                         </tr>
                                     @else

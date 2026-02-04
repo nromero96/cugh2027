@@ -53,9 +53,9 @@
                 </a>
             </li>
 
-            <li class="menu menu-heading">
+            {{-- <li class="menu menu-heading">
                 <div class="heading"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>{{__("DATOS")}}</span></div>
-            </li>
+            </li> --}}
 
             <li class="menu {{ ($category_name === 'profile') ? 'active' : '' }}">
                 <a href="{{ route('users.myprofile') }}" aria-expanded="false" class="dropdown-toggle">
@@ -68,7 +68,7 @@
 
             @can('users.index', 'roles.index', 'programs.index')
             <li class="menu menu-heading">
-                <div class="heading"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>{{__("GESTION")}}</span></div>
+                <div class="heading"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-minus"><line x1="5" y1="12" x2="19" y2="12"></line></svg><span>MANAGEMENT</span></div>
             </li>
             @endcan
 

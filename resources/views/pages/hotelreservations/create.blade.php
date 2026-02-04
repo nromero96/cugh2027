@@ -15,7 +15,7 @@
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 mb-2 col-12">
                                 <h4>
-                                    {{__("Mi reservación")}}
+                                    My reservation
                                 </h4>
                             </div>
                         </div>
@@ -24,15 +24,15 @@
                         <form class="row g-3" action="{{ route('hotelreservations.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">{{__("Nombre")}}</label>
+                                <label class="form-label fw-bold">First name</label>
                                 <p class="form-control bg-light">{{$user->name}}</p>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">{{__("Apellido paterno")}}</label>
+                                <label class="form-label fw-bold">Middle name</label>
                                 <p class="form-control bg-light">{{$user->lastname}}</p>
                             </div>
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">{{__("Apellido materno")}}</label>
+                                <label class="form-label fw-bold">Last name</label>
                                 <p class="form-control bg-light">{{$user->second_lastname}}</p>
                             </div>
                             <div class="col-md-4">
@@ -66,7 +66,7 @@
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="habitacion_type" class="form-label fw-bold">{{__("Tipo de habitación")}} <span class="text-danger">*</span></label>
+                                <label for="habitacion_type" class="form-label fw-bold">Room type <span class="text-danger">*</span></label>
                                 <select name="habitacion_type" class="form-select" id="habitacion_type">
                                     <option value="">Seleccione...</option>
                                     <option value="Simple">Simple</option>
@@ -77,27 +77,27 @@
                             <div class="col-md-4">
                                 <label for="number_guests" class="form-label fw-bold">{{__("Número de huesped")}} <span class="text-danger">*</span></label>
                                 <select name="number_guests" class="form-select" id="number_guests">
-                                    <option value="">Seleccione...</option>
+                                    <option value="">Select...</option>
                                     <option value="1">1</option>
                                     <option value="2">2</option>
                                     <option value="3">3</option>
                                 </select>
                             </div>
                             <div class="col-md-4">
-                                <label for="check_in" class="form-label fw-bold">{{__("Entrada")}} <span class="text-danger">*</span></label>
+                                <label for="check_in" class="form-label fw-bold">Check in <span class="text-danger">*</span></label>
                                 <input type="date" name="check_in" class="form-control" id="check_in">
                             </div>
                             <div class="col-md-4">
-                                <label for="check_out" class="form-label fw-bold">{{__("Salida")}} <span class="text-danger">*</span></label>
+                                <label for="check_out" class="form-label fw-bold">Check out <span class="text-danger">*</span></label>
                                 <input type="date" name="check_out" class="form-control" id="check_out">
                             </div>
                             <div class="col-md-12">
-                                <label for="comment" class="form-label fw-bold">Comentario</label>
+                                <label for="comment" class="form-label fw-bold">Anotations</label>
                                 <textarea class="form-control" name="comment" id="comment" rows="8"></textarea>
                             </div>
 
                             <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-primary">{{__("Solicitar Reserva")}}</button>
+                                <button type="submit" class="btn btn-primary" disabled>{{__("Request Reservation")}}</button>
                             </div>
                         </form>
                     </div>

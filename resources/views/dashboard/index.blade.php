@@ -30,10 +30,10 @@
             <div class="col-sm-6 mb-3 mb-sm-3">
                 <div class="card mb-3 mb-sm-3">
                     <div class="card-body">
-                        <h5 class="card-title">{{__("Hola,")}} <b>{{ Auth::user()->name }}</b></h5>
-                        <p class="card-text">{{__("Gracias por participar en CUGH 2027")}}</p>
+                        <h5 class="card-title">Hello <b>{{ Auth::user()->name }}</b></h5>
+                        <p class="card-text">Thanks for participating at CUGH 2027</p>
                         
-                        @if($myinscription)
+                        {{-- @if($myinscription)
                             <a href="{{ route('gafetes.gafeteforparticipant',$myinscription->id) }}" class="btn btn-primary px-2 py-1" target="_blank">
                                 <svg width="21" height="21" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M21 5H3a1 1 0 0 0-1 1v3.5h.6a2.5 2.5 0 0 1 0 5H2V18a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1v-3.5h-.1a2.5 2.5 0 0 1 0-5h.1V6a1 1 0 0 0-1-1Z"></path>
@@ -53,13 +53,13 @@
 
                         @else
                             <a href="#" class="btn btn-alert" disabled>{{__("Solapín no disponible. Sin inscripción o pago.")}}</a>
-                        @endif
+                        @endif --}}
 
                     </div>
                 </div>
                 <div class="card bg-primary">
                     <div class="card-body">
-                      <h5 class="card-title mb-0">{{__("Evento realizado del:")}}</h5>
+                      <h5 class="card-title mb-0">Event date</h5>
                       {{-- Aqui el contador --}}
   
                       <div id="msmencurso" class="pt-2 pb-2 d-none" style="font-size: 17px;">
@@ -70,7 +70,7 @@
                       <div id="contador" class="d-flex mb-1">
                           <div class="text-white"><span id="dias" style="font-size: 25px;font-weight: bolder;"></span> <small style="font-size: 15px;">DÍAS Y </small><span id="horas" style="font-size: 25px;font-weight: bolder;"></span> <small style="font-size: 15px;">HORAS</small></div>
                       </div>
-                      <a href="{{ route('onlineprograms') }}" target="_blank" class="btn btn-light text-dark"><b>VER PROGRAMA</b></a>
+                      <a href="#" target="_blank" class="btn btn-light text-dark"><b>SEE PROGRAM</b></a>
                     </div>
                   </div>
             </div>

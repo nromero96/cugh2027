@@ -42,7 +42,7 @@
                     <div class="widget-header pt-2">
                         <div class="row">
                             <div class="col-md-8">
-                                <h4>Mis posters</h4>
+                                <h4>My posters</h4>
                             </div>
                             <div class="col-md-4 text-end mt-1">
 
@@ -184,7 +184,7 @@
                             @endforeach
 
                         @else
-                            <p class="text-center">Usted no ha presentado ningún trabajo y por lo tanto no tiene ningún poster para subir.</p>
+                            <p class="text-center">You have not submitted any work and therefore do not have any posters to upload.</p>
                         @endif
 
                     </div>

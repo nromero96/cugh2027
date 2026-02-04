@@ -13,7 +13,7 @@
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 mb-2 col-12">
                                 <h4>
-                                    {{__("Información del trabajo")}}
+                                    {{__("Job information")}}
                                 </h4>
                             </div>
                         </div>
@@ -40,7 +40,7 @@
                         @if(!in_array($authuseremail, $emailspermitidos))
                             <div class="alert alert-danger" role="alert">
                                 <h5 class="alert-heading">¡Atención!</h5>
-                                <p>Lo sentimos, ya cerramos la recepción de trabajos.</p>
+                                <p>We're sorry, we've closed the submission period.</p>
                             </div>
                         @else
                             <form class="row g-3" action="{{ route('works.store') }}" method="POST" enctype="multipart/form-data">
@@ -167,8 +167,8 @@
                                 </div>
 
                                 <div class="col-12 text-end">
-                                    <button type="submit" name="action" class="btn btn-outline-secondary" value="borrador">{{__("Borrador")}}</button>
-                                    <button type="submit" name="action" class="btn btn-primary" value="finalizado">{{__("Finalizar")}}</button>
+                                    <button type="submit" name="action" class="btn btn-outline-secondary" value="borrador" disabled>{{__("Borrador")}}</button>
+                                    <button type="submit" name="action" class="btn btn-primary" value="finalizado" disabled>{{__("Finalizar")}}</button>
                                 </div>
                             </form>
                         @endif
