@@ -27,6 +27,7 @@ use App\Http\Controllers\ProgramSessionController;
 use App\Http\Controllers\PosterController;
 use App\Http\Controllers\GafeteController;
 use App\Http\Controllers\CertificadoController;
+use App\Http\Controllers\CategoryInscriptionController;
 
 
 use Illuminate\Support\Facades\Artisan;
@@ -103,6 +104,13 @@ Route::post('upload',[UploadController::class, 'store']);
 //Search Online Posters
 Route::get('online-search-posters', [PosterController::class, 'searchPostersPage'])->name('searchPostersPage');
 
+
+Route::post(
+    '/category-inscriptions/prices',
+    [CategoryInscriptionController::class, 'pricesByCountry']
+)->name('category_inscriptions.prices');
+
+
 //routes for user login
 Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive']], function () {
 
@@ -113,7 +121,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     });
 
     //Search Online Posters
-Route::get('online-search-posters', [PosterController::class, 'searchPostersPage'])->name('searchPostersPage');
+    Route::get('online-search-posters', [PosterController::class, 'searchPostersPage'])->name('searchPostersPage');
 
     // $this->middleware
     Route::get('/dashboard', [App\Http\Controllers\DashboardController::class, 'index'])->name('dashboard.index');

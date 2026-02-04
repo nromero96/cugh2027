@@ -461,12 +461,11 @@ class InscriptionController extends Controller
             ->first();
 
             $paymentcard = Payment::where('inscription_id', $id)->first();
-            $accompanist = Accompanist::find($inscription->accompanist_id);
 
             //notes status
             $statusnotes = StatusNote::where('inscription_id', $id)->orderBy('id', 'desc')->get();
 
-            return view('pages.inscriptions.show')->with($data)->with('inscription', $inscription)->with('accompanist', $accompanist)->with('paymentcard', $paymentcard)->with('statusnotes', $statusnotes);
+            return view('pages.inscriptions.show')->with($data)->with('inscription', $inscription)->with('paymentcard', $paymentcard)->with('statusnotes', $statusnotes);
         }else{
             return redirect()->route('inscriptions.index')->with('error', 'No tiene permisos para ver esta inscripción');
         }
@@ -698,6 +697,8 @@ class InscriptionController extends Controller
         DB::beginTransaction();
 
         try {
+            $country_inscription = Country::find($request->country);
+
             // Actualizar usuario
             $user = User::find($iduser);
             $user->name = $request->name;
@@ -714,7 +715,7 @@ class InscriptionController extends Controller
             $user->address = $request->address;
             $user->city = $request->city;
             $user->state = $request->state;
-            $user->country = $request->country;
+            $user->country = $country_inscription->name;
             $user->phone_code = $request->phone_code;
             $user->phone_code_city = $request->phone_code_city;
             $user->phone_number = $request->phone_number;
@@ -730,9 +731,19 @@ class InscriptionController extends Controller
             $inscription->user_id = $iduser;
             $inscription->category_inscription_id = $request->category_inscription_id;
 
-            $category_inscription = CategoryInscription::find($request->category_inscription_id);
-            $inscription->price_category = $category_inscription->price;
-            $inscription->total = $inscription->price_category;
+            
+            $categoryInscription = CategoryInscription::find($request->category_inscription_id);
+
+            if ($country_inscription->price_type === 'Middle Income') {
+                $price_category = $categoryInscription->price_low;
+            } else { // High Income
+                $price_category = $categoryInscription->price;
+            }
+
+            $inscription->price_category = $price_category;
+            $inscription->total = $price_category;
+
+
             $inscription->special_code = $request->specialcode;
             $inscription->invoice = $request->invoice;
             $inscription->invoice_type = $request->invoice_type;
@@ -827,7 +838,7 @@ class InscriptionController extends Controller
                     'apellido_completo'    => $user->lastname ?? '', $user->second_lastname ?? '',
                     'codigo_pais'          => $user->phone_code,
                     'numero_celular'       => $user->phone_number ?? '',
-                    'pais_origen'          => $user->country ?? '',
+                    'pais_origen'          => $country_inscription->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
                     'tipo_comprobante'     => $inscription->invoice_type ?? '',
@@ -1055,7 +1066,6 @@ class InscriptionController extends Controller
             return response()->json(['error' => 'No tiene permisos para solicitar comprobante'], 403);
         }
     }
-
 
     public function exportExcelInscriptions()
     {

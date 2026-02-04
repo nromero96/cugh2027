@@ -234,6 +234,13 @@
                                     <label for="" class="form-label fw-bold">
                                         Billing information:
                                     </label>
+
+                                    @if($inscription->user_country == 'Peru')
+                                        <label for="" class="form-label fw-bold">
+                                            {{$inscription->invoice_type}}
+                                        </label>
+                                    @endif
+
                                     <div class="row mt-1" id="dv_invoice_info">
                                         <div class="col-md-4">
                                             <label class="form-label fw-bold mb-0">Name/Entity:</label><br>

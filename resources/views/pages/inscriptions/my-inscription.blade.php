@@ -73,7 +73,7 @@
                             <div class="col-md-4">
                                 <label for="inputNationality" class="form-label fw-bold mb-0">Nationality  <span class="text-danger">*</span></label>
                                 <select name="nationality" class="form-select" id="inputNationality" required>
-                                    <option value="">Select...</option>
+                                    <option value="" disabled selected>Select...</option>
                                     @foreach ($countries as $nationality)
                                         <option value="{{$nationality->name}}" @if ($user->nationality == $nationality->name) selected="selected" @endif >{{$nationality->name}}</option>
                                     @endforeach
@@ -144,9 +144,9 @@
                                         <div class="col-md-4 mt-3">
                                             <label for="inputCountry" class="form-label fw-bold mb-0">Country  <span class="text-danger">*</span></label>
                                             <select name="country" class="form-select" id="inputCountry" required>
-                                                <option value="">Select...</option>
+                                                <option value="" disabled selected>Select...</option>
                                                 @foreach ($countries as $country)
-                                                    <option value="{{$country->name}}" @if ($user->country == $country->name) selected="selected" @endif >{{$country->name}}</option>
+                                                    <option value="{{$country->id}}" @if ($user->country == $country->name) selected="selected" @endif >{{$country->name}}</option>
                                                 @endforeach
                                             </select>
                                             {!!$errors->first("country", "<span class='text-danger'>:message</span>")!!}
@@ -167,15 +167,15 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="phone_code" class="form-control rounded-0 rounded-start" id="inputPhoneCode" placeholder="+00" value="{{old('phone_code')}}" required>
+                                        <input type="text" name="phone_code" class="form-control rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{old('phone_code')}}" required>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-25">
-                                        <input type="number" name="phone_code_city" class="form-control rounded-0" id="inputPhoneCodeCity" placeholder="01" value="{{old('phone_code_city')}}" required>
+                                        <input type="text" name="phone_code_city" class="form-control rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{old('phone_code_city')}}" required>
                                         <small>Area code</small>
                                     </div>
                                     <div class="w-50">
-                                        <input type="number" name="phone_number" class="form-control rounded-0 rounded-end" id="inputPhoneNumber" placeholder="8765432" value="{{old('phone_number')}}" required>
+                                        <input type="text" name="phone_number" class="form-control rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{old('phone_number')}}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -188,11 +188,11 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="whatsapp_code" class="form-control rounded-0 rounded-start" id="inputPhoneCode" placeholder="+00" value="{{$user->whatsapp_code}}" required>
+                                        <input type="text" name="whatsapp_code" class="form-control rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{$user->whatsapp_code}}" required>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-75">
-                                        <input type="number" name="whatsapp_number" class="form-control rounded-0 rounded-end" id="inputPhoneNumber" placeholder="8765432" value="{{$user->whatsapp_number}}" required>
+                                        <input type="text" name="whatsapp_number" class="form-control rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{$user->whatsapp_number}}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -238,7 +238,7 @@
 
                                             @foreach ($category_inscriptions as $category)
                                                 @php
-                                                    if($category->name == 'Student (Undergraduate only)'){
+                                                    if($category->name == 'Student (Member)' || $category->name == 'Student (Non-Member)' || $category->name == 'Scholars' || $category->name == 'Special Code'){
                                                         $infomark = ' <span class="text-danger">*</span>';
                                                     }else{
                                                         $infomark = '';
@@ -288,7 +288,7 @@
                                     <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg)</small>
 
                                     <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info">{{ __('(Título, Constancia, Carnet profesional) (.pdf/.jpg)') }}</span></label>
+                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)') }}</span></label>
                                     <input type="file" name="document_file" id="document_file" class="file-control">
                                 </div>
 

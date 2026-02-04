@@ -32,6 +32,54 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+
+    //Change Country
+    document.getElementById('inputCountry').addEventListener('change', function () {
+
+        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch('/category-inscriptions/prices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({
+                country_id: this.value
+            })
+        })
+        .then(res => res.json())
+        .then(prices => {
+
+            Object.keys(prices).forEach(id => {
+                const price = prices[id];
+
+                // actualizar span
+                const priceSpan = document.getElementById('dc_price_' + id);
+                if (priceSpan) {
+                    priceSpan.innerText = price;
+                }
+
+                // actualizar radio data
+                const radio = document.getElementById('category_' + id);
+                if (radio) {
+                    radio.dataset.catprice = price;
+                }
+            });
+
+            calculateTotalPrice();
+        });
+
+    });
+
+    document.querySelectorAll('.inputNumber').forEach(input => {
+        // Permite solo dígitos
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/\D/g, '');
+        });
+    });
+
+
     function validarCamposInscription() {
         const selectedRadioCategoryInscription = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
         const selectedRadioPaymentMethod = document.querySelector('input[type="radio"][name="payment_method"]:checked');

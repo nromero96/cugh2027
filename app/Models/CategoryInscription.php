@@ -7,5 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class CategoryInscription extends Model
 {
-    use HasFactory;
+    protected $table = 'category_inscriptions';
+
+    protected $fillable = [
+        'name',
+        'price',
+        'price_low'
+    ];
 }
