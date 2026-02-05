@@ -167,7 +167,12 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="phone_code" class="form-control no-spaces rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{old('phone_code')}}" required>
+                                        <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                            <option value="" disabled selected>_ _</option>
+                                            @foreach ($countries as $country)
+                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                            @endforeach
+                                        </select>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-25">
@@ -188,7 +193,12 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="whatsapp_code" class="form-control no-spaces rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{$user->whatsapp_code}}" required>
+                                        <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                            <option value="" disabled selected>_ _</option>
+                                            @foreach ($countries as $country)
+                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                            @endforeach
+                                        </select>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-75">
