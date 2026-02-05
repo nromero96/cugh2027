@@ -10,6 +10,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    // Eliminar espacios en tiempo real
+    const noSpacesInputs = document.querySelectorAll('.no-spaces');
+    noSpacesInputs.forEach(input => {
+        // Eliminar espacios en tiempo real
+        input.addEventListener('input', () => {
+            input.value = input.value.replace(/\s/g, '');
+        });
+
+        // Opcional: prevenir espacio al teclear
+        input.addEventListener('keypress', (e) => {
+            if (e.key === ' ') e.preventDefault();
+        });
+
+        // Opcional: eliminar espacios al pegar
+        input.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            input.value += paste.replace(/\s/g, '');
+        });
+    });
+
 
     //obtener valor del select option inputCountry selected value
     const selectCountry = document.getElementById('inputCountry');

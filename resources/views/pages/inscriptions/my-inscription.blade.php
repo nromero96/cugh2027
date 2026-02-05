@@ -66,7 +66,7 @@
 
                             <div class="col-md-4">
                                 <label for="inputDocumentNumber" class="form-label fw-bold mb-0">Document Number <span class="text-danger">*</span></label>
-                                <input type="text" name="document_number" class="form-control" id="inputDocumentNumber" value="{{$user->document_number}}" required>
+                                <input type="text" name="document_number" class="form-control no-spaces" id="inputDocumentNumber" value="{{$user->document_number}}" required>
                                 {!!$errors->first("document_number", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
@@ -167,15 +167,15 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="phone_code" class="form-control rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{old('phone_code')}}" required>
+                                        <input type="text" name="phone_code" class="form-control no-spaces rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{old('phone_code')}}" required>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-25">
-                                        <input type="text" name="phone_code_city" class="form-control rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{old('phone_code_city')}}" required>
+                                        <input type="text" name="phone_code_city" class="form-control no-spaces rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{old('phone_code_city')}}" required>
                                         <small>Area code</small>
                                     </div>
                                     <div class="w-50">
-                                        <input type="text" name="phone_number" class="form-control rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{old('phone_number')}}" required>
+                                        <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{old('phone_number')}}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -188,11 +188,11 @@
                                 <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <input type="text" name="whatsapp_code" class="form-control rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{$user->whatsapp_code}}" required>
+                                        <input type="text" name="whatsapp_code" class="form-control no-spaces rounded-0 rounded-start inputNumber" id="inputPhoneCode" placeholder="_ _" maxlength="3" value="{{$user->whatsapp_code}}" required>
                                         <small>Country</small>
                                     </div>
                                     <div class="w-75">
-                                        <input type="text" name="whatsapp_number" class="form-control rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{$user->whatsapp_number}}" required>
+                                        <input type="text" name="whatsapp_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{$user->whatsapp_number}}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -326,7 +326,7 @@
                                             <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="Name/Entity">
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control" placeholder="Tax ID (RUC)">
+                                            <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces" placeholder="Tax ID (RUC)">
                                         </div>
                                         <div class="col-md-4">
                                             <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address">
