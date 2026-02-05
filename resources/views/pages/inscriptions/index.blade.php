@@ -77,17 +77,26 @@
 
 
                                             <div>
+
+                                                @php 
+                                                    if($inscription->payment_method == 'none'){
+                                                        $payment_method = 'No payment required';
+                                                    }else{
+                                                        $payment_method = $inscription->payment_method;
+                                                    }
+                                                @endphp
+
                                                 @if($inscription->status == 'Paid')
-                                                    <span class="badge badge-light-success">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
+                                                    <span class="badge badge-light-success">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Processing')
-                                                    <span class="badge badge-light-info">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
+                                                    <span class="badge badge-light-info">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Pending')
-                                                    <span class="badge badge-light-warning">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
+                                                    <span class="badge badge-light-warning">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                     @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0 || $inscription->special_code == 'PAXROSMAR') )
                                                         {{-- <a href="{{ route('inscriptions.paymentniubiz', $inscription->id) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pagar")}}</a> --}}
                                                     @endif
                                                 @elseif ($inscription->status == 'Refused')
-                                                    <span class="badge badge-light-danger">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
+                                                    <span class="badge badge-light-danger">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @endif
                                             </div>
 

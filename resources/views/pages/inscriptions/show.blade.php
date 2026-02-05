@@ -264,7 +264,16 @@
                                 <div class="card px-3 py-3">
                                     <label for="" class="form-label fw-bold mb-0">Payment Method:</label>
                                     <div class="">
-                                        {{ $inscription->payment_method }}
+
+                                        @php 
+                                            if($inscription->payment_method == 'none'){
+                                                $payment_method = 'No payment required';
+                                            }else{
+                                                $payment_method = $inscription->payment_method;
+                                            }
+                                        @endphp
+
+                                        {{ $payment_method }}
                                     </div>
                                     @if ($inscription->payment_method == 'Bank Transfer/Wire')
                                         <div class="row mt-1">
@@ -325,17 +334,17 @@
                                             @method('PUT')
                                             <div class="col-md-4">
                                                 <select name="action" id="action" class="form-control">
-                                                    <option value="Pendiente" @if ($inscription->status == 'Pendiente') selected @endif >{{ __('Pendiente') }}</option>
-                                                    <option value="Procesando" @if ($inscription->status == 'Procesando') selected @endif>{{ __('Procesando') }}</option>
-                                                    <option value="Pagado" @if ($inscription->status == 'Pagado') selected @endif>{{ __('Pagado') }}</option>
-                                                    <option value="Rechazado" @if ($inscription->status == 'Rechazado') selected @endif>{{ __('Rechazado') }}</option>
+                                                    <option value="Pending" @if ($inscription->status == 'Pending') selected @endif >{{ __('Pending') }}</option>
+                                                    <option value="Processing" @if ($inscription->status == 'Processing') selected @endif>{{ __('Processing') }}</option>
+                                                    <option value="Paid" @if ($inscription->status == 'Paid') selected @endif>{{ __('Paid') }}</option>
+                                                    <option value="Refused" @if ($inscription->status == 'Refused') selected @endif>{{ __('Refused') }}</option>
                                                 </select>
                                             </div>
                                             <div class="col-md-5">
-                                                <input type="text" class="form-control" name="note" id="note" placeholder="Nota...">
+                                                <input type="text" class="form-control" name="note" id="note" placeholder="Note...">
                                             </div>
                                             <div class="col-md-3">
-                                                <button type="submit" class="btn btn-secondary">{{ __('Actualizar') }}</button>
+                                                <button type="submit" class="btn btn-secondary">{{ __('Update') }}</button>
                                             </div>
                                         </form>
                                     </div>
