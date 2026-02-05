@@ -24,6 +24,10 @@
     
     <link href="{{asset('layouts/vertical-light-menu/css/dark/plugins.css')}}" rel="stylesheet" type="text/css" />
     <link href="{{asset('assets/css/dark/authentication/auth-cover.css')}}" rel="stylesheet" type="text/css" />
+
+    <link href="{{ asset('assets/css/light/components/modal.css') }}" rel="stylesheet" type="text/css">
+    <link href="{{ asset('assets/css/dark/components/modal.css') }}" rel="stylesheet" type="text/css">
+
     <!-- END GLOBAL MANDATORY STYLES -->
     
 </head>
@@ -34,6 +38,34 @@
         <div class="spinner-grow align-self-center"></div>
     </div></div></div>
     <!--  END LOADER -->
+
+    {{-- Modal --}}
+    <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+        
+            <div class="modal-body">
+                <h5 class="modal-title text-center" id="myModalLabel">WELCOME CUGH’s 18th ANNUAL CONFERENCE LIMA – PERU</h5>
+                <div class="row mt-4">
+                    <div class="col-md-6 text-center">
+                        <p class="text-center">First time user?</p>
+                        <a href="{{route('register')}}" class="btn btn-primary w-100">Enter here</a>
+                    </div>
+                    <div class="col-md-6 text-center">
+                        <p class="text-center">Already registered?</p>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Access your account</button>
+                    </div>
+                </div>
+                <p class="text-center mt-4 pt-4">
+                    <small>This conference is organized by the Universidad Peruana Cayetano Heredia (UPCH).</small>
+                </p>
+            </div>
+        
+        </div>
+    </div>
+    </div>
+
 
     <div class="auth-container d-flex">
 
@@ -142,6 +174,16 @@
     <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
     <script src="{{asset('bootstrap/js/bootstrap.bundle.min.js')}}"></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Obtener el modal
+            var myModal = new bootstrap.Modal(document.getElementById('myModal'));
+
+            // Abrir el modal
+            myModal.show();
+        });
+    </script>
 
 
 </body>

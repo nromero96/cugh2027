@@ -20,6 +20,9 @@
     
     <link href="{{asset('layouts/vertical-light-menu/css/dark/plugins.css')}}" rel="stylesheet" type="text/css" />
     <link href="{{asset('assets/css/dark/authentication/auth-cover.css')}}" rel="stylesheet" type="text/css" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
     <!-- END GLOBAL MANDATORY STYLES -->
     
 </head>
@@ -72,7 +75,10 @@
                                     <div class="col-md-12">
                                         <div class="mb-3">
                                             <label for="email" class="form-label mb-0">E-mail</label>
-                                            <input id="email" type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" required autocomplete="email">
+                                            <input id="email" type="email" class="form-control email-smart @error('email') is-invalid @enderror" name="email" value="{{ old('email') }}" list="email-domains" required autocomplete="email">
+                                            <datalist id="email-domains">
+                                                <!-- Se llena dinámicamente -->
+                                            </datalist>
                                             @error('email')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
@@ -88,7 +94,7 @@
                                                 <option value="DNI" @if(old('document_type') == 'DNI') selected @endif>DNI (for Peruvian citizens only)</option>
                                                 <option value="Passport" @if(old('document_type') == 'Passport') selected @endif>Passport</option>
                                             </select>
-                                            <input type="text" class="form-control" id="document_number" name="document_number" value="{{ old('document_number') }}" required style="width: 60%;">
+                                            <input type="text" class="form-control no-spaces" id="document_number" name="document_number" value="{{ old('document_number') }}" required style="width: 60%;">
                                             
                                             @error('document_number')
                                                 <span class="invalid-feedback d-block" role="alert">
@@ -101,18 +107,31 @@
                                     <div class="col-12">
                                         <div class="mb-3">
                                             <label for="password" class="form-label mb-0">Password</label>
-                                            <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                                            <div class="input-group">
+                                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                                                <span class="input-group-text cursor-pointer"
+                                                    onclick="togglePassword('password', this)">
+                                                    <i class="bi bi-eye"></i>
+                                                </span>
+                                            </div>
                                             @error('password')
                                                 <span class="invalid-feedback" role="alert">
                                                     <strong>{{ $message }}</strong>
                                                 </span>
                                             @enderror
+                                            
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="mb-4">
                                             <label for="password-confirm" class="form-label mb-0">Confirm Password</label>
-                                            <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                                            <div class="input-group">
+                                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                                                <span class="input-group-text cursor-pointer"
+                                                    onclick="togglePassword('password-confirm', this)">
+                                                    <i class="bi bi-eye"></i>
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -160,6 +179,113 @@
     </div>
 
     <script src="{{asset('bootstrap/js/bootstrap.bundle.min.js')}}"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.no-spaces').forEach(input => {
+
+                // Elimina espacios en tiempo real (teclado y pegar)
+                input.addEventListener('input', () => {
+                    input.value = input.value.replace(/\s/g, '');
+                });
+
+                // Bloquea la barra espaciadora
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === ' ') {
+                        e.preventDefault();
+                    }
+                });
+
+                // Limpia espacios al pegar
+                input.addEventListener('paste', (e) => {
+                    e.preventDefault();
+                    const text = (e.clipboardData || window.clipboardData)
+                                    .getData('text')
+                                    .replace(/\s/g, '');
+                    document.execCommand('insertText', false, text);
+                });
+
+            });
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const emailInput = document.querySelector('.email-smart');
+            const datalist   = document.getElementById('email-domains');
+
+            const domains = [
+                'gmail.com',
+                'outlook.com',
+                'hotmail.com',
+                'yahoo.com',
+                'icloud.com'
+            ];
+
+            emailInput.addEventListener('input', () => {
+                // 1️⃣ Convertir a minúsculas
+                emailInput.value = emailInput.value.toLowerCase();
+
+                // 2️⃣ Eliminar espacios
+                emailInput.value = emailInput.value.replace(/\s/g, '');
+
+                // 3️⃣ Autocompletar dominios
+                datalist.innerHTML = '';
+
+                const value = emailInput.value;
+                const atIndex = value.indexOf('@');
+
+                if (atIndex > -1) {
+                    const prefix = value.substring(0, atIndex + 1);
+                    const typedDomain = value.substring(atIndex + 1);
+
+                    domains.forEach(domain => {
+                        if (domain.startsWith(typedDomain)) {
+                            const option = document.createElement('option');
+                            option.value = prefix + domain;
+                            datalist.appendChild(option);
+                        }
+                    });
+                }
+            });
+
+            // 4️⃣ Bloquear espacio desde teclado
+            emailInput.addEventListener('keydown', (e) => {
+                if (e.key === ' ') e.preventDefault();
+            });
+
+            // 5️⃣ Limpiar espacios al pegar
+            emailInput.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const text = (e.clipboardData || window.clipboardData)
+                                .getData('text')
+                                .toLowerCase()
+                                .replace(/\s/g, '');
+                document.execCommand('insertText', false, text);
+            });
+
+        });
+        </script>
+
+
+
+    <script>
+        function togglePassword(inputId, el) {
+            const input = document.getElementById(inputId);
+            const icon  = el.querySelector('i');
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('bi-eye-slash');
+                icon.classList.add('bi-eye');
+            }
+        }
+    </script>
 
 
 </body>
