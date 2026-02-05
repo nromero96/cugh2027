@@ -663,8 +663,8 @@ class InscriptionController extends Controller
         $validatedData = request()->validate([
             //data user
             'name' => 'required|string',
-            'lastname' => 'required|string',
-            'second_lastname' => 'nullable|string',
+            'lastname' => 'nullable|string',
+            'second_lastname' => 'required|string',
             'email' => 'required|email',
             'document_type' => 'required|string',
             'document_number' => 'required|string',
@@ -775,7 +775,7 @@ class InscriptionController extends Controller
                 $temporaryfile_voucher_file->delete();
             }
 
-            if ($request->payment_method == 'Bank Transfer/Wire') {
+            if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
                 $inscription->status = 'Processing';
                 $inscription->save();
 

@@ -44,13 +44,13 @@
                                 {!!$errors->first("name", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
-                                <label for="inputLastName" class="form-label fw-bold mb-0">Middle Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control convert_mayus" name="lastname" id="lastname" value="{{ old('lastname') }}" required>
+                                <label for="inputLastName" class="form-label fw-bold mb-0">Middle Name</label>
+                                <input type="text" class="form-control convert_mayus" name="lastname" id="lastname" value="{{ old('lastname') }}">
                                 {!!$errors->first("lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
                                 <label for="inputSecondLastName" class="form-label fw-bold mb-0">Last Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname') }}">
+                                <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname') }}" required>
                                 {!!$errors->first("second_lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
@@ -307,13 +307,13 @@
                                     </div>
 
                                     <div class="">
-                                        <div class="form-check form-check-primary form-check-inline">
+                                        <div class="form-check form-check-primary form-check-inline" id="dv_invoice_type_boleta">
                                             <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_boleta" value="Boleta" checked="">
                                             <label class="form-check-label mb-0 cursor-pointer" for="invoice_type_boleta">
                                                 Boleta
                                             </label>
                                         </div>
-                                        <div class="form-check form-check-primary form-check-inline">
+                                        <div class="form-check form-check-primary form-check-inline d-none" id="dv_invoice_type_factura">
                                             <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_factura" value="Factura">
                                             <label class="form-check-label mb-0 cursor-pointer" for="invoice_type_factura">
                                                 Factura
@@ -340,26 +340,49 @@
                                 <div class="card px-3 py-3">
                                     <label for="" class="form-label fw-bold text-center">METHOD OF PAYMENT</label>
 
-                                    <div class="text-center">
 
+                                    <!-- RADIO OCULTO: NO PAYMENT -->
+                                        <input type="radio"
+                                            name="payment_method"
+                                            value="none"
+                                            id="payment_method_none"
+                                            checked
+                                            hidden>
+
+                                    <div class="text-center" id="dv_payment_method">
                                         <div class="form-check form-check-primary form-check-inline">
-                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer" checked>
+                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer">
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_transfer">
                                                 Bank Transfer/Wire
                                             </label>
                                         </div>
-
                                         <div class="form-check form-check-primary form-check-inline">
                                             <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Credit/Debit Card" id="payment_method_card">
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_card">
                                                 Credit/Debit Card
                                             </label>
                                         </div>
-                                        
                                     </div>
 
-                                    <div id="dv_tranfer" class="mt-3">
+                                    <div id="dv_nopayment" class="mt-3 d-none">
+                                        <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+                                            This category has no registration fee.<br>
+                                            Your application will be reviewed before being approved.
+                                            <br><br>
+                                            You will be notified once the review process is completed.
+                                        </div>
+                                    </div>
+
+                                    <div id="dv_tranfer" class="mt-3 d-none">
                                         <div class="row">
+                                            <div class="col-md-12 text-center">
+                                                Beneficiary:  <b>UNIVERSIDAD PERUANA CAYETANO HEREDIA</b><br>
+                                                RUC/TAX ID: 20110768151<br>
+                                                Checking Account Number: 191-7318074-1-48<br>
+                                                CCI (valid in Peru only): 002 191 007318074148 57<br>
+                                                Bank Name: BANCO DE CRÉDITO DEL PERU<br>
+                                                Swift Code: BCPLPEPL<br>
+                                            </div>
                                             <div class="col-md-2"></div>
                                             <div class="col-md-8">
                                                 <div id="dv_voucher_file" class="mt-2">
@@ -384,12 +407,6 @@
                                 </div>
                             </div>
                             
-                            <div class="col-md-12 d-none" id="sms_extranjero">
-                                <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
-                                    <strong>{{__("Note:")}}</strong> Su información será validada y, una vez confirmada, recibirá un correo electrónico con la confirmación de su inscripción.
-                                </div>
-                            </div>
-
                             <div class="col-12 text-center">
                                 <button type="submit" class="btn btn-primary btn-lg" id="btnSubInscription">Register Now</button>
                             </div>

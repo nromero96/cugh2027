@@ -11,6 +11,12 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
+    //obtener valor del select option inputCountry selected value
+    const selectCountry = document.getElementById('inputCountry');
+    const selectedCountry = selectCountry.options[selectCountry.selectedIndex].value;
+    invoiceOptions(selectedCountry);
+
+
     //inputOccupation if select Other
     document.addEventListener('change', function (e) {
         if (e.target.matches('select[name="occupation"]')) {
@@ -70,7 +76,21 @@ document.addEventListener("DOMContentLoaded", function () {
             calculateTotalPrice();
         });
 
+
+        invoiceOptions(this.value);
+
     });
+
+
+    function invoiceOptions(value){
+        if(value == '176'){
+            document.getElementById('dv_invoice_type_factura').classList.remove('d-none');
+        }else{
+            document.getElementById('dv_invoice_type_factura').classList.add('d-none');
+            document.getElementById('invoice_type_boleta').checked = true;
+            document.getElementById('invoice_type_factura').checked = false;
+        }
+    }
 
     document.querySelectorAll('.inputNumber').forEach(input => {
         // Permite solo dígitos
@@ -149,32 +169,28 @@ function calculateTotalPrice() {
   });
   
 
-  //si hay un codigo especial marcar el metodo de pago como tarjeta y desabilitar el radio de transferencia
-  const specialCodeVerify = document.getElementById('specialcode_verify');
-  if(specialCodeVerify.value == 'valid' || totalPrice == 0){
-    const radioPaymentMethodCard = document.getElementById('payment_method_card');
-    const radioPaymentMethodTransfer = document.getElementById('payment_method_transfer');
-    radioPaymentMethodCard.checked = true;
-    radioPaymentMethodTransfer.setAttribute('disabled', 'disabled');
-    const dvTranfer = document.getElementById('dv_tranfer');
-    const dvCard = document.getElementById('dv_card');
-    dvTranfer.classList.add('d-none');
-    dvCard.classList.remove('d-none');
-  }else{
-    const radioPaymentMethodTransfer = document.getElementById('payment_method_transfer');
-    const radioPaymentMethodCard = document.getElementById('payment_method_card');
-    radioPaymentMethodTransfer.checked = true;
-    radioPaymentMethodTransfer.removeAttribute('disabled', 'disabled');
-    radioPaymentMethodCard.cheked = false;
-    const dvTranfer = document.getElementById('dv_tranfer');
-    const dvCard = document.getElementById('dv_card');
-    dvTranfer.classList.remove('d-none');
-    dvCard.classList.add('d-none');
-  }
 
-  if(totalPrice == 0){
-
-  }
+    if(totalPrice == 0){
+         //Ocultar dv_payment_method
+        document.getElementById('dv_payment_method').classList.add('d-none');
+        //marcar radio payment_method_none
+        document.getElementById('payment_method_none').checked = true;
+        //mostrar dv_payment_method_none
+        document.getElementById('dv_nopayment').classList.remove('d-none');
+        //Ocultar dv_tranfer
+        document.getElementById('dv_tranfer').classList.add('d-none');
+        //Ocultar dv_card
+        document.getElementById('dv_card').classList.add('d-none');
+       
+    }else{
+        //Mostrar dv_payment_method
+        document.getElementById('dv_payment_method').classList.remove('d-none');
+        //desmarcar radio payment_method_none
+        document.getElementById('payment_method_none').checked = false;
+        //ocultar dv_payment_method_none
+        document.getElementById('dv_nopayment').classList.add('d-none');
+        
+    }
 
 
   // Actualiza el elemento HTML con el precio total
