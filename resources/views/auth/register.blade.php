@@ -45,7 +45,7 @@
                         <div class="auth-overlay" style="background-image: url({{asset('assets/img/bg-lg-1-min.jpg')}});background-size: cover; background-position: center"></div>
                         <div class="auth-cover">
                             <div class="position-relative">
-                                <h2 class="mt-5 text-white px-2" style="font-weight: bold;">CUGH’s 18th ANNUAL CONFERENCE LIMA – PERU</h2>
+                                <h2 class="mt-5 text-white px-2" style="font-weight: bold;">CUGH’s 18th ANNUAL CONFERENCE<br> LIMA – PERU</h2>
                                 <p class="text-white">February 25-28, 2027</p>
                             </div>
                         </div>
@@ -90,7 +90,7 @@
                                         <label for="" class="form-label mb-0">Type and Number of Document</label>
                                         <div class="input-group mb-3">
                                             <select class="form-select" id="document_type" name="document_type" required style="width: 40%;">
-                                                <option value="">Seleccione...</option>
+                                                <option value="">Select...</option>
                                                 <option value="DNI" @if(old('document_type') == 'DNI') selected @endif>DNI (for Peruvian citizens only)</option>
                                                 <option value="Passport" @if(old('document_type') == 'Passport') selected @endif>Passport</option>
                                             </select>

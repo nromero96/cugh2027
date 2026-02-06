@@ -837,7 +837,7 @@ class InscriptionController extends Controller
                     'nombre_completo'      => $user->name,
                     'apellido_completo'    => $user->lastname ?? '', $user->second_lastname ?? '',
                     'codigo_pais'          => $user->phone_code,
-                    'numero_celular'       => $user->phone_number ?? '',
+                    'numero_celular'       => $user->whatsapp_number ?? '',
                     'pais_origen'          => $country_inscription->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',

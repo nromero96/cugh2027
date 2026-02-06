@@ -46,7 +46,7 @@
         <div class="modal-content">
         
             <div class="modal-body">
-                <h5 class="modal-title text-center" id="myModalLabel">WELCOME CUGH’s 18th ANNUAL CONFERENCE LIMA – PERU</h5>
+                <h5 class="modal-title text-center" id="myModalLabel">WELCOME TO CUGH’s 18th ANNUAL CONFERENCE LIMA – PERU</h5>
                 <div class="row mt-4">
                     <div class="col-md-6 text-center">
                         <p class="text-center">First time user?</p>
@@ -78,7 +78,7 @@
                         <div class="auth-overlay" style="background-image: url({{asset('assets/img/bg-lg-1-min.jpg')}});background-size: cover; background-position: center"></div>
                         <div class="auth-cover">
                             <div class="position-relative">
-                                <h2 class="mt-5 text-white px-2" style="font-weight: bold;">CUGH’s 18th ANNUAL CONFERENCE LIMA – PERU</h2>
+                                <h2 class="mt-5 text-white px-2" style="font-weight: bold;">CUGH’s 18th ANNUAL CONFERENCE<br> LIMA – PERU</h2>
                                 <p class="text-white">February 25-28, 2027</p>
                             </div>
                         </div>
