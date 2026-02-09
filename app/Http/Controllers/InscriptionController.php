@@ -891,6 +891,64 @@ class InscriptionController extends Controller
     }
 
 
+    public function repeatPayment($id){
+        //Validate if inscription exist and status is pending
+        $inscription = Inscription::findOrFail($id);
+        if ($inscription->status == 'Pending') {
+
+               $user = User::find($inscription->user_id);
+               $country_inscription = Country::find($user->country);
+
+                $tipo_comprobante = '';
+                $direcion_comprobante = '';
+                if($inscription->invoice == 'yes'){
+                    $direcion_comprobante = $inscription->invoice_address;
+                } else {
+                    $direcion_comprobante = $user->address;
+                }
+
+                if($inscription->invoice_type == 'Factura'){
+                    $tipo_comprobante = 'F';
+                } else {
+                    $tipo_comprobante = 'B';
+                }
+
+                $params = [
+                    'forma_de_pago'        => '001',
+                    'dato_transferencia'   => '',
+                    'codigo_comercio'      => config('services.upch.commercial_code'),
+                    'codigo_tarifario'     => '',
+                    'moneda'               => 'USD',
+                    'monto'                => $inscription->total,
+                    'correo'               => $user->email,
+                    'nombre_completo'      => $user->name ?? '',
+                    'apellido_paterno'     => $user->lastname ?? '',
+                    'apellido_materno'     => $user->second_lastname ?? '',
+                    'codigo_pais'          => $user->phone_code,
+                    'numero_celular'       => $user->phone_number ?? '',
+                    'pais_origen'          => $user->country ?? '',
+                    'tipo_documento'       => $user->document_type ?? '',
+                    'numero_documento'     => $user->document_number ?? '',
+                    'tipo_comprobante'     => $tipo_comprobante ?? '',
+                    'razon_social'         => $inscription->invoice_social_reason ?? '',
+                    'direccion_fiscal'     => $inscription->invoice_address ?? '',
+                    'numero_inscripcion'   => $inscription->id,
+                    'ciudad'               => $user->city ?? '',
+                    'url_respuesta'        => config('services.upch.url_response_payment_data'),
+                ]; 
+
+                $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
+
+                return redirect($url);
+            
+        } else {
+            return redirect()->route('inscriptions.index')->with('error', 'You can only repeat the payment for pending registrations.');
+        }
+
+
+    }
+
+
     public function paymentResult(Request $request)
     {
         $numeroInscripcion = $request->get('numero_inscripcion');

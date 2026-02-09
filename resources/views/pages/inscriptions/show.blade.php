@@ -301,7 +301,7 @@
                                         <div class="row mt-1">
                                             <div class="col-12">
                                                 <label class="form-label fw-bold mb-0">Pending Payment:</label><br>
-                                                <a href="#" class="btn btn-primary">Go to Pay</a>
+                                                <a href="{{ route('inscriptions.repeatpayment', $inscription->id) }}" class="btn btn-primary mt-2">Go to Pay</a>
                                             </div>
                                         </div>
                                     @endif
