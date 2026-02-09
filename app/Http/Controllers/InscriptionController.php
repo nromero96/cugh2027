@@ -853,7 +853,7 @@ class InscriptionController extends Controller
                 }
 
                 $params = [
-                    'forma_de_pago'        => $inscription->payment_method ?? '',
+                    'forma_de_pago'        => '001',
                     'dato_transferencia'   => '',
                     'codigo_comercio'      => config('services.upch.commercial_code'),
                     'codigo_tarifario'     => '',
