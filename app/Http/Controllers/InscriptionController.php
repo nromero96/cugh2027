@@ -684,7 +684,7 @@ class InscriptionController extends Controller
             'occupation' => 'required|string',
             'occupation_other' => 'nullable|string',
             'workplace' => 'required|string',
-            'address' => 'required|string',
+            'address' => 'required|string|max:50',
             'city' => 'required|string',
             'state' => 'required|string',
             'country' => 'required|string',
@@ -705,7 +705,7 @@ class InscriptionController extends Controller
             'billing_same_as_personal' => 'nullable|string',
             'invoice_ruc' => 'nullable|string',
             'invoice_social_reason' => 'nullable|string',
-            'invoice_address' => 'nullable|string',
+            'invoice_address' => 'nullable|string|max:50',
             'payment_method' => 'required|string',
         ]);
 

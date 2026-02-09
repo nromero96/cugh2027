@@ -123,7 +123,7 @@
 
                                         <div class="col-md-8 mt-3">
                                             <label for="inputAddress" class="form-label fw-bold mb-0">Work Address <span class="text-danger">*</span></label>
-                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" required>
+                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" autocomplete="new-work-address" required>
                                             {!!$errors->first("address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
@@ -378,7 +378,7 @@
                                         </div>
                                         <div class="col-md-4">
                                             <label for="invoice_address" class="form-label mb-0">Business Address <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address" maxlength="50" required>
+                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address" maxlength="50" autocomplete="new-address" required>
                                         </div>
                                     </div>
 
