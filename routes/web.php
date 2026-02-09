@@ -152,6 +152,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::get('/my-inscription', [InscriptionController::class, 'registerMyInscription'])->name('inscriptions.myinscription');
     Route::post('/store-my-inscription', [InscriptionController::class, 'storeMyInscription'])->name('inscriptions.storemyinscription');
 
+    Route::get('/payment-result', [InscriptionController::class, 'paymentResult'])->name('payment.result');
+
     Route::get('/manual-registration-participant', [InscriptionController::class, 'formManualRegistrationParticipant'])->name('inscriptions.manualregistrationparticipant');
     Route::post('/store-manual-registration-participant', [InscriptionController::class, 'storeManualRegistrationParticipant'])->name('inscriptions.storemanualregistrationparticipant');
     

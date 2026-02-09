@@ -18,6 +18,7 @@ class Inscription extends Model
         'document_file',
         'invoice',
         'invoice_type',
+        'billing_same_as_personal',
         'invoice_ruc',
         'invoice_social_reason',
         'invoice_address',

@@ -21,6 +21,7 @@ class Payment extends Model
         'amount',
         'currency',
         'transaction_date',
+        'status_payment'
     ];
 
 }

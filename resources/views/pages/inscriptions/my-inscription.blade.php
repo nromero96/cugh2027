@@ -40,33 +40,33 @@
                             @csrf
                             <div class="col-md-4">
                                 <label for="inputName" class="form-label fw-bold mb-0">First Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control convert_mayus" name="name" id="name" value="{{ old('name') }}" required>
+                                <input type="text" class="form-control convert_mayus" name="name" id="name" value="{{ old('name', $user->name) }}" required>
                                 {!!$errors->first("name", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
                                 <label for="inputLastName" class="form-label fw-bold mb-0">Middle Name</label>
-                                <input type="text" class="form-control convert_mayus" name="lastname" id="lastname" value="{{ old('lastname') }}">
+                                <input type="text" class="form-control convert_mayus" name="lastname" id="lastname" value="{{ old('lastname', $user->lastname) }}">
                                 {!!$errors->first("lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
                                 <label for="inputSecondLastName" class="form-label fw-bold mb-0">Last Name <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname') }}" required>
+                                <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname', $user->second_lastname) }}" required>
                                 {!!$errors->first("second_lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-4">
                                 <label for="inputDocumentType" class="form-label fw-bold mb-0">Document Type <span class="text-danger">*</span></label>
                                 <select name="document_type" class="form-select" id="inputDocumentType" required>
-                                    <option value="" @if ($user->document_type == '') selected="selected" @endif >Select...</option>
-                                    <option value="DNI" @if ($user->document_type == 'DNI') selected="selected" @endif >DNI (for Peruvian citizens only)</option>
-                                    <option value="Pasaporte" @if ($user->document_type == 'Passport') selected="selected" @endif>Passport</option>
+                                    <option value="" {{ old('document_type', $user->document_type) == '' ? 'selected' : '' }}>Select...</option>
+                                    <option value="DNI" {{ old('document_type', $user->document_type) == 'DNI' ? 'selected' : '' }}>DNI (for Peruvian citizens only)</option>
+                                    <option value="Passport" {{ old('document_type', $user->document_type) == 'Passport' ? 'selected' : '' }}>Passport</option>
                                 </select>
                                 {!!$errors->first("document_type", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-4">
                                 <label for="inputDocumentNumber" class="form-label fw-bold mb-0">Document Number <span class="text-danger">*</span></label>
-                                <input type="text" name="document_number" class="form-control no-spaces" id="inputDocumentNumber" value="{{$user->document_number}}" required>
+                                <input type="text" name="document_number" class="form-control no-spaces" id="inputDocumentNumber" value="{{ old('document_number', $user->document_number) }}" required>
                                 {!!$errors->first("document_number", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
@@ -117,26 +117,26 @@
                                     <div class="row">
                                         <div class="col-md-4 mt-3">
                                             <label for="inputWorkplace" class="form-label fw-bold mb-0">Workplace <span class="text-danger">*</span></label>
-                                            <input type="text" name="workplace" class="form-control" id="inputWorkplace" value="{{old('workplace')}}" required>
+                                            <input type="text" name="workplace" class="form-control" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}" required>
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-8 mt-3">
                                             <label for="inputAddress" class="form-label fw-bold mb-0">Work Address <span class="text-danger">*</span></label>
-                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{old('address')}}" required>
+                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" required>
                                             {!!$errors->first("address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputCity" class="form-label fw-bold mb-0">City <span class="text-danger">*</span></label>
-                                            <input type="text" name="city" class="form-control" id="inputCity" value="{{old('city')}}" required>
+                                            <input type="text" name="city" class="form-control" id="inputCity" value="{{ old('city', $user->city) }}" required>
                                             {!!$errors->first("city", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputState" class="form-label fw-bold mb-0">State <span class="text-danger">*</span></label>
-                                            <input type="text" name="state" class="form-control" id="inputState" value="{{old('state')}}" required>
+                                            <input type="text" name="state" class="form-control" id="inputState" value="{{ old('state', $user->state) }}" required>
                                             {!!$errors->first("state", "<span class='text-danger'>:message</span>")!!}
                                         </div>
                                         
@@ -156,15 +156,34 @@
                                     <hr class="mb-1">
                             </div>
 
-
-                            {{-- <div class="col-md-4">
-                                <label for="inputPostalCode" class="form-label fw-bold mb-0">Postal Code <span class="text-danger">*</span></label>
-                                <input type="number" name="postal_code" class="form-control" id="inputPostalCode" value="{{old('postal_code')}}" required>
-                                {!!$errors->first("postal_code", "<span class='text-danger'>:message</span>")!!}
-                            </div> --}}
+                            <div class="col-md-4">
+                                <label for="inputWorkPhoneNumber" class="form-label fw-bold mb-0">Work Phone <span class="text-danger">*</span></label>
+                                <div class="d-flex">
+                                    <div class="w-25">
+                                        <select name="work_phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                            <option value="" disabled selected>_ _</option>
+                                            @foreach ($countries as $country)
+                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                            @endforeach
+                                        </select>
+                                        <small>Country</small>
+                                    </div>
+                                    <div class="w-25">
+                                        <input type="text" name="work_phone_code_city" class="form-control no-spaces rounded-0 inputNumber" id="inputWorkPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{ old('work_phone_code_city', $user->work_phone_code_city) }}">
+                                        <small>Area code</small>
+                                    </div>
+                                    <div class="w-50">
+                                        <input type="text" name="work_phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputWorkPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('work_phone_number', $user->work_phone_number) }}" required>
+                                        <small>Number</small>
+                                    </div>
+                                </div>
+                                {!!$errors->first("work_phone_code", "<span class='text-danger'>:message</span>")!!}
+                                {!!$errors->first("work_phone_code_city", "<span class='text-danger'>:message</span>")!!}
+                                {!!$errors->first("work_phone_number", "<span class='text-danger'>:message</span>")!!}
+                            </div>
 
                             <div class="col-md-4">
-                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Phone <span class="text-danger">*</span></label>
+                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Cell Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
                                         <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
@@ -176,11 +195,11 @@
                                         <small>Country</small>
                                     </div>
                                     <div class="w-25">
-                                        <input type="text" name="phone_code_city" class="form-control no-spaces rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{old('phone_code_city')}}" required>
+                                        <input type="text" name="phone_code_city" class="form-control no-spaces rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{ old('phone_code_city', $user->phone_code_city) }}">
                                         <small>Area code</small>
                                     </div>
                                     <div class="w-50">
-                                        <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{old('phone_number')}}" required>
+                                        <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('phone_number', $user->phone_number) }}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -190,10 +209,10 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp <span class="text-danger">*</span></label>
+                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp</label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                        <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
                                                 <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
@@ -202,7 +221,7 @@
                                         <small>Country</small>
                                     </div>
                                     <div class="w-75">
-                                        <input type="text" name="whatsapp_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{$user->whatsapp_number}}" required>
+                                        <input type="text" name="whatsapp_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('whatsapp_number', $user->whatsapp_number) }}">
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -219,10 +238,16 @@
                             </div>
 
                             <div class="col-md-6">
+                                <label for="inputCcEmail" class="form-label fw-bold mb-0">Cc E-mail</label>
+                                <input type="email" name="cc_email" class="form-control" id="inputCcEmail" value="{{ old('cc_email', $user->cc_email) }}">
+                                {!!$errors->first("cc_email", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            <div class="col-md-6">
                                 <label for="inputSolapin" class="form-label fw-bold mb-0">Conference badge <span class="text-danger">*</span> <small class="fw-normal">(A first and last name)</small></label>
                                 <div class="d-flex">
-                                    <input type="text" class="form-control convert_mayus" name="solapin_name" id="inputSolapin" value="{{ old('solapin_name') }}" placeholder="First Name" required>
-                                    <input type="text" class="form-control convert_mayus" name="solapin_lastname" id="inputSolapin" value="{{ old('solapin_lastname') }}" placeholder="Last Name" required>
+                                    <input type="text" class="form-control convert_mayus" name="solapin_name" id="inputSolapin" value="{{ old('solapin_name', $user->solapin_name) }}" placeholder="First Name" required>
+                                    <input type="text" class="form-control convert_mayus" name="solapin_lastname" id="inputSolapin" value="{{ old('solapin_lastname', $user->solapin_lastname) }}" placeholder="Last Name" required>
                                 </div>
                                 {!!$errors->first("solapin_name", "<span class='text-danger'>:message</span>")!!}
                             </div>
@@ -310,12 +335,15 @@
                                         Billing information
                                     </label>
 
+                                    
+
                                     <div class="d-none">
                                         <div class="form-check form-check-primary form-check-inline">
                                             <input type="hidden" name="invoice" id="invoice" value="yes">
                                         </div>
                                     </div>
 
+                                
                                     <div class="">
                                         <div class="form-check form-check-primary form-check-inline" id="dv_invoice_type_boleta">
                                             <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_boleta" value="Boleta" checked="">
@@ -331,15 +359,26 @@
                                         </div>
                                     </div>
 
+                                    {{-- Use personal information for billing --}}
+                                    <div class="form-check form-check-primary form-check-inline mt-2">
+                                        <input class="form-check-input cursor-pointer" type="checkbox" name="billing_same_as_personal" id="billing_same_as_personal" value="yes">
+                                        <label class="form-check-label mb-0 cursor-pointer" for="billing_same_as_personal">
+                                            Use personal information for billing
+                                        </label>
+                                    </div>
+
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
-                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="Name/Entity">
+                                            <label for="invoice_social_reason" class="form-label mb-0">Name/Entity <span class="text-danger">*</span></label>
+                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="Name/Entity" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces" placeholder="Tax ID (RUC)">
+                                            <label for="invoice_ruc" class="form-label mb-0">Tax ID (RUC) <span class="text-danger">*</span></label>
+                                            <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces" placeholder="Tax ID (RUC)" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address">
+                                            <label for="invoice_address" class="form-label mb-0">Business Address <span class="text-danger">*</span></label>
+                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address" required>
                                         </div>
                                     </div>
 

@@ -47,4 +47,10 @@ return [
         'url_js' => env('NIUBIZ_URL_JS'),
     ],
 
+    'upch' => [
+        'url_send_data' => env('URL_SEND_DATA'),
+        'commercial_code' => env('COMMERCIAL_CODE'),
+        'url_response_payment_data' => env('URL_RESPONSE_PAYMENT_DATA'),
+    ],
+
 ];

@@ -449,12 +449,16 @@ class InscriptionController extends Controller
                     'users.city as user_city',
                     'users.state as user_state',
                     'users.country as user_country',
+                    'users.work_phone_code as user_work_phone_code',
+                    'users.work_phone_code_city as user_work_phone_code_city',
+                    'users.work_phone_number as user_work_phone_number',
                     'users.phone_code as user_phone_code',
                     'users.phone_code_city as user_phone_code_city',
                     'users.phone_number as user_phone_number',
                     'users.whatsapp_code as user_whatsapp_code',
                     'users.whatsapp_number as user_whatsapp_number',
                     'users.email as user_email',
+                    'users.cc_email as user_cc_email',
                     'users.solapin_name as user_solapin_name',
                     'users.solapin_lastname as user_solapin_lastname',)
             ->where('inscriptions.id', $id)
@@ -618,7 +622,7 @@ class InscriptionController extends Controller
         //verificar si el usuario ya tiene una inscripción
         $inscription = Inscription::where('user_id', \Auth::user()->id)->first();
         if($inscription){
-            return redirect()->route('inscriptions.index')->with('error', 'Ya tiene una inscripción, revise su inscripción en la sección de inscripciones');
+            return redirect()->route('inscriptions.index')->with('error', 'You already have an existing registration. Please review it in the Registrations section.');
         }
 
         $id = \Auth::user()->id;
@@ -649,15 +653,21 @@ class InscriptionController extends Controller
     }
 
     public function storeMyInscription(Request $request){
-
         //get logged user id
         $iduser = \Auth::user()->id;
 
         Log::info('Datos de la inscripción: '.json_encode($request->all()));
 
+        // Verificar si el usuario ya tiene una inscripción que NO sea Draft
+        $inscription = Inscription::where('user_id', $iduser)
+            ->where('status', '!=', 'Draft')
+            ->first();
 
-        //Datos de la inscripción: {"_token":"FXRvSF1L7B6m9MNI9Askne0SC0GaGp64k6ftBVqQ","name":"NILTO","lastname":"ROMERO","second_lastname":"AGURTO","document_type":"DNI","document_number":"71213062","country":"Alemania","state":"Liam","city":"Citi","address":"Calle Uno 133","postal_code":"3432","phone_code":"51","phone_code_city":"01","phone_number":"987654321","whatsapp_code":"51","whatsapp_number":"98283976","workplace":"ExcelData","email":"niltonromagu@gmail.com","inputSolapin":"ROM NIL","category_inscription_id":"4","specialcode":null,"specialcode_verify":null,"accompanist_name":null,"accompanist_typedocument":"Seleccione...","accompanist_numdocument":null,"accompanist_solapin":null,"invoice":"no","invoice_ruc":null,"invoice_social_reason":null,"invoice_address":null,"payment_method":"Tarjeta"}  
-
+        if ($inscription) {
+            return redirect()
+                ->route('inscriptions.index')
+                ->with('error', 'You already have an existing registration. Please review it in the Registrations section.');
+        }
 
         //validar datos
         $validatedData = request()->validate([
@@ -666,6 +676,7 @@ class InscriptionController extends Controller
             'lastname' => 'nullable|string',
             'second_lastname' => 'required|string',
             'email' => 'required|email',
+            'cc_email' => 'nullable|email',
             'document_type' => 'required|string',
             'document_number' => 'required|string',
             'nationality' => 'required|string',
@@ -677,17 +688,21 @@ class InscriptionController extends Controller
             'city' => 'required|string',
             'state' => 'required|string',
             'country' => 'required|string',
+            'work_phone_code' => 'required|string',
+            'work_phone_code_city' => 'nullable|string',
+            'work_phone_number' => 'required|string',
             'phone_code' => 'required|string',
-            'phone_code_city' => 'required|string',
+            'phone_code_city' => 'nullable|string',
             'phone_number' => 'required|string',
-            'whatsapp_code' => 'required|string',
-            'whatsapp_number' => 'required|string',
+            'whatsapp_code' => 'nullable|string',
+            'whatsapp_number' => 'nullable|string',
             'solapin_name' => 'required|string',
             'solapin_lastname' => 'required|string',
             //data inscription
             'category_inscription_id' => 'required|numeric',
             'invoice' => 'required|string',
             'invoice_type' => 'required|string',
+            'billing_same_as_personal' => 'nullable|string',
             'invoice_ruc' => 'nullable|string',
             'invoice_social_reason' => 'nullable|string',
             'invoice_address' => 'nullable|string',
@@ -705,6 +720,7 @@ class InscriptionController extends Controller
             $user->lastname = $request->lastname;
             $user->second_lastname = $request->second_lastname;
             $user->email = $request->email;
+            $user->cc_email = $request->cc_email;
             $user->document_type = $request->document_type;
             $user->document_number = $request->document_number;
             $user->nationality = $request->nationality;
@@ -716,6 +732,9 @@ class InscriptionController extends Controller
             $user->city = $request->city;
             $user->state = $request->state;
             $user->country = $country_inscription->name;
+            $user->work_phone_code = $request->phone_code;
+            $user->work_phone_code_city = $request->phone_code_city;
+            $user->work_phone_number = $request->phone_number;
             $user->phone_code = $request->phone_code;
             $user->phone_code_city = $request->phone_code_city;
             $user->phone_number = $request->phone_number;
@@ -747,6 +766,7 @@ class InscriptionController extends Controller
             $inscription->special_code = $request->specialcode;
             $inscription->invoice = $request->invoice;
             $inscription->invoice_type = $request->invoice_type;
+            $inscription->billing_same_as_personal = $request->billing_same_as_personal;
             $inscription->invoice_ruc = $request->invoice_ruc;
             $inscription->invoice_social_reason = $request->invoice_social_reason;
             $inscription->invoice_address = $request->invoice_address;
@@ -826,29 +846,37 @@ class InscriptionController extends Controller
                     $direcion_comprobante = $user->address;
                 }
 
+                if($inscription->invoice_type == 'Factura'){
+                    $tipo_comprobante = 'F';
+                } else {
+                    $tipo_comprobante = 'B';
+                }
+
                 $params = [
                     'forma_de_pago'        => $inscription->payment_method ?? '',
-                    'dato_transferencia'   => 'URL_VOUCHER',
-                    'codigo_comercio'      => '',
+                    'dato_transferencia'   => '',
+                    'codigo_comercio'      => config('services.upch.commercial_code'),
                     'codigo_tarifario'     => '',
                     'moneda'               => 'USD',
                     'monto'                => $inscription->total,
                     'correo'               => $user->email,
-                    'nombre_completo'      => $user->name,
-                    'apellido_completo'    => $user->lastname ?? '', $user->second_lastname ?? '',
+                    'nombre_completo'      => $user->name ?? '',
+                    'apellido_paterno'     => $user->lastname ?? '',
+                    'apellido_materno'     => $user->second_lastname ?? '',
                     'codigo_pais'          => $user->phone_code,
-                    'numero_celular'       => $user->whatsapp_number ?? '',
+                    'numero_celular'       => $user->phone_number ?? '',
                     'pais_origen'          => $country_inscription->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
-                    'tipo_comprobante'     => $inscription->invoice_type ?? '',
+                    'tipo_comprobante'     => $tipo_comprobante ?? '',
                     'razon_social'         => $inscription->invoice_social_reason ?? '',
                     'direccion_fiscal'     => $inscription->invoice_address ?? '',
                     'numero_inscripcion'   => $inscription->id,
                     'ciudad'               => $user->city ?? '',
+                    'url_respuesta'        => config('services.upch.url_response_payment_data'),
                 ]; 
 
-                $url = 'https://dev.dbtwhloljaupc.amplifyapp.com/?' . http_build_query($params);
+                $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
 
                 return redirect($url);
 
@@ -860,155 +888,59 @@ class InscriptionController extends Controller
             Log::error('Error al registrar inscripción: '.$e->getMessage());
             return redirect()->route('inscriptions.myinscription')->with('error', 'Error al registrar inscripción');
         }
-
-
     }
 
 
-
-    public function paymentNiubiz(Inscription $inscription)
+    public function paymentResult(Request $request)
     {
+        $numeroInscripcion = $request->get('numero_inscripcion');
+        $estadoPago        = $request->get('estado_pago');
+        $mensaje           = $request->get('mensaje_operacion');
+        $numeroOperacion   = $request->get('numero_operacion');
+        $tarjetaRecortada  = $request->get('numero_tarjeta_recortado');
 
-        $specialcode = SpecialCode::where('code', $inscription->special_code)->first();
-
-        if($specialcode){
-            if($specialcode->payment_required == 'No'){
-                if($specialcode->amount == $inscription->total){
-                    return redirect()->route('inscriptions.index')->with('success', 'Inscripción realizada con éxito, no requiere pago.');
-                }else{
-                    
-                }
-            }
+        if (!$numeroInscripcion || !$numeroOperacion) {
+            abort(400, 'Incomplete payment data');
         }
 
-        if($inscription->total == 0){
-            return redirect()->route('inscriptions.index')->with('success', 'Inscripción realizada con éxito, no requiere pago.');
+        $inscription = Inscription::findOrFail($numeroInscripcion);
+
+        // 🔐 VERIFICAR SI YA EXISTE EL PAGO
+        $payment = Payment::where('purchasenumber', $numeroOperacion)->first();
+
+        if (!$payment) {
+
+            $payment = Payment::create([
+                'inscription_id'        => $inscription->id,
+                'user_id'               => $inscription->user_id,
+                'action_description'    => $estadoPago . ': ' . $mensaje,
+                'purchasenumber'        => $numeroOperacion,
+                'card_brand'            => '',
+                'card_number'           => $tarjetaRecortada,
+                'amount'                => $inscription->total,
+                'currency'              => 'USD',
+                'transaction_date'      => now(),
+                'status_payment'        => $estadoPago,
+                'raw_response'          => json_encode($request->all()),
+            ]);
+
         }
 
-        //get logged user id
-        $iduser = \Auth::user()->id;
-        $data = [
-            'category_name' => 'inscriptions',
-            'page_name' => 'inscriptions_paymentniubiz',
-            'has_scrollspy' => 0,
-            'scrollspy_offset' => '',
-        ];
-
-        $user = User::find($iduser);
-        //data inscription inner join category_inscriptions
-        $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-        ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
-        ->where('inscriptions.id', $inscription->id)
-        ->first();
-
-        if($specialcode){
-            if($specialcode->payment_required == 'No'){
-                $amount = $datainscription->total - $specialcode->amount;
-            }else{
-                $amount = $datainscription->total;
-            }
-        }else{
-            $amount = $datainscription->total;
+        // 🔁 ACTUALIZAR INSCRIPCIÓN SOLO SI ES AUTORIZADO
+        if ($estadoPago === 'AUTORIZADO' && $inscription->status !== 'Paid') {
+            $inscription->update([
+                'status' => 'Paid'
+            ]);
         }
 
-        $sessionToken = $this->generateSessionToken($amount);
-
-        return view('pages.inscriptions.paymentniubiz')->with($data)->with('user', $user)->with('datainscription', $datainscription)->with('sessionToken', $sessionToken)->with('amount', $amount);
-    }
-
-    private function generateSessionToken($amount){
-        $auth = base64_encode(config('services.niubiz.user').':'.config('services.niubiz.password'));
-        $accessToken = Http::withHeaders([
-                'Authorization' => 'Basic '.$auth,
-            ])->get(config('services.niubiz.url_api').'/api.security/v1/security')
-            ->body();
-
-        $accessToken = Http::withHeaders([
-            'Authorization' => $accessToken,
-            'Content-Type' => 'application/json',
-        ])->post(config('services.niubiz.url_api').'/api.ecommerce/v2/ecommerce/token/session/'.config('services.niubiz.merchant_id'),[
-            'channel' => 'web',
-            'amount' => $amount,
-            'antifraud' => [
-                'clientIp' => request()->ip(),
-                'merchantDefineData' => [
-                    'MDD4' => auth()->user()->email,
-                    'MDD21' => 0,
-                    'MDD32' => auth()->user()->id,
-                    'MDD75' => 'Registrado',
-                    'MDD77' => now()->diffInDays(auth()->user()->created_at) + 1,
-                ],
-            ],
-        ])->json();
-
-        return $accessToken['sessionKey'];
-
-    }
-
-    public function confirmPaymentNiubiz(Request $request){
-        
-        $auth = base64_encode(config('services.niubiz.user').':'.config('services.niubiz.password'));
-        $accessToken = Http::withHeaders([
-                'Authorization' => 'Basic '.$auth,
-            ])->get(config('services.niubiz.url_api').'/api.security/v1/security')
-            ->body();
-
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'Authorization' => $accessToken,
-        ])->post(config('services.niubiz.url_api').'/api.authorization/v3/authorization/ecommerce/'.config('services.niubiz.merchant_id'),[
-            'channel' => 'web',
-            'captureType' => 'manual',
-            'countable' => true,
-            'order' => [
-                'tokenId' => $request->transactionToken,
-                'purchaseNumber' => $request->purchasenumber,
-                'amount' => $request->amount,
-                'currency' => config('services.niubiz.currency'),
-            ],
-        ])->json();
-
-        session()->flash('niubiz', [
-            'inscription' => $request->inscription,
-            'response' => $response,
-            'purchaseNumber' => $request->purchasenumber,
+        return view('pages.inscriptions.payment-result', [
+            'inscription_id' => $inscription->id,
+            'estado'         => $estadoPago,
+            'mensaje'        => $mensaje,
         ]);
-
-
-        if(isset($response['dataMap']) && $response['dataMap']['ACTION_CODE'] === '000'){
-            //update status inscription
-            $inscription = Inscription::find($request->inscription);
-            $inscription->status = 'Procesando';
-            $inscription->updated_at = now();
-            $inscription->save();
-
-            //insert payment
-            $payment = new Payment();
-            $payment->inscription_id = $request->inscription;
-            $payment->user_id = \Auth::user()->id;
-            $payment->action_description = $response['dataMap']['ACTION_DESCRIPTION'];
-            $payment->purchasenumber = $request->purchasenumber;
-            $payment->card_brand = $response['dataMap']['BRAND'];
-            $payment->card_number = $response['dataMap']['CARD'];
-            $payment->amount = $response['order']['amount'];
-            $payment->currency = $response['order']['currency'];
-            $payment->transaction_date = $response['dataMap']['TRANSACTION_DATE'];
-            $payment->save();
-
-        }else{
-            
-        }
-
-        $data = [
-            'category_name' => 'inscriptions',
-            'page_name' => 'inscriptions_paymentconfirmniubiz',
-            'has_scrollspy' => 0,
-            'scrollspy_offset' => '',
-        ];
-
-        return view('pages.inscriptions.paymentconfirmniubiz')->with($data);
-
     }
+
+
 
     public function updateStatus(Request $request, $id)
     {

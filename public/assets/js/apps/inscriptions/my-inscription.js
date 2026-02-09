@@ -169,6 +169,65 @@ document.addEventListener("DOMContentLoaded", function () {
     
         return true; // La validación pasa
     }
+
+
+
+    // === Billing Same As Personal ===
+
+        const billingSameCheckbox = document.getElementById('billing_same_as_personal');
+
+        const billingPersonalFields = {
+            name: document.getElementById('name'),
+            lastname: document.getElementById('lastname'),
+            secondLastname: document.getElementById('second_lastname'),
+            documentNumber: document.getElementById('inputDocumentNumber'),
+            address: document.getElementById('inputAddress'),
+        };
+
+        const billingInvoiceFields = {
+            socialReason: document.getElementById('invoice_social_reason'),
+            ruc: document.getElementById('invoice_ruc'),
+            address: document.getElementById('invoice_address'),
+        };
+
+        function billingBuildSocialReason() {
+            return [
+                billingPersonalFields.name.value,
+                billingPersonalFields.lastname.value,
+                billingPersonalFields.secondLastname.value
+            ].filter(Boolean).join(' ');
+        }
+
+        function billingSyncInvoiceFields() {
+            billingInvoiceFields.socialReason.value = billingBuildSocialReason();
+            billingInvoiceFields.ruc.value = billingPersonalFields.documentNumber.value;
+            billingInvoiceFields.address.value = billingPersonalFields.address.value;
+        }
+
+        function billingSetInvoiceReadonly(isReadonly) {
+            Object.values(billingInvoiceFields).forEach(field => {
+                field.readOnly = isReadonly;
+            });
+        }
+
+        // Sincronización en tiempo real
+        Object.values(billingPersonalFields).forEach(field => {
+            field.addEventListener('input', () => {
+                if (billingSameCheckbox.checked) {
+                    billingSyncInvoiceFields();
+                }
+            });
+        });
+
+        // Cambio del checkbox
+        billingSameCheckbox.addEventListener('change', () => {
+            if (billingSameCheckbox.checked) {
+                billingSyncInvoiceFields();
+                billingSetInvoiceReadonly(true);
+            } else {
+                billingSetInvoiceReadonly(false);
+            }
+        });
     
 
 });

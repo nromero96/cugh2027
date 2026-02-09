@@ -116,7 +116,25 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label fw-bold">Phone</label>
+                                <label class="form-label fw-bold">Work Phone</label>
+                                <div class="d-flex">
+                                    <div class="w-25">
+                                        <span class="bx-text me-1">{{$user->work_phone_code}}</span>
+                                        <small>Country</small>
+                                    </div>
+                                    <div class="w-25">
+                                        <span class="bx-text me-1">{{$user->work_phone_code_city}}</span>
+                                        <small>Area code</small>
+                                    </div>
+                                    <div class="w-50">
+                                        <span class="bx-text">{{$user->work_phone_number}}</span>
+                                        <small>Number</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold">Cell Phone</label>
                                 <div class="d-flex">
                                     <div class="w-25">
                                         <span class="bx-text me-1">{{$user->phone_code}}</span>
@@ -150,6 +168,11 @@
                             <div class="col-md-6">
                                 <label class="form-label fw-bold">E-mail</label>
                                 <span class="bx-text">{{$user->email}}</span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Cc E-mail</label>
+                                <span class="bx-text">{{$user->cc_email}}</span>
                             </div>
 
                             <div class="col-md-6">

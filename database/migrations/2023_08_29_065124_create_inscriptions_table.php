@@ -23,6 +23,7 @@ class CreateInscriptionsTable extends Migration
             $table->string('document_file')->nullable();
             $table->string('invoice');
             $table->string('invoice_type')->nullable();
+            $table->string('billing_same_as_personal')->nullable();
             $table->string('invoice_ruc')->nullable();
             $table->string('invoice_social_reason')->nullable();
             $table->string('invoice_address')->nullable();

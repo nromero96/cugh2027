@@ -131,9 +131,13 @@
                                     <hr class="mt-3 mb-1">
                             </div>
 
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">Work Phone:</label><br>
+                                <span class="bx-text">{{ $inscription->user_work_phone_code.' '.$inscription->user_work_phone_code_city.' '.$inscription->user_work_phone_number }}</span>
+                            </div>
 
                             <div class="col-md-4">
-                                <label class="form-label fw-bold mb-0">Phone:</label><br>
+                                <label class="form-label fw-bold mb-0">Cell Phone:</label><br>
                                 <span class="bx-text">{{ $inscription->user_phone_code.' '.$inscription->user_phone_code_city.' '.$inscription->user_phone_number }}</span>
                             </div>
 
@@ -145,6 +149,11 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-bold mb-0">E-mail:</label><br>
                                 <span class="bx-text">{{ $inscription->user_email }}</span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">Cc E-mail:</label><br>
+                                <span class="bx-text">{{ $inscription->user_cc_email }}</span>
                             </div>
 
                             <div class="col-md-4">
@@ -288,13 +297,25 @@
                                         </div>
                                     @endif
 
+                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->status != 'Paid')
+                                        <div class="row mt-1">
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold mb-0">Pending Payment:</label><br>
+                                                <a href="#" class="btn btn-primary">Go to Pay</a>
+                                            </div>
+                                        </div>
+                                    @endif
+
                                     @if ($inscription->payment_method == 'Credit/Debit Card' && $paymentcard != null)
+
+                                    
+
                                     <div class="row mt-1">
-                                        <div class="col-2">
+                                        <div class="col-3">
                                             <label class="form-label fw-bold mb-0"># Transaction number:</label><br>
                                             <span class="bx-text">{{ $paymentcard->purchasenumber }}</span>
                                         </div>
-                                        <div class="col-2">
+                                        <div class="col-1">
                                             <label class="form-label fw-bold mb-0">Card:</label><br>
                                             <span class="bx-text">{{ $paymentcard->card_brand }}</span>
                                         </div>
@@ -307,12 +328,8 @@
                                             <span class="bx-text">{{ $paymentcard->amount.' '.$paymentcard->currency }}</span>
                                         </div>
                                         <div class="col-3">
-                                            @php
-                                                $carbonTDate = \Carbon\Carbon::createFromFormat('ymdHis', $paymentcard->transaction_date);
-                                                $tansactionDate = $carbonTDate->format('Y-m-d H:i:s');
-                                            @endphp
                                             <label class="form-label fw-bold mb-0">Transaction Date:</label><br>
-                                            <span class="bx-text">{{ $tansactionDate }}</span>
+                                            <span class="bx-text">{{$paymentcard->transaction_date}}</span>
                                         </div>
                                         <div class="col-12 mt-2">
                                             <span class="bx-text">{{ $paymentcard->action_description }}</span>
