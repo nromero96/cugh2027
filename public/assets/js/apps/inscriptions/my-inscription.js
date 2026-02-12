@@ -80,6 +80,21 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    //is_cugh_member
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('input[name="is_cugh_member"]')) {
+            const selectedValue = e.target.value;
+            const otherDiv = document.getElementById('cugh_member_institution_div');
+            const selectOther = document.getElementById('cugh_member_institution');
+            if (selectedValue === '1') {
+                otherDiv.classList.remove('d-none');
+            } else {
+                otherDiv.classList.add('d-none');
+                selectOther.selectedIndex = 0;
+            }
+        }
+    });
+
 
     //Change Country
     document.getElementById('inputCountry').addEventListener('change', function () {

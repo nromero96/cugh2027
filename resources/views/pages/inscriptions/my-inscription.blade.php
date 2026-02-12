@@ -108,9 +108,9 @@
                             </div>
 
                             
-                            <div class="col-md-4">
+                            <div class="col-md-4 @if(old('is_cugh_member', $user->is_cugh_member) == 1) d-block @else d-none @endif" id="cugh_member_institution_div">
                                 <label for="inputCUGHMemberInstitution" class="form-label fw-bold mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
-                                <select name="cugh_member_institution" id="inputCUGHMemberInstitution" class="form-select">
+                                <select name="cugh_member_institution" id="cugh_member_institution" class="form-select">
                                     <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
                                     <option value="ABH Partners" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'ABH Partners' ? 'selected' : '' }}>ABH Partners</option>
                                     <option value="Academy of Health Sciences" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'Academy of Health Sciences' ? 'selected' : '' }}>Academy of Health Sciences</option>
