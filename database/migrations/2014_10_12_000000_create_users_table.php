@@ -17,9 +17,13 @@ class CreateUsersTable extends Migration
             $table->id();
             $table->string('email')->unique();
             $table->string('cc_email')->nullable();
+            $table->string('salutation')->nullable();
             $table->string('name');
             $table->string('lastname')->nullable();
             $table->string('second_lastname')->nullable();
+            $table->string('degrees')->nullable();
+            $table->string('cugh_member_institution')->nullable();
+            $table->string('job_title')->nullable();
             $table->string('document_type')->nullable();
             $table->string('document_number')->unique();
             $table->string('nationality')->nullable();
