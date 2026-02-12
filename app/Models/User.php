@@ -26,6 +26,8 @@ class User extends Authenticatable
         'lastname',
         'second_lastname',
         'degrees',
+        'other_degrees',
+        'is_cugh_member',
         'cugh_member_institution',
         'job_title',
         'document_type',
@@ -43,7 +45,6 @@ class User extends Authenticatable
         'work_phone_code_city',
         'work_phone_number',
         'phone_code',
-        'phone_code_city',
         'phone_number',
         'whatsapp_code',
         'whatsapp_number',
@@ -74,11 +75,24 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_cugh_member' => 'boolean',
     ];
 
     public function inscription()
     {
         return $this->hasOne(Inscription::class);
+    }
+
+    // Nacionalidad (opcional)
+    public function nationalityCountry()
+    {
+        return $this->belongsTo(Country::class, 'nationality');
+    }
+
+    // País de residencia (opcional)
+    public function residenceCountry()
+    {
+        return $this->belongsTo(Country::class, 'country');
     }
 
 }

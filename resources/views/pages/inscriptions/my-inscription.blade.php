@@ -39,6 +39,22 @@
                         <form class="row g-3" action="{{ route('inscriptions.storemyinscription') }}" method="POST" id="formInscription" enctype="multipart/form-data">
                             @csrf
                             <div class="col-md-4">
+                                <label for="salutation" class="form-label fw-bold mb-0">Salutation <span class="text-danger">*</span></label>
+                                <select name="salutation" id="salutation" class="form-control" required>
+                                    <option value="" disabled selected>Select...</option>
+                                    <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
+                                    <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
+                                    <option value="Ms." {{ old('salutation', $user->salutation) == 'Ms.' ? 'selected' : '' }}>Ms.</option>
+                                    <option value="Dr." {{ old('salutation', $user->salutation) == 'Dr.' ? 'selected' : '' }}>Dr.</option>
+                                    <option value="Prof." {{ old('salutation', $user->salutation) == 'Prof.' ? 'selected' : '' }}>Prof.</option>
+                                </select>
+
+                                {!!$errors->first("salutation", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            <div class="col-md-8"></div>
+
+                            <div class="col-md-4">
                                 <label for="inputName" class="form-label fw-bold mb-0">First Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control convert_mayus" name="name" id="name" value="{{ old('name', $user->name) }}" required>
                                 {!!$errors->first("name", "<span class='text-danger'>:message</span>")!!}
@@ -52,6 +68,61 @@
                                 <label for="inputSecondLastName" class="form-label fw-bold mb-0">Last Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname', $user->second_lastname) }}" required>
                                 {!!$errors->first("second_lastname", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            {{-- degrees --}}
+                            <div class="col-md-4">
+                                <label for="inputDegrees" class="form-label fw-bold mb-0">Degrees <span class="text-danger">*</span></label>
+                                <select name="degrees" id="inputDegrees" class="form-select" required>
+                                    <option value="" {{ old('degree', $user->degree) == '' ? 'selected' : '' }}>Select...</option>
+                                    <option value="Graduate" {{ old('degree', $user->degrees) == 'Graduate' ? 'selected' : '' }}>Graduate</option>
+                                    <option value="Master" {{ old('degree', $user->degrees) == 'Master' ? 'selected' : '' }}>Master</option>
+                                    <option value="PhD" {{ old('degree', $user->degrees) == 'PhD' ? 'selected' : '' }}>PhD</option>
+                                    <option value="Other" {{ old('degree', $user->degrees) == 'Other' ? 'selected' : '' }}>Other (Please specify)</option>
+                                </select>
+                                {!!$errors->first("degrees", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            <div class="col-md-4 @if(old('degrees', $user->degrees) == 'Other') d-block @else d-none @endif" id="other_degrees_div">
+                                <label for="other_degrees" class="form-label fw-bold mb-0">Other Degree <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="other_degrees" id="other_degrees" value="{{ old('other_degrees', $user->other_degrees) }}">
+                                {!!$errors->first("other_degrees", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            {{-- is_cugh_member --}}
+                            <div class="col-md-4">
+                                <label for="inputCUGHMember" class="form-label fw-bold mb-0">CUGH Member <span class="text-danger">*</span></label>
+                                {{-- radio options --}}
+                                <div class="mt-2">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="is_cugh_member" id="cugh_member_no" value="0" {{ old('is_cugh_member', $user->is_cugh_member) == 0 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="cugh_member_no">No</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="is_cugh_member" id="cugh_member_yes" value="1" {{ old('is_cugh_member', $user->is_cugh_member) == 1 ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="cugh_member_yes">Yes</label>
+                                    </div>
+                                </div>
+
+                                {!!$errors->first("is_cugh_member", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            
+                            <div class="col-md-4">
+                                <label for="inputCUGHMemberInstitution" class="form-label fw-bold mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
+                                <select name="cugh_member_institution" id="inputCUGHMemberInstitution" class="form-select">
+                                    <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
+                                    <option value="ABH Partners" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'ABH Partners' ? 'selected' : '' }}>ABH Partners</option>
+                                    <option value="Academy of Health Sciences" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'Academy of Health Sciences' ? 'selected' : '' }}>Academy of Health Sciences</option>
+                                </select>
+                                {!!$errors->first("cugh_member_institution", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            {{-- job_title --}}
+                            <div class="col-md-4">
+                                <label for="inputJobTitle" class="form-label fw-bold mb-0">Job Title <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control convert_mayus" name="job_title" id="job_title" value="{{ old('job_title', $user->job_title) }}" required>
+                                {!!$errors->first("job_title", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-4">
@@ -75,7 +146,7 @@
                                 <select name="nationality" class="form-select" id="inputNationality" required>
                                     <option value="" disabled selected>Select...</option>
                                     @foreach ($countries as $nationality)
-                                        <option value="{{$nationality->name}}" @if ($user->nationality == $nationality->name) selected="selected" @endif >{{$nationality->name}}</option>
+                                        <option value="{{$nationality->id}}" @if ($user->nationality == $nationality->id) selected="selected" @endif >{{$nationality->name}}</option>
                                     @endforeach
                                 </select>
                                 {!!$errors->first("nationality", "<span class='text-danger'>:message</span>")!!}
@@ -106,7 +177,7 @@
                                 {!!$errors->first("occupation", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
-                            <div class="col-md-4 d-none" id="occupation_other">
+                            <div class="col-md-4 @if ($user->occupation != 'Other') d-none @endif " id="occupation_other">
                                 <label for="inputOtherOccupation" class="form-label fw-bold mb-0">Other Occupation <span class="text-danger">*</span></label>
                                 <input type="text" name="occupation_other" class="form-control" id="inputOtherOccupation" value="{{$user->occupation_other}}">
                                 {!!$errors->first("occupation_other", "<span class='text-danger'>:message</span>")!!}
@@ -146,7 +217,7 @@
                                             <select name="country" class="form-select" id="inputCountry" required>
                                                 <option value="" disabled selected>Select...</option>
                                                 @foreach ($countries as $country)
-                                                    <option value="{{$country->id}}" @if ($user->country == $country->name) selected="selected" @endif >{{$country->name}}</option>
+                                                    <option value="{{$country->id}}" @if ($user->country == $country->id) selected="selected" @endif >{{$country->name}}</option>
                                                 @endforeach
                                             </select>
                                             {!!$errors->first("country", "<span class='text-danger'>:message</span>")!!}
@@ -157,13 +228,13 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputWorkPhoneNumber" class="form-label fw-bold mb-0">Work Phone <span class="text-danger">*</span></label>
+                                <label for="inputWorkPhoneNumber" class="form-label fw-bold mb-0">Work Phone</label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="work_phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                        <select name="work_phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
-                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                                <option value="{{$country->phone}}" {{ old('work_phone_code', $user->work_phone_code) == $country->phone ? 'selected' : '' }} >+{{$country->phone}} ({{$country->name}})</option>
                                             @endforeach
                                         </select>
                                         <small>Country</small>
@@ -173,7 +244,7 @@
                                         <small>Area code</small>
                                     </div>
                                     <div class="w-50">
-                                        <input type="text" name="work_phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputWorkPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('work_phone_number', $user->work_phone_number) }}" required>
+                                        <input type="text" name="work_phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputWorkPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('work_phone_number', $user->work_phone_number) }}">
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -189,22 +260,17 @@
                                         <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
-                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                                <option value="{{$country->phone}}" {{ old('phone_code', $user->phone_code) == $country->phone ? 'selected' : '' }}>+{{$country->phone}} ({{$country->name}})</option>
                                             @endforeach
                                         </select>
                                         <small>Country</small>
                                     </div>
-                                    <div class="w-25">
-                                        <input type="text" name="phone_code_city" class="form-control no-spaces rounded-0 inputNumber" id="inputPhoneCodeCity" placeholder="_ _" maxlength="5" value="{{ old('phone_code_city', $user->phone_code_city) }}">
-                                        <small>Area code</small>
-                                    </div>
-                                    <div class="w-50">
+                                    <div class="w-75">
                                         <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('phone_number', $user->phone_number) }}" required>
                                         <small>Number</small>
                                     </div>
                                 </div>
                                 {!!$errors->first("phone_code", "<span class='text-danger'>:message</span>")!!}
-                                {!!$errors->first("phone_code_city", "<span class='text-danger'>:message</span>")!!}
                                 {!!$errors->first("phone_number", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
@@ -215,7 +281,7 @@
                                         <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
-                                                <option value="{{$country->phone}}">+{{$country->phone}} ({{$country->name}})</option>
+                                                <option value="{{$country->phone}}" {{ old('whatsapp_code', $user->whatsapp_code) == $country->phone ? 'selected' : '' }}>+{{$country->phone}} ({{$country->name}})</option>
                                             @endforeach
                                         </select>
                                         <small>Country</small>

@@ -433,14 +433,22 @@ class InscriptionController extends Controller
     
             $inscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
             ->join('users', 'inscriptions.user_id', '=', 'users.id')
+            ->join('countries as un', 'users.nationality', '=', 'un.id')
+            ->join('countries as uc', 'users.country', '=', 'uc.id')
             ->select('inscriptions.*', 
                     'category_inscriptions.name as category_inscription_name', 
+                    'users.salutation as user_salutation',
                     'users.name as user_name', 
                     'users.lastname as user_lastname', 
-                    'users.second_lastname as user_second_lastname', 
+                    'users.second_lastname as user_second_lastname',
+                    'users.degrees as user_degrees',
+                    'users.other_degrees as user_other_degrees',
+                    'users.is_cugh_member as user_is_cugh_member',
+                    'users.cugh_member_institution as user_cugh_member_institution',
+                    'users.job_title as user_job_title',
                     'users.document_type as user_document_type', 
                     'users.document_number as user_document_number',
-                    'users.nationality as user_nationality',
+                    'un.name as user_nationality',
                     'users.gender as user_gender',
                     'users.occupation as user_occupation',
                     'users.occupation_other as user_occupation_other',
@@ -448,12 +456,11 @@ class InscriptionController extends Controller
                     'users.address as user_address',
                     'users.city as user_city',
                     'users.state as user_state',
-                    'users.country as user_country',
+                    'uc.name as user_country',
                     'users.work_phone_code as user_work_phone_code',
                     'users.work_phone_code_city as user_work_phone_code_city',
                     'users.work_phone_number as user_work_phone_number',
                     'users.phone_code as user_phone_code',
-                    'users.phone_code_city as user_phone_code_city',
                     'users.phone_number as user_phone_number',
                     'users.whatsapp_code as user_whatsapp_code',
                     'users.whatsapp_number as user_whatsapp_number',
@@ -672,9 +679,15 @@ class InscriptionController extends Controller
         //validar datos
         $validatedData = request()->validate([
             //data user
+            'salutation' => 'required|string',
             'name' => 'required|string',
             'lastname' => 'nullable|string',
             'second_lastname' => 'required|string',
+            'degrees' => 'required|string',
+            'other_degrees' => 'nullable|string',
+            'is_cugh_member' => 'required|string',
+            'cugh_member_institution' => 'nullable|string',
+            'job_title' => 'nullable|string',
             'email' => 'required|email',
             'cc_email' => 'nullable|email',
             'document_type' => 'required|string',
@@ -688,11 +701,10 @@ class InscriptionController extends Controller
             'city' => 'required|string',
             'state' => 'required|string',
             'country' => 'required|string',
-            'work_phone_code' => 'required|string',
+            'work_phone_code' => 'nullable|string',
             'work_phone_code_city' => 'nullable|string',
-            'work_phone_number' => 'required|string',
+            'work_phone_number' => 'nullable|string',
             'phone_code' => 'required|string',
-            'phone_code_city' => 'nullable|string',
             'phone_number' => 'required|string',
             'whatsapp_code' => 'nullable|string',
             'whatsapp_number' => 'nullable|string',
@@ -716,9 +728,15 @@ class InscriptionController extends Controller
 
             // Actualizar usuario
             $user = User::find($iduser);
+            $user->salutation = $request->salutation;
             $user->name = $request->name;
             $user->lastname = $request->lastname;
             $user->second_lastname = $request->second_lastname;
+            $user->degrees = $request->degrees;
+            $user->other_degrees = $request->other_degrees;
+            $user->is_cugh_member = $request->is_cugh_member;
+            $user->cugh_member_institution = $request->cugh_member_institution;
+            $user->job_title = $request->job_title;
             $user->email = $request->email;
             $user->cc_email = $request->cc_email;
             $user->document_type = $request->document_type;
@@ -731,12 +749,11 @@ class InscriptionController extends Controller
             $user->address = $request->address;
             $user->city = $request->city;
             $user->state = $request->state;
-            $user->country = $country_inscription->name;
+            $user->country = $request->country;
             $user->work_phone_code = $request->phone_code;
-            $user->work_phone_code_city = $request->phone_code_city;
+            $user->work_phone_code_city = $request->work_phone_code_city;
             $user->work_phone_number = $request->phone_number;
             $user->phone_code = $request->phone_code;
-            $user->phone_code_city = $request->phone_code_city;
             $user->phone_number = $request->phone_number;
             $user->whatsapp_code = $request->whatsapp_code;
             $user->whatsapp_number = $request->whatsapp_number;
@@ -862,10 +879,10 @@ class InscriptionController extends Controller
                     'correo'               => $user->email,
                     'nombre_completo'      => trim($user->name . ' ' . ($user->lastname ?? '')),
                     'apellido_paterno'     => $user->second_lastname ?? '',
-                    'apellido_materno'     => '',
+                    'apellido_materno'     => '.',
                     'codigo_pais'          => $user->phone_code,
                     'numero_celular'       => $user->phone_number ?? '',
-                    'pais_origen'          => $country_inscription->name ?? '',
+                    'pais_origen'          => $user->residenceCountry->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
                     'tipo_comprobante'     => $tipo_comprobante ?? '',
@@ -897,7 +914,6 @@ class InscriptionController extends Controller
         if ($inscription->status == 'Pending') {
 
                $user = User::find($inscription->user_id);
-               $country_inscription = Country::find($user->country);
 
                 $tipo_comprobante = '';
                 $direcion_comprobante = '';
@@ -923,10 +939,10 @@ class InscriptionController extends Controller
                     'correo'               => $user->email,
                     'nombre_completo'      => trim($user->name . ' ' . ($user->lastname ?? '')),
                     'apellido_paterno'     => $user->second_lastname ?? '',
-                    'apellido_materno'     => '',
+                    'apellido_materno'     => '.',
                     'codigo_pais'          => $user->phone_code,
                     'numero_celular'       => $user->phone_number ?? '',
-                    'pais_origen'          => $user->country ?? '',
+                    'pais_origen'          => $user->residenceCountry->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
                     'tipo_comprobante'     => $tipo_comprobante ?? '',

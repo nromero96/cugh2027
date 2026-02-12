@@ -108,7 +108,7 @@
                                         <div class="mb-3">
                                             <label for="password" class="form-label mb-0">Password</label>
                                             <div class="input-group">
-                                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password">
+                                                <input id="password" type="password" class="form-control @error('password') is-invalid @enderror" name="password" required autocomplete="new-password" value="{{ old('password') }}">
                                                 <span class="input-group-text cursor-pointer"
                                                     onclick="togglePassword('password', this)">
                                                     <i class="bi bi-eye"></i>
@@ -126,7 +126,7 @@
                                         <div class="mb-4">
                                             <label for="password-confirm" class="form-label mb-0">Confirm Password</label>
                                             <div class="input-group">
-                                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password">
+                                                <input id="password-confirm" type="password" class="form-control" name="password_confirmation" required autocomplete="new-password" value="{{ old('password_confirmation') }}">
                                                 <span class="input-group-text cursor-pointer"
                                                     onclick="togglePassword('password-confirm', this)">
                                                     <i class="bi bi-eye"></i>

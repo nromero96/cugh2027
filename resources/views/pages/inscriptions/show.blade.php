@@ -59,6 +59,13 @@
                     <div class="widget-content widget-content-area pt-0">
                         <div class="row g-3">
                             <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">Salutation:</label><br>
+                                <span class="bx-text">{{ $inscription->user_salutation }}</span>
+                            </div>
+                            <div class="col-md-8">
+                                
+                            </div>
+                            <div class="col-md-4">
                                 <label class="form-label fw-bold mb-0">First Name:</label><br>
                                 <span class="bx-text">{{ $inscription->user_name }}</span>
                             </div>
@@ -69,6 +76,31 @@
                             <div class="col-md-4">
                                 <label class="form-label fw-bold mb-0">Last Name:</label><br>
                                 <span class="bx-text">{{ $inscription->user_second_lastname }}</span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">Degrees:</label><br>
+                                <span class="bx-text">{{ $inscription->user_degrees }}</span>
+                            </div>
+
+                            <div class="col-md-4 @if($inscription->user_degrees != 'Other') d-none @else @endif" id="degrees_other">
+                                <label class="form-label fw-bold mb-0">Other Degree:</label><br>
+                                <span class="bx-text">{{ $inscription->user_other_degrees }}</span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">CUGH Member:</label><br>
+                                <span class="bx-text">{{ $inscription->user_is_cugh_member == 1 ? 'Yes' : 'No' }}</span>
+                            </div>
+
+                            <div class="col-md-4 @if($inscription->user_is_cugh_member != 1) d-none @else @endif" id="cugh_member_institution">
+                                <label class="form-label fw-bold mb-0">CUGH Member Institution:</label><br>
+                                <span class="bx-text">{{ $inscription->user_cugh_member_institution }}</span>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold mb-0">Job Title:</label><br>
+                                <span class="bx-text">{{ $inscription->user_job_title }}</span>
                             </div>
 
                             <div class="col-md-4">
@@ -138,7 +170,7 @@
 
                             <div class="col-md-4">
                                 <label class="form-label fw-bold mb-0">Cell Phone:</label><br>
-                                <span class="bx-text">{{ $inscription->user_phone_code.' '.$inscription->user_phone_code_city.' '.$inscription->user_phone_number }}</span>
+                                <span class="bx-text">{{ $inscription->user_phone_code.' '.$inscription->user_phone_number }}</span>
                             </div>
 
                             <div class="col-md-4">

@@ -59,6 +59,27 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    //inputDegrees if select Other
+    document.addEventListener('change', function (e) {
+        if (e.target.matches('select[name="degrees"]')) {
+            const selectedValue = e.target.value;
+            const otherDiv = document.getElementById('other_degrees_div');
+            const inputOther = document.getElementById('other_degrees');
+
+            if (selectedValue === 'Other') {
+                otherDiv.classList.remove('d-none');
+                //add input required
+                inputOther.setAttribute('required', 'required');
+            } else {
+                otherDiv.classList.add('d-none');
+                //remove input required
+                inputOther.removeAttribute('required');
+                //remove value input
+                inputOther.value = '';
+            }
+        }
+    });
+
 
     //Change Country
     document.getElementById('inputCountry').addEventListener('change', function () {
