@@ -39,7 +39,7 @@
                         <form class="row g-3" action="{{ route('inscriptions.storemyinscription') }}" method="POST" id="formInscription" enctype="multipart/form-data">
                             @csrf
                             <div class="col-md-4">
-                                <label for="salutation" class="form-label fw-bold mb-0">Salutation <span class="text-danger">*</span></label>
+                                <label for="salutation" class="form-label text-muted mb-0">Salutation <span class="text-danger">*</span></label>
                                 <select name="salutation" id="salutation" class="form-control" required>
                                     <option value="" disabled selected>Select...</option>
                                     <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
@@ -55,24 +55,24 @@
                             <div class="col-md-8"></div>
 
                             <div class="col-md-4">
-                                <label for="inputName" class="form-label fw-bold mb-0">First Name <span class="text-danger">*</span></label>
+                                <label for="inputName" class="form-label text-muted mb-0">First Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control convert_mayus" name="name" id="name" value="{{ old('name', $user->name) }}" required>
                                 {!!$errors->first("name", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
-                                <label for="inputLastName" class="form-label fw-bold mb-0">Middle Name</label>
+                                <label for="inputLastName" class="form-label text-muted mb-0">Middle Name</label>
                                 <input type="text" class="form-control convert_mayus" name="lastname" id="lastname" value="{{ old('lastname', $user->lastname) }}">
                                 {!!$errors->first("lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
                             <div class="col-md-4">
-                                <label for="inputSecondLastName" class="form-label fw-bold mb-0">Last Name <span class="text-danger">*</span></label>
+                                <label for="inputSecondLastName" class="form-label text-muted mb-0">Last Name <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control convert_mayus" name="second_lastname" id="second_lastname" value="{{ old('second_lastname', $user->second_lastname) }}" required>
                                 {!!$errors->first("second_lastname", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             {{-- degrees --}}
                             <div class="col-md-4">
-                                <label for="inputDegrees" class="form-label fw-bold mb-0">Degrees <span class="text-danger">*</span></label>
+                                <label for="inputDegrees" class="form-label text-muted mb-0">Degrees <span class="text-danger">*</span></label>
                                 <select name="degrees" id="inputDegrees" class="form-select" required>
                                     <option value="" {{ old('degree', $user->degree) == '' ? 'selected' : '' }}>Select...</option>
                                     <option value="Graduate" {{ old('degree', $user->degrees) == 'Graduate' ? 'selected' : '' }}>Graduate</option>
@@ -84,14 +84,14 @@
                             </div>
 
                             <div class="col-md-4 @if(old('degrees', $user->degrees) == 'Other') d-block @else d-none @endif" id="other_degrees_div">
-                                <label for="other_degrees" class="form-label fw-bold mb-0">Other Degree <span class="text-danger">*</span></label>
+                                <label for="other_degrees" class="form-label text-muted mb-0">Other Degree <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="other_degrees" id="other_degrees" value="{{ old('other_degrees', $user->other_degrees) }}">
                                 {!!$errors->first("other_degrees", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             {{-- is_cugh_member --}}
                             <div class="col-md-4">
-                                <label for="inputCUGHMember" class="form-label fw-bold mb-0">CUGH Member <span class="text-danger">*</span></label>
+                                <label for="inputCUGHMember" class="form-label text-muted mb-0">CUGH Member <span class="text-danger">*</span></label>
                                 {{-- radio options --}}
                                 <div class="mt-2">
                                     <div class="form-check form-check-inline">
@@ -109,7 +109,7 @@
 
                             
                             <div class="col-md-4 @if(old('is_cugh_member', $user->is_cugh_member) == 1) d-block @else d-none @endif" id="cugh_member_institution_div">
-                                <label for="inputCUGHMemberInstitution" class="form-label fw-bold mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
+                                <label for="inputCUGHMemberInstitution" class="form-label text-muted mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
                                 <select name="cugh_member_institution" id="cugh_member_institution" class="form-select">
                                     <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
                                     <option value="ABH Partners" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'ABH Partners' ? 'selected' : '' }}>ABH Partners</option>
@@ -120,13 +120,13 @@
 
                             {{-- job_title --}}
                             <div class="col-md-4">
-                                <label for="inputJobTitle" class="form-label fw-bold mb-0">Job Title <span class="text-danger">*</span></label>
+                                <label for="inputJobTitle" class="form-label text-muted mb-0">Job Title <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control convert_mayus" name="job_title" id="job_title" value="{{ old('job_title', $user->job_title) }}" required>
                                 {!!$errors->first("job_title", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputDocumentType" class="form-label fw-bold mb-0">Document Type <span class="text-danger">*</span></label>
+                                <label for="inputDocumentType" class="form-label text-muted mb-0">Document Type <span class="text-danger">*</span></label>
                                 <select name="document_type" class="form-select" id="inputDocumentType" required>
                                     <option value="" {{ old('document_type', $user->document_type) == '' ? 'selected' : '' }}>Select...</option>
                                     <option value="DNI" {{ old('document_type', $user->document_type) == 'DNI' ? 'selected' : '' }}>DNI (for Peruvian citizens only)</option>
@@ -136,13 +136,13 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputDocumentNumber" class="form-label fw-bold mb-0">Document Number <span class="text-danger">*</span></label>
+                                <label for="inputDocumentNumber" class="form-label text-muted mb-0">Document Number <span class="text-danger">*</span></label>
                                 <input type="text" name="document_number" class="form-control no-spaces" id="inputDocumentNumber" value="{{ old('document_number', $user->document_number) }}" required>
                                 {!!$errors->first("document_number", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputNationality" class="form-label fw-bold mb-0">Nationality  <span class="text-danger">*</span></label>
+                                <label for="inputNationality" class="form-label text-muted mb-0">Nationality  <span class="text-danger">*</span></label>
                                 <select name="nationality" class="form-select" id="inputNationality" required>
                                     <option value="" disabled selected>Select...</option>
                                     @foreach ($countries as $nationality)
@@ -153,7 +153,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputGender" class="form-label fw-bold mb-0">Gender <span class="text-danger">*</span></label>
+                                <label for="inputGender" class="form-label text-muted mb-0">Gender <span class="text-danger">*</span></label>
                                 <select name="gender" class="form-select" id="inputGender" required>
                                     <option value="">Select...</option>
                                     <option value="Male" @if ($user->gender == 'Male') selected="selected" @endif>Male</option>
@@ -163,7 +163,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputOccupation" class="form-label fw-bold mb-0">Occupation <span class="text-danger">*</span></label>
+                                <label for="inputOccupation" class="form-label text-muted mb-0">Occupation <span class="text-danger">*</span></label>
                                 <select name="occupation" class="form-select" id="inputOccupation" required>
                                     <option value="">Select...</option>
                                     <option value="Business" @if ($user->occupation == 'Business') selected="selected" @endif>Business</option>
@@ -178,7 +178,7 @@
                             </div>
 
                             <div class="col-md-4 @if ($user->occupation != 'Other') d-none @endif " id="occupation_other">
-                                <label for="inputOtherOccupation" class="form-label fw-bold mb-0">Other Occupation <span class="text-danger">*</span></label>
+                                <label for="inputOtherOccupation" class="form-label text-muted mb-0">Other Occupation <span class="text-danger">*</span></label>
                                 <input type="text" name="occupation_other" class="form-control" id="inputOtherOccupation" value="{{$user->occupation_other}}">
                                 {!!$errors->first("occupation_other", "<span class='text-danger'>:message</span>")!!}
                             </div>
@@ -187,33 +187,33 @@
                                     <hr class="mt-1 mb-1">
                                     <div class="row">
                                         <div class="col-md-4 mt-3">
-                                            <label for="inputWorkplace" class="form-label fw-bold mb-0">Workplace <span class="text-danger">*</span></label>
+                                            <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace <span class="text-danger">*</span></label>
                                             <input type="text" name="workplace" class="form-control" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}" required>
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-8 mt-3">
-                                            <label for="inputAddress" class="form-label fw-bold mb-0">Work Address <span class="text-danger">*</span></label>
+                                            <label for="inputAddress" class="form-label text-muted mb-0">Work Address <span class="text-danger">*</span></label>
                                             <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" autocomplete="new-work-address" required>
                                             {!!$errors->first("address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-4 mt-3">
-                                            <label for="inputCity" class="form-label fw-bold mb-0">City <span class="text-danger">*</span></label>
+                                            <label for="inputCity" class="form-label text-muted mb-0">City <span class="text-danger">*</span></label>
                                             <input type="text" name="city" class="form-control" id="inputCity" value="{{ old('city', $user->city) }}" required>
                                             {!!$errors->first("city", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
 
                                         <div class="col-md-4 mt-3">
-                                            <label for="inputState" class="form-label fw-bold mb-0">State <span class="text-danger">*</span></label>
+                                            <label for="inputState" class="form-label text-muted mb-0">State <span class="text-danger">*</span></label>
                                             <input type="text" name="state" class="form-control" id="inputState" value="{{ old('state', $user->state) }}" required>
                                             {!!$errors->first("state", "<span class='text-danger'>:message</span>")!!}
                                         </div>
                                         
 
                                         <div class="col-md-4 mt-3">
-                                            <label for="inputCountry" class="form-label fw-bold mb-0">Country  <span class="text-danger">*</span></label>
+                                            <label for="inputCountry" class="form-label text-muted mb-0">Country  <span class="text-danger">*</span></label>
                                             <select name="country" class="form-select" id="inputCountry" required>
                                                 <option value="" disabled selected>Select...</option>
                                                 @foreach ($countries as $country)
@@ -228,7 +228,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputWorkPhoneNumber" class="form-label fw-bold mb-0">Work Phone</label>
+                                <label for="inputWorkPhoneNumber" class="form-label text-muted mb-0">Work Phone</label>
                                 <div class="d-flex">
                                     <div class="w-25">
                                         <select name="work_phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
@@ -254,7 +254,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">Cell Phone <span class="text-danger">*</span></label>
+                                <label for="inputPhoneNumber" class="form-label text-muted mb-0">Cell Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
                                         <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
@@ -275,7 +275,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputPhoneNumber" class="form-label fw-bold mb-0">WhatsApp</label>
+                                <label for="inputPhoneNumber" class="form-label text-muted mb-0">WhatsApp</label>
                                 <div class="d-flex">
                                     <div class="w-25">
                                         <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
@@ -298,19 +298,19 @@
                             
 
                             <div class="col-md-6">
-                                <label for="inputEmail" class="form-label fw-bold mb-0">E-mail <span class="text-danger">*</span></label>
+                                <label for="inputEmail" class="form-label text-muted mb-0">E-mail <span class="text-danger">*</span></label>
                                 <input type="email" name="email" class="form-control" id="inputEmail" value="{{$user->email}}" readonly>
                                 {!!$errors->first("email", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-6">
-                                <label for="inputCcEmail" class="form-label fw-bold mb-0">Cc E-mail</label>
+                                <label for="inputCcEmail" class="form-label text-muted mb-0">Cc E-mail</label>
                                 <input type="email" name="cc_email" class="form-control" id="inputCcEmail" value="{{ old('cc_email', $user->cc_email) }}">
                                 {!!$errors->first("cc_email", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
                             <div class="col-md-6">
-                                <label for="inputSolapin" class="form-label fw-bold mb-0">Conference badge <span class="text-danger">*</span> <small class="fw-normal">(A first and last name)</small></label>
+                                <label for="inputSolapin" class="form-label text-muted mb-0">Conference badge <span class="text-danger">*</span> <small class="fw-normal">(A first and last name)</small></label>
                                 <div class="d-flex">
                                     <input type="text" class="form-control convert_mayus" name="solapin_name" id="inputSolapin" value="{{ old('solapin_name', $user->solapin_name) }}" placeholder="First Name" required>
                                     <input type="text" class="form-control convert_mayus" name="solapin_lastname" id="inputSolapin" value="{{ old('solapin_lastname', $user->solapin_lastname) }}" placeholder="Last Name" required>
@@ -435,15 +435,15 @@
 
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
-                                            <label for="invoice_social_reason" class="form-label mb-0">Name/Entity <span class="text-danger">*</span></label>
+                                            <label for="invoice_social_reason" class="form-label text-muted mb-0">Name/Entity <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="Name/Entity" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_ruc" class="form-label mb-0">Tax ID (RUC) <span class="text-danger">*</span></label>
+                                            <label for="invoice_ruc" class="form-label text-muted mb-0">Tax ID (RUC) <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces" placeholder="Tax ID (RUC)" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_address" class="form-label mb-0">Business Address <span class="text-danger">*</span></label>
+                                            <label for="invoice_address" class="form-label text-muted mb-0">Business Address <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address" maxlength="50" autocomplete="new-address" required>
                                         </div>
                                     </div>
