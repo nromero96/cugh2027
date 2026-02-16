@@ -323,6 +323,76 @@
                             </div>
 
                             <div class="col-md-12">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <label for="inputSolapin" class="form-label text-muted mb-0">SECTOR - CHECK ALL THAT APPLY <span class="text-danger">*</span></label><br>
+
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Academic" {{ old('sector', $user->sector) == 'Academic' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Academic</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Funding Organization" {{ old('sector', $user->sector) == 'Funding Organization' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Funding Organization</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Government" {{ old('sector', $user->sector) == 'Government' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Government</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Intergovernmental organization" {{ old('sector', $user->sector) == 'Intergovernmental organization' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Intergovernmental organization</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Non-profit/NGO/Civil Society Organization" {{ old('sector', $user->sector) == 'Non-profit/NGO/Civil Society Organization' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Non-profit/NGO/Civil Society Organization</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Private Sector" {{ old('sector', $user->sector) == 'Private Sector' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Private Sector</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Research Institute" {{ old('sector', $user->sector) == 'Research Institute' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Research Institute</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Think Tank" {{ old('sector', $user->sector) == 'Think Tank' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Think Tank</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="sector" value="Other" {{ old('sector', $user->sector) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("sector", "<span class='text-danger'>:message</span>")!!}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
                                 <h5 class="text-center">Category</h5>
                             </div>
 
@@ -425,26 +495,31 @@
                                         </div>
                                     </div>
 
-                                    {{-- Use personal information for billing --}}
-                                    <div class="form-check form-check-primary form-check-inline mt-2">
-                                        <input class="form-check-input cursor-pointer" type="checkbox" name="billing_same_as_personal" id="billing_same_as_personal" value="yes">
-                                        <label class="form-check-label mb-0 cursor-pointer" for="billing_same_as_personal">
-                                            Use personal information for billing
-                                        </label>
-                                    </div>
-
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
-                                            <label for="invoice_social_reason" class="form-label text-muted mb-0">Name/Entity <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="Name/Entity" required>
+                                            <label for="invoice_social_reason" class="form-label text-muted mb-0"><span id="lbl_invoice_social_reason">Name/Entity</span> <span class="text-danger">*</span></label>
+                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="" required>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_ruc" class="form-label text-muted mb-0">Tax ID (RUC) <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces" placeholder="Tax ID (RUC)" required>
+                                            <label for="invoice_type_document" class="form-label text-muted mb-0" id="lbl_invoice_type_document">Document Type and Number<span class="text-danger">*</span></label>
+                                            <div class="d-flex">
+                                                <div class="w-25">
+                                                    <select name="invoice_type_document" id="invoice_type_document" class="form-select rounded-0 rounded-start" required>
+                                                        <option value="" selected disabled>Select...</option>
+                                                        <option value="RUC" {{ old('invoice_type_document') == 'RUC' ? 'selected' : '' }} disabled>RUC</option>
+                                                        <option value="DNI" {{ old('invoice_type_document') == 'DNI' ? 'selected' : '' }} >DNI</option>
+                                                        <option value="Passport" {{ old('invoice_type_document') == 'Passport' ? 'selected' : '' }} >Passport</option>
+                                                        <option value="Other" {{ old('invoice_type_document') == 'Other' ? 'selected' : '' }} >Other</option>
+                                                    </select>
+                                                </div>
+                                                <div class="w-75">
+                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end" placeholder="Document Number" required>
+                                                </div>
+                                            </div>
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_address" class="form-label text-muted mb-0">Business Address <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="Business Address" maxlength="50" autocomplete="new-address" required>
+                                            <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Address</span> <span class="text-danger">*</span></label>
+                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="" maxlength="50" autocomplete="new-address" required>
                                         </div>
                                     </div>
 

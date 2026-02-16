@@ -207,66 +207,48 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    //Change action invoice_type
+    document.querySelectorAll('input[name="invoice_type"]')
+        .forEach(function (radio) {
+            radio.addEventListener('change', function () {
 
-    // === Billing Same As Personal ===
+                const label_social_reason = document.getElementById('lbl_invoice_social_reason');
+                const label_invoice_address = document.getElementById('lbl_invoice_address');
+                const selectInvoiceDocument = document.getElementById('invoice_type_document');
 
-        const billingSameCheckbox = document.getElementById('billing_same_as_personal');
+                if (this.value === 'Factura') {
+                    label_social_reason.textContent = 'Entity Name';
+                    label_invoice_address.textContent = 'Business Address';
+                    
+                    Array.from(selectInvoiceDocument.options).forEach(option => {
 
-        const billingPersonalFields = {
-            name: document.getElementById('name'),
-            lastname: document.getElementById('lastname'),
-            secondLastname: document.getElementById('second_lastname'),
-            documentNumber: document.getElementById('inputDocumentNumber'),
-            address: document.getElementById('inputAddress'),
-        };
+                        // Solo RUC habilitado
+                        option.disabled = option.value !== 'RUC';
 
-        const billingInvoiceFields = {
-            socialReason: document.getElementById('invoice_social_reason'),
-            ruc: document.getElementById('invoice_ruc'),
-            address: document.getElementById('invoice_address'),
-        };
+                        // Seleccionar RUC automáticamente
+                        if (option.value === 'RUC') {
+                            option.selected = true;
+                        }
+                    });
 
-        function billingBuildSocialReason() {
-            return [
-                billingPersonalFields.name.value,
-                billingPersonalFields.lastname.value,
-                billingPersonalFields.secondLastname.value
-            ].filter(Boolean).join(' ');
-        }
+                } else {
+                    label_social_reason.textContent = 'Name/Entity';
+                    label_invoice_address.textContent = 'Address';
 
-        function billingSyncInvoiceFields() {
-            billingInvoiceFields.socialReason.value = billingBuildSocialReason();
-            billingInvoiceFields.ruc.value = billingPersonalFields.documentNumber.value;
-            billingInvoiceFields.address.value = billingPersonalFields.address.value;
-        }
+                    // Habilitar todas las opciones menus RUC
+                    Array.from(selectInvoiceDocument.options).forEach(option => {
+                        option.disabled = option.value === 'RUC';
+                    });
 
-        function billingSetInvoiceReadonly(isReadonly) {
-            Object.values(billingInvoiceFields).forEach(field => {
-                field.readOnly = isReadonly;
-            });
-        }
+                    // Si estaba RUC seleccionado, volver a "Select..."
+                    if (selectInvoiceDocument.value === 'RUC') {
+                        selectInvoiceDocument.selectedIndex = 0;
+                    }
 
-        // Sincronización en tiempo real
-        Object.values(billingPersonalFields).forEach(field => {
-            field.addEventListener('input', () => {
-                if (billingSameCheckbox.checked) {
-                    billingSyncInvoiceFields();
                 }
             });
         });
-
-        // Cambio del checkbox
-        billingSameCheckbox.addEventListener('change', () => {
-            if (billingSameCheckbox.checked) {
-                billingSyncInvoiceFields();
-                billingSetInvoiceReadonly(true);
-            } else {
-                billingSetInvoiceReadonly(false);
-            }
-        });
-    
-
-});
+    });
 
 // Obtén todos los elementos radio y checkboxes
 const categoryRadioButtons = document.querySelectorAll('input[type="radio"][name="category_inscription_id"]');

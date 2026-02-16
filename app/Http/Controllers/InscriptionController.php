@@ -714,7 +714,7 @@ class InscriptionController extends Controller
             'category_inscription_id' => 'required|numeric',
             'invoice' => 'required|string',
             'invoice_type' => 'required|string',
-            'billing_same_as_personal' => 'nullable|string',
+            'invoice_type_document' => 'nullable|string',
             'invoice_ruc' => 'nullable|string',
             'invoice_social_reason' => 'nullable|string',
             'invoice_address' => 'nullable|string|max:50',
@@ -783,7 +783,7 @@ class InscriptionController extends Controller
             $inscription->special_code = $request->specialcode;
             $inscription->invoice = $request->invoice;
             $inscription->invoice_type = $request->invoice_type;
-            $inscription->billing_same_as_personal = $request->billing_same_as_personal;
+            $inscription->invoice_type_document = $request->invoice_type_document;
             $inscription->invoice_ruc = $request->invoice_ruc;
             $inscription->invoice_social_reason = $request->invoice_social_reason;
             $inscription->invoice_address = $request->invoice_address;
@@ -813,6 +813,7 @@ class InscriptionController extends Controller
             }
 
             if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
+                $forma_de_pago = '002';
                 $inscription->status = 'Processing';
                 $inscription->save();
 
@@ -833,8 +834,8 @@ class InscriptionController extends Controller
 
                 DB::commit();
 
-                return redirect()->route('inscriptions.index')->with('success', 'Registration successful, we will validate your information shortly.');
             } else if ($request->payment_method == 'Credit/Debit Card') {
+                $forma_de_pago = '001';
                 $inscription->status = 'Pending';
                 $inscription->save();
 
@@ -854,23 +855,26 @@ class InscriptionController extends Controller
                 //     ->send(new \App\Mail\InscriptionCreated($data));
 
                 DB::commit();
+            }
 
-                $tipo_comprobante = '';
-                $direcion_comprobante = '';
-                if($inscription->invoice == 'yes'){
-                    $direcion_comprobante = $inscription->invoice_address;
-                } else {
-                    $direcion_comprobante = $user->address;
-                }
 
-                if($inscription->invoice_type == 'Factura'){
-                    $tipo_comprobante = 'F';
-                } else {
-                    $tipo_comprobante = 'B';
-                }
+            //Send Data to UPCH
+            $tipo_comprobante = '';
+            $direcion_comprobante = '';
+            if($inscription->invoice == 'yes'){
+                $direcion_comprobante = $inscription->invoice_address;
+            } else {
+                $direcion_comprobante = $user->address;
+            }
 
-                $params = [
-                    'forma_de_pago'        => '001',
+            if($inscription->invoice_type == 'Factura'){
+                $tipo_comprobante = 'F';
+            } else {
+                $tipo_comprobante = 'B';
+            }
+
+            $params = [
+                    'forma_de_pago'        => $forma_de_pago,
                     'dato_transferencia'   => '',
                     'codigo_comercio'      => config('services.upch.commercial_code'),
                     'codigo_tarifario'     => '',
@@ -885,20 +889,23 @@ class InscriptionController extends Controller
                     'pais_origen'          => $user->residenceCountry->name ?? '',
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
+
+                    //Billing information
                     'tipo_comprobante'     => $tipo_comprobante ?? '',
+                    'tipo_doc_comp'        => $inscription->invoice_type_document ?? '',
+                    'numero_doc_comp'      => $inscription->invoice_ruc ?? '',
                     'razon_social'         => $inscription->invoice_social_reason ?? '',
                     'direccion_fiscal'     => $inscription->invoice_address ?? '',
+
                     'numero_inscripcion'   => $inscription->id,
                     'ciudad'               => $user->city ?? '',
+                    'correo_contacto'      => $user->email ?? '',
                     'url_respuesta'        => config('services.upch.url_response_payment_data'),
-                ]; 
+            ]; 
 
-                $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
+            $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
 
-                return redirect($url);
-
-                
-            }
+            return redirect($url);
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -946,6 +953,8 @@ class InscriptionController extends Controller
                     'tipo_documento'       => $user->document_type ?? '',
                     'numero_documento'     => $user->document_number ?? '',
                     'tipo_comprobante'     => $tipo_comprobante ?? '',
+                    'tipo_doc_comp'        => $inscription->invoice_type_document ?? '',
+                    'numero_doc_comp'      => $inscription->invoice_ruc ?? '',
                     'razon_social'         => $inscription->invoice_social_reason ?? '',
                     'direccion_fiscal'     => $inscription->invoice_address ?? '',
                     'numero_inscripcion'   => $inscription->id,

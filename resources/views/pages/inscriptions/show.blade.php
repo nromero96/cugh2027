@@ -282,17 +282,27 @@
                                         </label>
                                     @endif
 
+                                    @php 
+                                        if($inscription->invoice_type == 'Factura'){
+                                            $txt_invoice_social_reason = 'Entity Name';
+                                            $txt_invoice_address = 'Business Address';
+                                        }else{
+                                            $txt_invoice_social_reason = 'Name/Entity';
+                                            $txt_invoice_address = 'Address';
+                                        }
+                                    @endphp
+
                                     <div class="row mt-1" id="dv_invoice_info">
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold mb-0">Name/Entity:</label><br>
+                                            <label class="form-label fw-bold mb-0">{{ $txt_invoice_social_reason }}:</label><br>
                                             <span class="bx-text">{{ $inscription->invoice_social_reason }}</span>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold mb-0">Tax ID (RUC):</label><br>
-                                            <span class="bx-text">{{ $inscription->invoice_ruc }}</span>
+                                            <label class="form-label fw-bold mb-0">Document Type and Number:</label><br>
+                                            <span class="bx-text">{{ $inscription->invoice_type_document }} - {{ $inscription->invoice_ruc }}</span>
                                         </div>
                                         <div class="col-md-4">
-                                            <label class="form-label fw-bold mb-0">Business Address:</label><br>
+                                            <label class="form-label fw-bold mb-0">{{ $txt_invoice_address }}:</label><br>
                                             <span class="bx-text">{{ $inscription->invoice_address }}</span>
                                         </div>
                                     </div>
