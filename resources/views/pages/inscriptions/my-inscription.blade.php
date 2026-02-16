@@ -327,8 +327,7 @@
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <label for="inputSolapin" class="form-label text-muted mb-0">SECTOR - CHECK ALL THAT APPLY <span class="text-danger">*</span></label><br>
-
+                                                <label class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
@@ -386,6 +385,199 @@
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("sector", "<span class='text-danger'>:message</span>")!!}
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="area_of_work" class="form-label text-muted mb-0 mt-2">AREA(S) OF WORK <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Academic Administration" {{ old('area_of_work', $user->area_of_work) == 'Academic Administration' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Academic Administration</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Faculty" {{ old('area_of_work', $user->area_of_work) == 'Faculty' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Faculty</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Student Undergraduate" {{ old('area_of_work', $user->area_of_work) == 'Student Undergraduate' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Student Undergraduate</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Postgraduate Student" {{ old('area_of_work', $user->area_of_work) == 'Postgraduate Student' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Postgraduate Student</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Advocacy" {{ old('area_of_work', $user->area_of_work) == 'Advocacy' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Advocacy</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Research" {{ old('area_of_work', $user->area_of_work) == 'Research' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Research</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Education" {{ old('area_of_work', $user->area_of_work) == 'Education' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Education</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Funding" {{ old('area_of_work', $user->area_of_work) == 'Funding' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Funding</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Implementation" {{ old('area_of_work', $user->area_of_work) == 'Implementation' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Implementation</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="politics" value="Politics" {{ old('politics', $user->politics) == 'Politics' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Politics</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="other" value="Other" {{ old('other', $user->other) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="how_did_you_hear_about" class="form-label text-muted mb-0 mt-2">HOW DID YOU HEAR ABOUT THE CUGH CONFERENCE <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="My institution is a member" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'My institution is a member' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">My institution is a member</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Promotional emails from CUGH" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Promotional emails from CUGH' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Promotional emails from CUGH</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="CUGH newsletters" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'CUGH newsletters' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">CUGH newsletters</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Saw a flyer/information via non-CUGH site" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Saw a flyer/information via non-CUGH site' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Saw a flyer/information via non-CUGH site</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="From social media (Facebook, Twitter, etc.)" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'From social media (Facebook, Twitter, etc.)' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">From social media (Facebook, Twitter, etc.)</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Through a colleague/friend" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Through a colleague/friend' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Through a colleague/friend</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Other" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("how_did_you_hear_about", "<span class='text-danger'>:message</span>")!!}
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="why_attending" class="form-label text-muted mb-0 mt-2">WHY ARE YOU ATTENDING THE CONFERENCE? <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To learn about the latest in global health issues" {{ old('why_attending', $user->why_attending) == 'To learn about the latest in global health issues' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To learn about the latest in global health issues</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To network" {{ old('why_attending', $user->why_attending) == 'To network' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To network</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To find funding" {{ old('why_attending', $user->why_attending) == 'To find funding' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To find funding</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To identify a new educational/research opportunity" {{ old('why_attending', $user->why_attending) == 'To identify a new educational/research opportunity' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To identify a new educational/research opportunity</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To find a job" {{ old('why_attending', $user->why_attending) == 'To find a job' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To find a job</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To interact with speakers/presenters/moderators" {{ old('why_attending', $user->why_attending) == 'To interact with speakers/presenters/moderators' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To interact with speakers/presenters/moderators</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To present my work to peers, colleagues, topic experts" {{ old('why_attending', $user->why_attending) == 'To present my work to peers, colleagues, topic experts' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">To present my work to peers, colleagues, topic experts</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="Other" {{ old('why_attending', $user->why_attending) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("why_attending", "<span class='text-danger'>:message</span>")!!}
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="ability_to_present_work" class="form-label text-muted mb-0 mt-2">HOW MUCH DOES THE ABILITY TO PRESENT YOUR WORK AFFECT YOUR ABILITY TO ATTEND THE CONFERENCE? <span class="text-danger">*</span></label>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label d-block">
+                                                            <input class="form-check-input" type="radio" name="ability_to_present_work" value="Essential" {{ old('ability_to_present_work', $user->ability_to_present_work) == 'Essential' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Essential</span>
+                                                        </label>
+                                                        <label class="form-check-label d-block">
+                                                            <input class="form-check-input" type="radio" name="ability_to_present_work" value="Desirable but not essential" {{ old('ability_to_present_work', $user->ability_to_present_work) == 'Desirable but not essential' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Desirable but not essential</span>
+                                                        </label>
+                                                        <label class="form-check-label d-block">
+                                                            <input class="form-check-input" type="radio" name="ability_to_present_work" value="No Effect" {{ old('ability_to_present_work', $user->ability_to_present_work) == 'No Effect' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">No Effect</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("ability_to_present_work", "<span class='text-danger'>:message</span>")!!}
                                             </div>
                                         </div>
                                     </div>
