@@ -15,6 +15,7 @@ use App\Models\Statusnote;
 use App\Models\SpecialCode;
 use App\Models\BeneficiarioBeca;
 use App\Models\Country;
+use App\Models\MemberInstitution;
 
 
 use Illuminate\Support\Facades\Storage;
@@ -651,9 +652,12 @@ class InscriptionController extends Controller
         //verificar si tengo alguna inscripcion
         $myinscription = Inscription::where('user_id', $id);
 
+        //List Member Institution
+        $memberinstitutions = MemberInstitution::all();
+
         //solo los roles de Administrador y Secretaria pueden ver esta vista
         if ($myinscription) {
-            return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user);
+            return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user)->with('memberinstitutions', $memberinstitutions);
         }else{
             return redirect()->route('inscriptions.index')->with('error', 'Ya tiene una inscripción, revise su inscripción en la sección de inscripciones');
         }

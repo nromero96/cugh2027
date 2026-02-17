@@ -112,8 +112,11 @@
                                 <label for="inputCUGHMemberInstitution" class="form-label text-muted mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
                                 <select name="cugh_member_institution" id="cugh_member_institution" class="form-select">
                                     <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
-                                    <option value="ABH Partners" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'ABH Partners' ? 'selected' : '' }}>ABH Partners</option>
-                                    <option value="Academy of Health Sciences" {{ old('cugh_member_institution', $user->cugh_member_institution) == 'Academy of Health Sciences' ? 'selected' : '' }}>Academy of Health Sciences</option>
+                                    
+                                    @foreach($memberinstitutions as $memberinstitution)
+                                        <option value="{{ $memberinstitution->id }}" {{ old('cugh_member_institution', $user->cugh_member_institution) == $memberinstitution->id ? 'selected' : '' }}>{{ $memberinstitution->name }}</option>
+                                    @endforeach
+
                                 </select>
                                 {!!$errors->first("cugh_member_institution", "<span class='text-danger'>:message</span>")!!}
                             </div>
@@ -318,16 +321,14 @@
                                 {!!$errors->first("solapin_name", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
-                            <div class="col-md-12">
-                                <hr class="mt-1">
-                            </div>
+                            
 
-                            <div class="col-md-12">
+                            <div class="col-md-12 mt-4">
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-12">
-                                                <label class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
+                                                <label for="sector" class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
@@ -385,6 +386,7 @@
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("sector", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="area_of_work" class="form-label text-muted mb-0 mt-2">AREA(S) OF WORK <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
@@ -456,6 +458,8 @@
                                                         </label>
                                                     </div>
                                                 </div>
+                                                {!!$errors->first("area_of_work", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="how_did_you_hear_about" class="form-label text-muted mb-0 mt-2">HOW DID YOU HEAR ABOUT THE CUGH CONFERENCE <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
@@ -504,6 +508,7 @@
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("how_did_you_hear_about", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="why_attending" class="form-label text-muted mb-0 mt-2">WHY ARE YOU ATTENDING THE CONFERENCE? <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
@@ -558,6 +563,7 @@
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("why_attending", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="ability_to_present_work" class="form-label text-muted mb-0 mt-2">HOW MUCH DOES THE ABILITY TO PRESENT YOUR WORK AFFECT YOUR ABILITY TO ATTEND THE CONFERENCE? <span class="text-danger">*</span></label>
@@ -578,6 +584,311 @@
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("ability_to_present_work", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="how_is_your_attendance_funded" class="form-label text-muted mb-0 mt-2">HOW IS YOUR ATTENDANCE FUNDED? <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By myself" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By myself' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">By myself</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By my program/school university" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By my program/school university' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">By my program/school university</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By my place of employment" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By my place of employment' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">By my place of employment</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="Other" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("how_is_your_attendance_funded", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-1">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="your_areas_of_focus_in_global_health" class="form-label text-muted mb-0 mt-2">YOUR AREAS OF FOCUS IN GLOBAL HEALTH <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Administration" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Administration' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Administration</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Advocacy/Communication" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Advocacy/Communication' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Advocacy/Communication</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Capacity Building" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Capacity Building' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Capacity Building</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Disaster Management" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Disaster Management' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Disaster Management</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Education" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Education' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Education</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Emergency Medicine" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Emergency Medicine' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Emergency Medicine</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Environment/One Health/Planetary Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Environment/One Health/Planetary Health' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Environment/One Health/Planetary Health</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Governance" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Governance' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Governance</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Economics" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Economics' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Economics</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Policy" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Policy' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Policy</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Implementation" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Implementation' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Implementation</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Infectious Diseases/Pandemic prevention and response" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Infectious Diseases/Pandemic prevention and response' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Infectious Diseases/Pandemic prevention and response</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Mental Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Mental Health' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Mental Health</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="NCDS" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'NCDS' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">NCDS</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Nutrition/Food Security" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Nutrition/Food Security' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Nutrition/Food Security</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Oral Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Oral Health' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Oral Health</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Pediatrics" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Pediatrics' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Pediatrics</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Politics/Political Science" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Politics/Political Science' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Politics/Political Science</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Public Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Public Health' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Public Health</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Research" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Research' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Research</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Social Sciences" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Social Sciences' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Social Sciences</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Student Services/International Education" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Student Services/International Education' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Student Services/International Education</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Surgery/Trauma" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Surgery/Trauma' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Surgery/Trauma</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Veterinary Sciences" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Veterinary Sciences' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Veterinary Sciences</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Water/Sanitation" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Water/Sanitation' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Water/Sanitation</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Women's Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Women\'s Health' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Women's Health</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Other" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("your_areas_of_focus_in_global_health", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-2">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="obstacles_to_attending_cughs_conferences" class="form-label text-muted mb-0 mt-2">OBSTACLES TO ATTENDING CUGH'S CONFERENCES <span class="text-danger">*</span></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Financial" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Financial' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Financial</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Visas & other immigration factors" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Visas & other immigration factors' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Visas & other immigration factors</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Other" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Other' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Other</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("obstacles_to_attending_cughs_conferences", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-2">
+                                            </div>
+                                            <div class="col-md-12">
+                                                <label for="receive_news_and_updates" class="form-label text-muted mb-0 mt-2">I WANT TO RECEIVE NEWS AND UPDATES ABOUT FUTURE CUGH ACTIVITIES AND EVENTS <span class="text-danger">*</span></label>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="receive_news_and_updates" value="Yes" {{ old('receive_news_and_updates', $user->receive_news_and_updates) == 'Yes' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">YES, I wish to receive CUGH news</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="receive_news_and_updates" value="No" {{ old('receive_news_and_updates', $user->receive_news_and_updates) == 'No' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">NO, I do not wish to receive CUGH news</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("receive_news_and_updates", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-2">
+                                            </div>
+                                            <div class="col-md-12">
+                                                {{-- CONTACT INFO --}}
+                                                <label for="contact_info" class="form-label text-muted mb-0 mt-2">CONTACT INFORMATION <span class="text-danger">*</span></label>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="contact_info" value="I agree that my contact information can be shared with other attendees (Conference App)" {{ old('contact_info', $user->contact_info) == 'I agree that my contact information can be shared with other attendees (Conference App).' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">I agree that my contact information can be shared with other attendees (Conference App)</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="contact_info" value="I do not wish my contact information to be shared with other attendees" {{ old('contact_info', $user->contact_info) == 'I do not wish my contact information to be shared with other attendees' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">I do not wish my contact information to be shared with other attendees</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("contact_info", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-2">
+                                            </div>
+                                            <div class="col-md-12">
+                                                {{-- ORAL/POSTER ABSTRACT PRESENTER? (NOT APPLICABLE FOR PANEL SPEAKERS) --}}
+                                                <label for="oral_poster_abstract_presenter" class="form-label text-muted mb-0 mt-2">ORAL/POSTER ABSTRACT PRESENTER? <span class="text-danger">*</span> <small>(Not Applicable for Panel Speakers)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="oral_poster_abstract_presenter" value="Yes" {{ old('oral_poster_abstract_presenter', $user->oral_poster_abstract_presenter) == 'Yes' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">YES, I will present a poster or oral abstract presentation</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="oral_poster_abstract_presenter" value="No" {{ old('oral_poster_abstract_presenter', $user->oral_poster_abstract_presenter) == 'No' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">NO, I am not presenting a poster or oral abstract presentation</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("oral_poster_abstract_presenter", "<span class='text-danger'>:message</span>")!!}
+                                                <hr class="my-2">
+                                            </div>
+                                            <div class="col-md-12">
+                                                {{-- PANEL PRESENTER/MODERATOR? (NOT APPLICABLE FOR SCIENTIFIC ABSTRACT SUBMITTERS) --}}
+                                                <label for="panel_presenter_moderator" class="form-label text-muted mb-0 mt-2">PANEL PRESENTER/MODERATOR? <span class="text-danger">*</span> <small>(Not Applicable for Scientific Abstract Submitters)</small></label>
+                                                <div class="row">
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="panel_presenter_moderator" value="Yes" {{ old('panel_presenter_moderator', $user->panel_presenter_moderator) == 'Yes' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">YES, I will be a panel speaker/moderator</span>
+                                                        </label>
+                                                    </div>
+                                                    <div class="col-md-12">
+                                                        <label class="form-check-label">
+                                                            <input class="form-check-input" type="radio" name="panel_presenter_moderator" value="No" {{ old('panel_presenter_moderator', $user->panel_presenter_moderator) == 'No' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">NO, I am not a panel speaker/moderator</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                {!!$errors->first("panel_presenter_moderator", "<span class='text-danger'>:message</span>")!!}
+                                                
                                             </div>
                                         </div>
                                     </div>
