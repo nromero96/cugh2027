@@ -208,47 +208,83 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     //Change action invoice_type
-    document.querySelectorAll('input[name="invoice_type"]')
-        .forEach(function (radio) {
-            radio.addEventListener('change', function () {
+    document.querySelectorAll('input[name="invoice_type"]').forEach(function (radio) {
+        radio.addEventListener('change', function () {
+            const label_social_reason = document.getElementById('lbl_invoice_social_reason');
+            const label_invoice_address = document.getElementById('lbl_invoice_address');
+            const selectInvoiceDocument = document.getElementById('invoice_type_document');
 
-                const label_social_reason = document.getElementById('lbl_invoice_social_reason');
-                const label_invoice_address = document.getElementById('lbl_invoice_address');
-                const selectInvoiceDocument = document.getElementById('invoice_type_document');
-
-                if (this.value === 'Factura') {
-                    label_social_reason.textContent = 'Entity Name';
-                    label_invoice_address.textContent = 'Business Address';
+            if (this.value === 'Factura') {
+                label_social_reason.textContent = 'Entity Name';
+                label_invoice_address.textContent = 'Business Address';
                     
-                    Array.from(selectInvoiceDocument.options).forEach(option => {
+                Array.from(selectInvoiceDocument.options).forEach(option => {
 
-                        // Solo RUC habilitado
-                        option.disabled = option.value !== 'RUC';
+                    // Solo RUC habilitado
+                    option.disabled = option.value !== 'RUC';
 
-                        // Seleccionar RUC automáticamente
-                        if (option.value === 'RUC') {
-                            option.selected = true;
-                        }
-                    });
-
-                } else {
-                    label_social_reason.textContent = 'Name/Entity';
-                    label_invoice_address.textContent = 'Address';
-
-                    // Habilitar todas las opciones menus RUC
-                    Array.from(selectInvoiceDocument.options).forEach(option => {
-                        option.disabled = option.value === 'RUC';
-                    });
-
-                    // Si estaba RUC seleccionado, volver a "Select..."
-                    if (selectInvoiceDocument.value === 'RUC') {
-                        selectInvoiceDocument.selectedIndex = 0;
+                    // Seleccionar RUC automáticamente
+                    if (option.value === 'RUC') {
+                        option.selected = true;
                     }
+                });
 
+            } else {
+                label_social_reason.textContent = 'Name/Entity';
+                label_invoice_address.textContent = 'Address';
+
+                // Habilitar todas las opciones menus RUC
+                Array.from(selectInvoiceDocument.options).forEach(option => {
+                    option.disabled = option.value === 'RUC';
+                });
+
+                // Si estaba RUC seleccionado, volver a "Select..."
+                if (selectInvoiceDocument.value === 'RUC') {
+                    selectInvoiceDocument.selectedIndex = 0;
                 }
-            });
+
+            }
         });
     });
+
+
+    function toggleOtherCheckbox(checkboxSelector, inputId) {
+        const checkbox = document.querySelector(checkboxSelector);
+        const input = document.getElementById(inputId);
+
+        if (!checkbox || !input) return;
+
+        function toggle() {
+            if (checkbox.checked) {
+                input.classList.remove('d-none');
+            } else {
+                input.classList.add('d-none');
+                input.value = ''; // opcional: limpia el input
+            }
+        }
+
+        checkbox.addEventListener('change', toggle);
+        toggle(); // ejecutar al cargar
+    }
+
+    // SECTOR
+    toggleOtherCheckbox('input[name="sector"][value="Other"]', 'other_sector');
+    //AREA(S) OF WORK
+    toggleOtherCheckbox('input[name="area_of_work"][value="Other"]', 'other_area_of_work');
+    //HOW DID YOU HEAR ABOUT THE CUGH CONFERENCE
+    toggleOtherCheckbox('input[name="how_did_you_hear_about"][value="Other"]', 'other_how_did_you_hear_about');
+    //WHY ARE YOU ATTENDING THE CONFERENCE?
+    toggleOtherCheckbox('input[name="why_attending"][value="Other"]', 'other_why_attending');
+    //HOW IS YOUR ATTENDANCE FUNDED?
+    toggleOtherCheckbox('input[name="how_is_your_attendance_funded"][value="Other"]', 'other_how_is_your_attendance_funded');
+    //YOUR AREAS OF FOCUS IN GLOBAL HEALTH
+    toggleOtherCheckbox('input[name="your_areas_of_focus_in_global_health"][value="Other"]', 'other_your_areas_of_focus_in_global_health');
+    //OBSTACLES TO ATTENDING CUGH'S CONFERENCES
+    toggleOtherCheckbox('input[name="obstacles_to_attending_cughs_conferences"][value="Other"]', 'other_obstacles_to_attending_cughs_conferences');
+
+});
+
+
 
 // Obtén todos los elementos radio y checkboxes
 const categoryRadioButtons = document.querySelectorAll('input[type="radio"][name="category_inscription_id"]');

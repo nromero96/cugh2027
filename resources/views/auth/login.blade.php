@@ -57,8 +57,8 @@
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Access your account</button>
                     </div>
                 </div>
-                <p class="text-center mt-4 pt-4">
-                    <small>This conference is organized by the Universidad Peruana Cayetano Heredia (UPCH).</small>
+                <p class="text-center mt-4 pt-4" style="line-height: 16px;">
+                    <small>This conference is proudly hosted in Lima, Peru, bringing together global leaders in health and development.</small>
                 </p>
             </div>
         

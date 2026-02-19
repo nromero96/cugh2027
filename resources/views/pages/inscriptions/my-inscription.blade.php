@@ -383,6 +383,7 @@
                                                             <input class="form-check-input" type="checkbox" name="sector" value="Other" {{ old('sector', $user->sector) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" name="other_sector" class="form-control mb-2" id="other_sector" value="{{ old('other_sector') }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("sector", "<span class='text-danger'>:message</span>")!!}
@@ -447,15 +448,16 @@
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="politics" value="Politics" {{ old('politics', $user->politics) == 'Politics' ? 'checked' : '' }}>
-                                                            <span class="form-check-label">Politics</span>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Politics/Policy making" {{ old('politics', $user->area_of_work) == 'Politics/Policy making' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">Politics/Policy making</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="other" value="Other" {{ old('other', $user->other) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Other" {{ old('other', $user->area_of_work) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" name="other_area_of_work" class="form-control mb-2" id="other_area_of_work" value="{{ old('area_of_work', $user->area_of_work) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("area_of_work", "<span class='text-danger'>:message</span>")!!}
@@ -505,6 +507,7 @@
                                                             <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Other" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" class="form-control mb-2" id="other_how_did_you_hear_about" name="other_how_did_you_hear_about" value="{{ old('other_how_did_you_hear_about', $user->other_how_did_you_hear_about) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("how_did_you_hear_about", "<span class='text-danger'>:message</span>")!!}
@@ -560,6 +563,7 @@
                                                             <input class="form-check-input" type="checkbox" name="why_attending" value="Other" {{ old('why_attending', $user->why_attending) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" name="other_why_attending" class="form-control mb-2" id="other_why_attending" value="{{ old('other_why_attending') }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("why_attending", "<span class='text-danger'>:message</span>")!!}
@@ -612,6 +616,7 @@
                                                             <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="Other" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" class="form-control mb-2" name="other_how_is_your_attendance_funded" id="other_how_is_your_attendance_funded" value="{{ old('other_how_is_your_attendance_funded', $user->other_how_is_your_attendance_funded) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("how_is_your_attendance_funded", "<span class='text-danger'>:message</span>")!!}
@@ -781,6 +786,7 @@
                                                             <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Other" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" name="other_your_areas_of_focus_in_global_health" id="other_your_areas_of_focus_in_global_health" class="form-control mb-2" value="{{ old('other_your_areas_of_focus_in_global_health', $user->other_your_areas_of_focus_in_global_health) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("your_areas_of_focus_in_global_health", "<span class='text-danger'>:message</span>")!!}
@@ -806,6 +812,7 @@
                                                             <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Other" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Other' ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
+                                                        <input type="text" name="other_obstacles_to_attending_cughs_conferences" id="other_obstacles_to_attending_cughs_conferences" class="form-control mb-2" value="{{ old('other_obstacles_to_attending_cughs_conferences', $user->other_obstacles_to_attending_cughs_conferences) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("obstacles_to_attending_cughs_conferences", "<span class='text-danger'>:message</span>")!!}
