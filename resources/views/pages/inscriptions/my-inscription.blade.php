@@ -1016,6 +1016,7 @@
                                                 <div class="w-25">
                                                     <select name="invoice_type_document" id="invoice_type_document" class="form-select rounded-0 rounded-start" required>
                                                         <option value="" selected disabled>Select...</option>
+                                                        <option value="ID Tax Payer" {{ old('invoice_type_document') == 'ID Tax Payer' ? 'selected' : '' }} >ID Tax Payer</option>
                                                         <option value="RUC" {{ old('invoice_type_document') == 'RUC' ? 'selected' : '' }} disabled>RUC</option>
                                                         <option value="DNI" {{ old('invoice_type_document') == 'DNI' ? 'selected' : '' }} >DNI</option>
                                                         <option value="Passport" {{ old('invoice_type_document') == 'Passport' ? 'selected' : '' }} >Passport</option>

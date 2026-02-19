@@ -357,10 +357,6 @@
                                             <label class="form-label fw-bold mb-0"># Transaction number:</label><br>
                                             <span class="bx-text">{{ $paymentcard->purchasenumber }}</span>
                                         </div>
-                                        <div class="col-1">
-                                            <label class="form-label fw-bold mb-0">Card:</label><br>
-                                            <span class="bx-text">{{ $paymentcard->card_brand }}</span>
-                                        </div>
                                         <div class="col-3">
                                             <label class="form-label fw-bold mb-0">Card #:</label><br>
                                             <span class="bx-text">{{ $paymentcard->card_number }}</span>
@@ -369,7 +365,7 @@
                                             <label class="form-label fw-bold mb-0">Amount:</label><br>
                                             <span class="bx-text">{{ $paymentcard->amount.' '.$paymentcard->currency }}</span>
                                         </div>
-                                        <div class="col-3">
+                                        <div class="col-4">
                                             <label class="form-label fw-bold mb-0">Transaction Date:</label><br>
                                             <span class="bx-text">{{$paymentcard->transaction_date}}</span>
                                         </div>

@@ -471,7 +471,7 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   color: #515365;
 }
 .navbar .navbar-item .nav-item.dropdown.notification-dropdown .dropdown-menu .dropdown-item:hover .data-info h6 {
-  color: #b01333;
+  color: #CC1F2F;
 }
 .navbar .navbar-item .nav-item.dropdown.notification-dropdown .dropdown-menu .data-info p {
   margin-bottom: 0;
@@ -686,7 +686,7 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   font-size: 13px;
   font-weight: 500;
   margin-bottom: 0;
-  color: #b01333;
+  color: #CC1F2F;
 }
 .navbar .navbar-item .nav-item.dropdown.user-profile-dropdown .nav-link:after {
   display: none;
@@ -711,7 +711,7 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   border-radius: 8px;
 }
 .navbar .navbar-item .nav-item.user-profile-dropdown .dropdown-menu .dropdown-item:hover a {
-  color: #b01333;
+  color: #CC1F2F;
   background: #ebedf2;
 }
 .navbar .navbar-item .nav-item.user-profile-dropdown .dropdown-menu .dropdown-item.active, .navbar .navbar-item .nav-item.user-profile-dropdown .dropdown-menu .dropdown-item:active {
@@ -1017,7 +1017,7 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   stroke-width: 1.8;
 }
 #sidebar ul.menu-categories li.menu.active > .dropdown-toggle {
-  background-color: #b01333;
+  background-color: #CC1F2F;
 }
 #sidebar ul.menu-categories li.menu.active > .dropdown-toggle svg, #sidebar ul.menu-categories li.menu.active > .dropdown-toggle span {
   color: #fff;
@@ -1059,10 +1059,10 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   fill: rgba(67, 97, 238, 0.0392156863);
 }
 #sidebar ul.menu-categories li.menu > .dropdown-toggle:hover {
-  color: #b01333;
+  color: #CC1F2F;
 }
 #sidebar ul.menu-categories li.menu > .dropdown-toggle:hover svg:not(.badge-icon) {
-  color: #b01333;
+  color: #CC1F2F;
   fill: rgba(67, 97, 238, 0.0392156863);
 }
 #sidebar ul.menu-categories li.menu > .dropdown-toggle svg.feather-chevron-right {
@@ -1093,10 +1093,10 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   border-radius: 50%;
 }
 #sidebar ul.menu-categories li.menu ul.submenu > li a:hover {
-  color: #b01333;
+  color: #CC1F2F;
 }
 #sidebar ul.menu-categories li.menu ul.submenu > li a:hover:before {
-  background: #b01333 !important;
+  background: #CC1F2F !important;
   box-shadow: 0 0 0px 2px rgba(192, 0, 0, 0.431372549);
   border: 1.9px solid #ffffff;
 }
@@ -1138,10 +1138,10 @@ body .navbar .dark-mode, body:not(.dark) .navbar .dark-mode {
   top: 1px;
 }
 #sidebar ul.menu-categories ul.submenu > li a:hover {
-  color: #b01333;
+  color: #CC1F2F;
 }
 #sidebar ul.menu-categories ul.submenu > li a:hover:before {
-  background-color: #b01333;
+  background-color: #CC1F2F;
 }
 #sidebar ul.menu-categories ul.submenu > li a i {
   align-self: center;

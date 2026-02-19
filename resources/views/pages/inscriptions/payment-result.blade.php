@@ -87,7 +87,7 @@
 
             {{-- Footer --}}
             <p class="text-center text-muted mt-4 small">
-                If you have any questions, please contact our support team.
+                If you have any questions, please contact our support team at <a href="mailto:contacto.pagos@upch.edu.pe" class="text-primary fw-bold">contacto.pagos@upch.edu.pe</a>.
             </p>
 
         </div>
