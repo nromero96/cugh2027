@@ -1,119 +1,97 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            background-color: #f5f5f5;
-        }
-
-        h2 {
-            color: #000000;
-        }
-
-        h3 {
-            color: #000000;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-
-        th {
-            background-color: #dbdbdb;
-            color: #000000;
-        }
-
-        td {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-        }
-
-        a {
-            color: #007bff;
-            text-decoration: none;
-        }
-
-        a:hover {
-            text-decoration: underline;
-        }
-
-        .signature {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #777;
-        }
-    </style>
+    <meta charset="UTF-8">
+    <title>Registration Confirmation</title>
 </head>
-<body>
-    <div class="container">
-        <h2>REGISTRATION # {{ $datainscription->id }}: En Proceso</h2>
-        <p>Dear <b>{{ $userinfo->name }} {{ $userinfo->lastname }} {{ $userinfo->second_lastname }}</b>,</p>
-        <p>Le informamos que su preinscripción para la <b>AAAAAAAAAAAAA</b> ha sido recibida. El evento se llevará a cabo del 8 al 11 de mayo de 2026 en el Swissôtel Lima.</p>
+<body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
+    
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8; padding:30px 0;">
+        <tr>
+            <td align="center">
+                
+                <table width="600" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 15px rgba(0,0,0,0.05);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color:#CC1F2F; padding:25px; text-align:center;">
+                            <h1 style="color:#ffffff; margin:0; font-size:22px; letter-spacing:0.5px;">
+                                REGISTRATION # {{ $datainscription->id }}
+                            </h1>
+                            <p style="color:#F2A413; margin:8px 0 0 0; font-size:14px;">
+                                In Process
+                            </p>
+                        </td>
+                    </tr>
 
-        <!-- Título "Detalle de tu Inscripción" -->
-        <h3>Details of your registration</h3>
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:30px;">
+                            
+                            <p style="font-size:15px; color:#333333; line-height:1.6;">
+                                This is to confirm your <strong>pre-registration</strong> at 
+                                <strong>CUGH’s 18th Annual Conference</strong>, 
+                                to be held in <strong>Lima – Peru</strong>, 
+                                February 25–28, 2027.
+                            </p>
 
-        <!-- Tabla de resumen de inscripción con bordes -->
-        <table>
-            <tr>
-                <th>Descripción</th>
-                <th>Información</th>
-            </tr>
-            <tr>
-                <td>Nombre Completo</td>
-                <td>{{ $userinfo->name }} {{ $userinfo->lastname }} {{ $userinfo->second_lastname }}</td>
-            </tr>
-            <tr>
-                <td>Categoría</td>
-                <td>{{ $datainscription->category_inscription_name }}</td>
-            </tr>
-            <tr>
-                <td>Precio</td>
-                <td>US$ {{ $datainscription->price_category }}</td>
-            </tr>
-            <tr>
-                <td>Acompañante</td>
-                <td>US$ {{ $datainscription->price_accompanist }}</td>
-            </tr>
-            <tr>
-                <td><b>Monto Total</b></td>
-                <td>US$ {{ $datainscription->total }}</td>
-            </tr>
-            <tr>
-                <td>Método de Pago</td>
-                <td>{{ $datainscription->payment_method }}</td>
-            </tr>
-        </table>
-        <!-- Fin de la tabla -->
+                            <table width="100%" cellpadding="8" cellspacing="0" border="0" style="margin-top:20px; font-size:14px;">
+                                <tr style="background-color:#f9f9f9;">
+                                    <td><strong>Participant’s Name</strong></td>
+                                    <td>{{ $userinfo->name }} {{ $userinfo->lastname }} {{ $userinfo->second_lastname }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Country</strong></td>
+                                    <td>{{ $userinfo->country }}</td>
+                                </tr>
+                                <tr style="background-color:#f9f9f9;">
+                                    <td><strong>Category</strong></td>
+                                    <td>{{ $datainscription->category_inscription_name }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Paid Amount</strong></td>
+                                    <td><strong>US$ {{ $datainscription->total }}</strong></td>
+                                </tr>
+                                <tr style="background-color:#f9f9f9;">
+                                    <td><strong>Payment Method</strong></td>
+                                    <td>{{ $datainscription->payment_method }}</td>
+                                </tr>
+                            </table>
 
-        <!-- Recordatorio para ver el proceso de inscripción -->
-        <p>Recuerda que puedes ver el proceso de tu inscripción en el siguiente enlace:</p>
-        <p><a href="#">Ver Proceso de Inscripción</a></p>
+                            <!-- Important Notice -->
+                            <div style="margin-top:25px; padding:15px; border-left:4px solid #F2A413; background-color:#fff8e6;">
+                                <p style="margin:0; font-size:13px; color:#555;">
+                                    <strong style="color:#CC1F2F;">Important:</strong> 
+                                    Final confirmation will be sent once payment verification is completed. 
+                                    Invoicing may take up to <strong>4 working days</strong>.
+                                </p>
+                            </div>
 
-        <!-- Mensaje de validación de pago e información -->
-        <p>Antes de aprobar su inscripción, validaremos el pago y la información proporcionada.</p>
+                            <p style="margin-top:25px; font-size:15px; color:#333;">
+                                Thank you for participating in <strong>CUGH 2027 – Lima, Peru</strong>.
+                            </p>
 
-        <!-- Contacto de soporte -->
-        <p>Estamos aquí para ayudarle en caso de cualquier consulta o aclaración adicional. Para mayores detalles, puede contactarse con nosotros a través del e-mail <b>inscripciones@dominioevento.org</b></p><br>
+                        </td>
+                    </tr>
 
-        <!-- Firma y contacto del Comité Organizador -->
-        <p class="signature">Atentamente,<br>Comité Organizador<br><b>CUGH 2027 Registration Office</b><br>+51 983 481 269<br>inscripciones@dominioevento.org</p>
-    </div>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color:#f9f9f9; padding:20px; font-size:13px; color:#666; text-align:center;">
+                            <strong style="color:#CC1F2F;">CUGH 2027 Registration Office</strong><br>
+                            Ms. Millie Estrada<br>
+                            Email: 
+                            <a href="mailto:registration@cughlima2027.org" style="color:#CC1F2F; text-decoration:none;">
+                                registration@cughlima2027.org
+                            </a><br>
+                            WhatsApp: +51 983 481 269
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
 </body>
 </html>

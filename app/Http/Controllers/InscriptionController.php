@@ -832,9 +832,9 @@ class InscriptionController extends Controller
                     'datainscription' => $datainscription,
                 ];
 
-                // Mail::to($user->email)
-                //     ->cc(config('services.correonotificacion.inscripcion'))
-                //     ->send(new \App\Mail\InscriptionCreated($data));
+                Mail::to($user->email)
+                    ->cc(config('services.correonotificacion.inscripcion'))
+                    ->send(new \App\Mail\InscriptionCreated($data));
 
                 DB::commit();
 

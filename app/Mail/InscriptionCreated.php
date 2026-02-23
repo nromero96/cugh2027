@@ -35,6 +35,6 @@ class InscriptionCreated extends Mailable
     public function build()
     {
         return $this->view('emails.inscription_created')
-        ->subject('PRE INSCRIPCION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country.')');
+        ->subject('(DEMO) PRE REGISTRATION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country.')');
     }
 }
