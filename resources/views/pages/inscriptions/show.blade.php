@@ -348,31 +348,34 @@
                                         </div>
                                     @endif
 
-                                    @if ($inscription->payment_method == 'Credit/Debit Card' && $paymentcard != null)
+                                    @if ($inscription->payment_method == 'Credit/Debit Card' && $paymentcards->count() > 0)
 
                                     
-
-                                    <div class="row mt-1">
-                                        <div class="col-3">
-                                            <label class="form-label fw-bold mb-0"># Transaction number:</label><br>
-                                            <span class="bx-text">{{ $paymentcard->purchasenumber }}</span>
-                                        </div>
-                                        <div class="col-3">
-                                            <label class="form-label fw-bold mb-0">Card #:</label><br>
-                                            <span class="bx-text">{{ $paymentcard->card_number }}</span>
-                                        </div>
-                                        <div class="col-2">
-                                            <label class="form-label fw-bold mb-0">Amount:</label><br>
-                                            <span class="bx-text">{{ $paymentcard->amount.' '.$paymentcard->currency }}</span>
-                                        </div>
-                                        <div class="col-4">
-                                            <label class="form-label fw-bold mb-0">Transaction Date:</label><br>
-                                            <span class="bx-text">{{$paymentcard->transaction_date}}</span>
-                                        </div>
-                                        <div class="col-12 mt-2">
-                                            <span class="bx-text">{{ $paymentcard->action_description }}</span>
-                                        </div>
-                                    </div>
+                                        @foreach ($paymentcards as $paymentcard)
+                                            <div class="card px-3 py-3 mt-3" @if($paymentcard->status_payment == 'AUTORIZADO') style="background-color: #00ab5545;" @else style="background-color: #cc1f2f14;" @endif>
+                                                <div class="row mt-1">
+                                                    <div class="col-3">
+                                                        <label class="form-label fw-bold mb-0"># Transaction number:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->purchasenumber }}</span>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="form-label fw-bold mb-0">Card #:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->card_number }}</span>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <label class="form-label fw-bold mb-0">Amount:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->amount.' '.$paymentcard->currency }}</span>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <label class="form-label fw-bold mb-0">Transaction Date:</label><br>
+                                                        <span class="bx-text">{{$paymentcard->transaction_date}}</span>
+                                                    </div>
+                                                    <div class="col-12 mt-2">
+                                                        <span class="bx-text">{{ $paymentcard->action_description }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
                                     @endif
 
                                 </div>

@@ -51,6 +51,7 @@ return [
         'url_send_data' => env('URL_SEND_DATA'),
         'commercial_code' => env('COMMERCIAL_CODE'),
         'url_response_payment_data' => env('URL_RESPONSE_PAYMENT_DATA'),
+        'webhook_key' => env('UNIVERSITY_WEBHOOK_KEY'),
     ],
 
 ];

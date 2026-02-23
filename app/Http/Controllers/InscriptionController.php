@@ -472,12 +472,13 @@ class InscriptionController extends Controller
             ->where('inscriptions.id', $id)
             ->first();
 
-            $paymentcard = Payment::where('inscription_id', $id)->first();
+            //List of payment cards
+            $paymentcards = Payment::where('inscription_id', $id)->orderBy('id', 'desc')->get();
 
             //notes status
             $statusnotes = StatusNote::where('inscription_id', $id)->orderBy('id', 'desc')->get();
 
-            return view('pages.inscriptions.show')->with($data)->with('inscription', $inscription)->with('paymentcard', $paymentcard)->with('statusnotes', $statusnotes);
+            return view('pages.inscriptions.show')->with($data)->with('inscription', $inscription)->with('paymentcards', $paymentcards)->with('statusnotes', $statusnotes);
         }else{
             return redirect()->route('inscriptions.index')->with('error', 'No tiene permisos para ver esta inscripción');
         }
@@ -992,33 +993,7 @@ class InscriptionController extends Controller
 
         $inscription = Inscription::findOrFail($numeroInscripcion);
 
-        // 🔐 VERIFICAR SI YA EXISTE EL PAGO
-        $payment = Payment::where('purchasenumber', $numeroOperacion)->first();
 
-        if (!$payment) {
-
-            $payment = Payment::create([
-                'inscription_id'        => $inscription->id,
-                'user_id'               => $inscription->user_id,
-                'action_description'    => $estadoPago . ': ' . $mensaje,
-                'purchasenumber'        => $numeroOperacion,
-                'card_brand'            => '',
-                'card_number'           => $tarjetaRecortada,
-                'amount'                => $inscription->total,
-                'currency'              => 'USD',
-                'transaction_date'      => now(),
-                'status_payment'        => $estadoPago,
-                'raw_response'          => json_encode($request->all()),
-            ]);
-
-        }
-
-        // 🔁 ACTUALIZAR INSCRIPCIÓN SOLO SI ES AUTORIZADO
-        if ($estadoPago === 'AUTORIZADO' && $inscription->status !== 'Paid') {
-            $inscription->update([
-                'status' => 'Paid'
-            ]);
-        }
 
         return view('pages.inscriptions.payment-result', [
             'inscription_id' => $inscription->id,
