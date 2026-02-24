@@ -17,8 +17,8 @@ class MemberInstitutionSeeder extends Seeder
     {
 
         $institutions = [
-            ['name' => 'ABH Partners', 'country' => null],
-            ['name' => 'Academy of Health Sciences', 'country' => null],
+            ['name' => 'ABH Partners', 'country' => 72],
+            ['name' => 'Academy of Health Sciences', 'country' => 239],
             ['name' => 'AFREhealth', 'country' => null],
             ['name' => 'Africa Academy for Public Health (AAPH)', 'country' => null],
             ['name' => 'Africa University', 'country' => null],

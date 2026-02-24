@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Inscription extends Model
 {
@@ -26,4 +27,15 @@ class Inscription extends Model
         'voucher_file',
         'status',
     ];
+
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($inscription) {
+            $inscription->token = (string) Str::uuid();
+        });
+    }
+
 }

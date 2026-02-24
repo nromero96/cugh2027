@@ -15,6 +15,7 @@ class CreateInscriptionsTable extends Migration
     {
         Schema::create('inscriptions', function (Blueprint $table) {
             $table->id();
+            $table->string('token', 64)->unique();
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('category_inscription_id');
             $table->decimal('price_category', 8, 2);

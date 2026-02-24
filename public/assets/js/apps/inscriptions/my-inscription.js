@@ -456,6 +456,38 @@ function handleInvoice(){
     }
 }
 
+
+document.getElementById('cugh_member_institution').addEventListener('change', function() {
+
+    let institutionId = this.value;
+    let countrySelect = document.getElementById('inputCountry');
+
+    // Resetear select
+    countrySelect.innerHTML = '<option value="">Seleccione país</option>';
+
+    let url = institutionId 
+    ? `/countries-by-institution/${institutionId}` 
+    : `/countries-by-institution`;
+
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+
+            data.forEach(country => {
+                let option = document.createElement('option');
+                option.value = country.id;
+                option.textContent = country.name;
+                countrySelect.appendChild(option);
+            });
+
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+
+});
+
 //validate specialcode when click validate_specialcode button
 btnValidateSpecialCode.addEventListener('click', function(){
 

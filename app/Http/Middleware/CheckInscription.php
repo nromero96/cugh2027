@@ -27,6 +27,7 @@ class CheckInscription
                     !$request->routeIs(
                         'inscriptions.myinscription',
                         'inscriptions.storemyinscription',
+                        'countries.byInstitution',
                         'logout'
                     )
                 ) {

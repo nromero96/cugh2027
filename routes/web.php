@@ -28,6 +28,7 @@ use App\Http\Controllers\PosterController;
 use App\Http\Controllers\GafeteController;
 use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\CategoryInscriptionController;
+use App\Http\Controllers\CountryController;
 
 
 use Illuminate\Support\Facades\Artisan;
@@ -147,6 +148,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::get('inscriptions-rejects', [InscriptionController::class, 'indexRejects'])->name('inscriptions.rejects');
     Route::post('/inscriptions-request-comprobante/{id}', [InscriptionController::class, 'requestComprobante'])->name('inscriptions.requestcomprobante');
     Route::get('/exportar-excel-inscriptions', [InscriptionController::class, 'exportExcelInscriptions'])->name('inscriptions.exportexcel');
+
+    Route::get('/countries-by-institution/{id?}', [CountryController::class, 'getByInstitution'])->name('countries.byInstitution');
 
 
     Route::get('/my-inscription', [InscriptionController::class, 'registerMyInscription'])->name('inscriptions.myinscription');
