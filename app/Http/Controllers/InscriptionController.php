@@ -655,85 +655,170 @@ class InscriptionController extends Controller
     }
 
     public function storeMyInscription(Request $request){
+
+        $action = $request->input('action');
+
         //get logged user id
         $iduser = \Auth::user()->id;
 
         Log::info('Datos de la inscripción: '.json_encode($request->all()));
 
-        //validar datos
-        $validatedData = request()->validate([
-            //data user
-            'salutation' => 'required|string',
-            'name' => 'required|string',
-            'lastname' => 'nullable|string',
-            'second_lastname' => 'required|string',
-            'degrees' => 'required|string',
-            'other_degrees' => 'nullable|string',
-            'is_cugh_member' => 'required|string',
-            'cugh_member_institution' => 'nullable|string',
-            'job_title' => 'nullable|string',
-            'email' => 'required|email',
-            'cc_email' => 'nullable|email',
-            'document_type' => 'required|string',
-            'document_number' => 'required|string',
-            'nationality' => 'required|string',
-            'gender' => 'required|string',
-            'occupation' => 'required|string',
-            'occupation_other' => 'nullable|string',
-            'workplace' => 'required|string',
-            'address' => 'required|string|max:50',
-            'city' => 'required|string',
-            'state' => 'required|string',
-            'country' => 'required|string',
-            'work_phone_code' => 'nullable|string',
-            'work_phone_code_city' => 'nullable|string',
-            'work_phone_number' => 'nullable|string',
-            'phone_code' => 'required|string',
-            'phone_number' => 'required|string',
-            'whatsapp_code' => 'nullable|string',
-            'whatsapp_number' => 'nullable|string',
-            'solapin_name' => 'required|string',
-            'solapin_lastname' => 'required|string',
+        
+        if ($action === 'register') {
 
-            //Questionnaire Data
-            'sector' => 'nullable|array',
-            'other_sector' => 'nullable|string',
+            // VALIDACIÓN COMPLETA
+            $rules = [
+                //data user
+                'salutation' => 'required|string',
+                'name' => 'required|string',
+                'lastname' => 'nullable|string',
+                'second_lastname' => 'required|string',
+                'degrees' => 'required|string',
+                'other_degrees' => 'nullable|string',
+                'is_cugh_member' => 'required|string',
+                'cugh_member_institution' => 'nullable|string',
+                'job_title' => 'required|string',
+                'email' => 'required|email',
+                'cc_email' => 'nullable|email',
+                'document_type' => 'required|string',
+                'document_number' => 'required|string',
+                'nationality' => 'required|string',
+                'gender' => 'required|string',
+                'occupation' => 'required|string',
+                'occupation_other' => 'nullable|string',
+                'workplace' => 'required|string',
+                'address' => 'required|string|max:50',
+                'city' => 'required|string',
+                'state' => 'required|string',
+                'country' => 'required|string',
+                'work_phone_code' => 'nullable|string',
+                'work_phone_code_city' => 'nullable|string',
+                'work_phone_number' => 'nullable|string',
+                'phone_code' => 'required|string',
+                'phone_number' => 'required|string',
+                'whatsapp_code' => 'nullable|string',
+                'whatsapp_number' => 'nullable|string',
+                'solapin_name' => 'required|string',
+                'solapin_lastname' => 'required|string',
 
-            'area_of_work' => 'nullable|array',
-            'other_area_of_work' => 'nullable|string',
+                //Questionnaire Data
+                'sector' => 'required|array',
+                'other_sector' => 'nullable|string',
 
-            'how_did_you_hear_about' => 'nullable|array',
-            'other_how_did_you_hear_about' => 'nullable|string',
+                'area_of_work' => 'required|array',
+                'other_area_of_work' => 'nullable|string',
 
-            'why_attending' => 'nullable|array',
-            'other_why_attending' => 'nullable|string',
+                'how_did_you_hear_about' => 'required|array',
+                'other_how_did_you_hear_about' => 'nullable|string',
 
-            'ability_to_present_work' => 'nullable|string',
+                'why_attending' => 'required|array',
+                'other_why_attending' => 'nullable|string',
 
-            'how_is_your_attendance_funded' => 'nullable|array',
-            'other_how_is_your_attendance_funded' => 'nullable|string',
+                'ability_to_present_work' => 'nullable|string',
 
-            'your_areas_of_focus_in_global_health' => 'nullable|array',
-            'other_your_areas_of_focus_in_global_health' => 'nullable|string',
+                'how_is_your_attendance_funded' => 'required|array',
+                'other_how_is_your_attendance_funded' => 'nullable|string',
 
-            'obstacles_to_attending_cughs_conferences' => 'nullable|array',
-            'other_obstacles_to_attending_cughs_conferences' => 'nullable|string',
+                'your_areas_of_focus_in_global_health' => 'required|array',
+                'other_your_areas_of_focus_in_global_health' => 'nullable|string',
 
-            'receive_news_and_updates' => 'nullable|string',
-            'contact_info' => 'nullable|string',
-            'oral_poster_abstract_presenter' => 'nullable|string',
-            'panel_presenter_moderator' => 'nullable|string',
+                'obstacles_to_attending_cughs_conferences' => 'required|array',
+                'other_obstacles_to_attending_cughs_conferences' => 'nullable|string',
 
-            //data inscription
-            'category_inscription_id' => 'required|numeric',
-            'invoice' => 'required|string',
-            'invoice_type' => 'required|string',
-            'invoice_type_document' => 'nullable|string',
-            'invoice_ruc' => 'nullable|string',
-            'invoice_social_reason' => 'nullable|string',
-            'invoice_address' => 'nullable|string|max:50',
-            'payment_method' => 'required|string',
-        ]);
+                'receive_news_and_updates' => 'required|string',
+                'contact_info' => 'required|string',
+                'oral_poster_abstract_presenter' => 'required|string',
+                'panel_presenter_moderator' => 'required|string',
+
+                //data inscription
+                'category_inscription_id' => 'required|numeric',
+                'invoice' => 'required|string',
+                'invoice_type' => 'required|string',
+                'invoice_type_document' => 'nullable|string',
+                'invoice_ruc' => 'nullable|string',
+                'invoice_social_reason' => 'nullable|string',
+                'invoice_address' => 'nullable|string|max:50',
+                'payment_method' => 'required|string',
+            ];
+
+        } else {
+
+            // VALIDACIÓN PARA SAVE (solo formato, nada obligatorio)
+            $rules = [
+                'salutation' => 'nullable|string',
+                'name' => 'nullable|string',
+                'lastname' => 'nullable|string',
+                'second_lastname' => 'nullable|string',
+                'degrees' => 'nullable|string',
+                'other_degrees' => 'nullable|string',
+                'is_cugh_member' => 'required|string',
+                'cugh_member_institution' => 'nullable|string',
+                'job_title' => 'nullable|string',
+                'email' => 'required|email',
+                'cc_email' => 'nullable|email',
+                'document_type' => 'required|string',
+                'document_number' => 'required|string',
+                'nationality' => 'nullable|string',
+                'gender' => 'nullable|string',
+                'occupation' => 'nullable|string',
+                'occupation_other' => 'nullable|string',
+                'workplace' => 'nullable|string',
+                'address' => 'nullable|string|max:50',
+                'city' => 'nullable|string',
+                'state' => 'nullable|string',
+                'country' => 'nullable|string',
+                'work_phone_code' => 'nullable|string',
+                'work_phone_code_city' => 'nullable|string',
+                'work_phone_number' => 'nullable|string',
+                'phone_code' => 'nullable|string',
+                'phone_number' => 'nullable|string',
+                'whatsapp_code' => 'nullable|string',
+                'whatsapp_number' => 'nullable|string',
+                'solapin_name' => 'nullable|string',
+                'solapin_lastname' => 'nullable|string',
+
+                //Questionnaire Data
+                'sector' => 'nullable|array',
+                'other_sector' => 'nullable|string',
+
+                'area_of_work' => 'nullable|array',
+                'other_area_of_work' => 'nullable|string',
+
+                'how_did_you_hear_about' => 'nullable|array',
+                'other_how_did_you_hear_about' => 'nullable|string',
+
+                'why_attending' => 'nullable|array',
+                'other_why_attending' => 'nullable|string',
+
+                'ability_to_present_work' => 'nullable|string',
+
+                'how_is_your_attendance_funded' => 'nullable|array',
+                'other_how_is_your_attendance_funded' => 'nullable|string',
+
+                'your_areas_of_focus_in_global_health' => 'nullable|array',
+                'other_your_areas_of_focus_in_global_health' => 'nullable|string',
+
+                'obstacles_to_attending_cughs_conferences' => 'nullable|array',
+                'other_obstacles_to_attending_cughs_conferences' => 'nullable|string',
+
+                'receive_news_and_updates' => 'nullable|string',
+                'contact_info' => 'nullable|string',
+                'oral_poster_abstract_presenter' => 'nullable|string',
+                'panel_presenter_moderator' => 'nullable|string',
+
+                //data inscription
+                'category_inscription_id' => 'required|numeric',
+                'invoice' => 'required|string',
+                'invoice_type' => 'required|string',
+                'invoice_type_document' => 'nullable|string',
+                'invoice_ruc' => 'nullable|string',
+                'invoice_social_reason' => 'nullable|string',
+                'invoice_address' => 'nullable|string|max:50',
+                'payment_method' => 'nullable|string',
+            ];
+        }
+
+        $validatedData = $request->validate($rules);
 
         DB::beginTransaction();
 
@@ -858,84 +943,43 @@ class InscriptionController extends Controller
                 $temporaryfile_voucher_file->delete();
             }
 
-            if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
-                $forma_de_pago = '002';
-                $inscription->status = 'Processing';
+            if($action == 'save'){
+                $inscription->status = 'draft';
                 $inscription->save();
-
-                // Enviar correo
-                $user = User::find($iduser);
-                $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
-                    ->where('inscriptions.id', $inscription->id)
-                    ->first();
-                $data = [
-                    'user' => $user,
-                    'datainscription' => $datainscription,
-                ];
-
-                Mail::to($user->email)
-                    ->cc(config('services.correonotificacion.inscripcion'))
-                    ->send(new \App\Mail\InscriptionCreated($data));
-
                 DB::commit();
+                return redirect()->route('inscriptions.myinscription')->with('success', 'Draft saved successfully. Registration is not completed yet.');
+            }else{
+                if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
+                    $inscription->status = 'Processing';
+                    $inscription->save();
 
-            } else if ($request->payment_method == 'Credit/Debit Card') {
-                $forma_de_pago = '001';
-                $inscription->status = 'Pending';
-                $inscription->save();
+                    // Enviar correo
+                    $user = User::find($iduser);
+                    $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+                        ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
+                        ->where('inscriptions.id', $inscription->id)
+                        ->first();
+                    $data = [
+                        'user' => $user,
+                        'datainscription' => $datainscription,
+                    ];
 
-                DB::commit();
+                    Mail::to($user->email)
+                        ->cc(config('services.correonotificacion.inscripcion'))
+                        ->send(new \App\Mail\InscriptionCreated($data));
+
+                    DB::commit();
+
+                } else if ($request->payment_method == 'Credit/Debit Card') {
+                    $inscription->status = 'Pending';
+                    $inscription->save();
+                    DB::commit();
+                }
             }
 
 
             //Send Data to UPCH
-            $tipo_comprobante = '';
-            $direcion_comprobante = '';
-            if($inscription->invoice == 'yes'){
-                $direcion_comprobante = $inscription->invoice_address;
-            } else {
-                $direcion_comprobante = $user->address;
-            }
-
-            if($inscription->invoice_type == 'Factura'){
-                $tipo_comprobante = 'F';
-            } else {
-                $tipo_comprobante = 'B';
-            }
-
-            $params = [
-                    'forma_de_pago'        => $forma_de_pago,
-                    'dato_transferencia'   => '',
-                    'codigo_comercio'      => config('services.upch.commercial_code'),
-                    'codigo_tarifario'     => '',
-                    'moneda'               => 'USD',
-                    'monto'                => $inscription->total,
-                    'correo'               => $user->email,
-                    'nombre_completo'      => trim($user->name . ' ' . ($user->lastname ?? '')),
-                    'apellido_paterno'     => $user->second_lastname ?? '',
-                    'apellido_materno'     => '.',
-                    'codigo_pais'          => $user->phone_code,
-                    'numero_celular'       => $user->phone_number ?? '',
-                    'pais_origen'          => $user->residenceCountry->name ?? '',
-                    'tipo_documento'       => $user->document_type ?? '',
-                    'numero_documento'     => $user->document_number ?? '',
-
-                    //Billing information
-                    'tipo_comprobante'     => $tipo_comprobante ?? '',
-                    'tipo_doc_comp'        => $inscription->invoice_type_document ?? '',
-                    'numero_doc_comp'      => $inscription->invoice_ruc ?? '',
-                    'razon_social'         => $inscription->invoice_social_reason ?? '',
-                    'direccion_fiscal'     => $inscription->invoice_address ?? '',
-
-                    'numero_inscripcion'   => $inscription->id,
-                    'ciudad'               => $user->city ?? '',
-                    'correo_contacto'      => $user->email ?? '',
-                    'url_respuesta'        => config('services.upch.url_response_payment_data'),
-            ]; 
-
-            $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
-
+            $url = config('services.upch.url_send_data').'/' . $inscription->token;
             return redirect($url);
 
         } catch (\Exception $e) {

@@ -28,10 +28,22 @@
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header">
                         <div class="row">
-                            <div class="col-xl-12 col-md-12 col-sm-12 mb-2 col-12">
+                            <div class="col-8">
                                 <h4>
                                     My Registration #{{ $myinscription->id }}
                                 </h4>
+                            </div>
+                            <div class="col-4 text-end">
+                                @php 
+                                $lastUpdated = $user->updated_at > $myinscription->updated_at 
+                                                                ? $user->updated_at 
+                                                                : $myinscription->updated_at;
+                                @endphp
+
+
+                                <span class="text-muted d-block mt-3">
+                                    Last updated {{ $lastUpdated->format('d M Y - H:i:s') }}
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -40,7 +52,7 @@
                             @csrf
                             <div class="col-md-4">
                                 <label for="salutation" class="form-label text-muted mb-0">Salutation <span class="text-danger">*</span></label>
-                                <select name="salutation" id="salutation" class="form-control" required>
+                                <select name="salutation" id="salutation" class="form-control">
                                     <option value="" disabled selected>Select...</option>
                                     <option value="Mr." {{ old('salutation', $user->salutation) == 'Mr.' ? 'selected' : '' }}>Mr.</option>
                                     <option value="Mrs." {{ old('salutation', $user->salutation) == 'Mrs.' ? 'selected' : '' }}>Mrs.</option>
@@ -73,7 +85,7 @@
                             {{-- degrees --}}
                             <div class="col-md-4">
                                 <label for="inputDegrees" class="form-label text-muted mb-0">Degrees <span class="text-danger">*</span></label>
-                                <select name="degrees" id="inputDegrees" class="form-select" required>
+                                <select name="degrees" id="inputDegrees" class="form-select">
                                     <option value="" {{ old('degree', $user->degree) == '' ? 'selected' : '' }}>Select...</option>
                                     <option value="Graduate" {{ old('degree', $user->degrees) == 'Graduate' ? 'selected' : '' }}>Graduate</option>
                                     <option value="Master" {{ old('degree', $user->degrees) == 'Master' ? 'selected' : '' }}>Master</option>
@@ -124,7 +136,7 @@
                             {{-- job_title --}}
                             <div class="col-md-4">
                                 <label for="inputJobTitle" class="form-label text-muted mb-0">Job Title <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control convert_mayus" name="job_title" id="job_title" value="{{ old('job_title', $user->job_title) }}" required>
+                                <input type="text" class="form-control convert_mayus" name="job_title" id="job_title" value="{{ old('job_title', $user->job_title) }}">
                                 {!!$errors->first("job_title", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
@@ -146,7 +158,7 @@
 
                             <div class="col-md-4">
                                 <label for="inputNationality" class="form-label text-muted mb-0">Nationality  <span class="text-danger">*</span></label>
-                                <select name="nationality" class="form-select" id="inputNationality" required>
+                                <select name="nationality" class="form-select" id="inputNationality">
                                     <option value="" disabled selected>Select...</option>
                                     @foreach ($countries as $nationality)
                                         <option value="{{$nationality->id}}" @if ($user->nationality == $nationality->id) selected="selected" @endif >{{$nationality->name}}</option>
@@ -157,7 +169,7 @@
 
                             <div class="col-md-4">
                                 <label for="inputGender" class="form-label text-muted mb-0">Gender <span class="text-danger">*</span></label>
-                                <select name="gender" class="form-select" id="inputGender" required>
+                                <select name="gender" class="form-select" id="inputGender">
                                     <option value="">Select...</option>
                                     <option value="Male" @if ($user->gender == 'Male') selected="selected" @endif>Male</option>
                                     <option value="Female" @if ($user->gender == 'Female') selected="selected" @endif>Female</option>
@@ -167,7 +179,7 @@
 
                             <div class="col-md-4">
                                 <label for="inputOccupation" class="form-label text-muted mb-0">Occupation <span class="text-danger">*</span></label>
-                                <select name="occupation" class="form-select" id="inputOccupation" required>
+                                <select name="occupation" class="form-select" id="inputOccupation">
                                     <option value="">Select...</option>
                                     <option value="Business" @if ($user->occupation == 'Business') selected="selected" @endif>Business</option>
                                     <option value="Legal" @if ($user->occupation == 'Legal') selected="selected" @endif>Legal</option>
@@ -191,33 +203,33 @@
                                     <div class="row">
                                         <div class="col-md-4 mt-3">
                                             <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace <span class="text-danger">*</span></label>
-                                            <input type="text" name="workplace" class="form-control" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}" required>
+                                            <input type="text" name="workplace" class="form-control" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}">
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-8 mt-3">
                                             <label for="inputAddress" class="form-label text-muted mb-0">Work Address <span class="text-danger">*</span></label>
-                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" autocomplete="new-work-address" required>
+                                            <input type="text" name="address" class="form-control" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" autocomplete="new-work-address">
                                             {!!$errors->first("address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputCity" class="form-label text-muted mb-0">City <span class="text-danger">*</span></label>
-                                            <input type="text" name="city" class="form-control" id="inputCity" value="{{ old('city', $user->city) }}" required>
+                                            <input type="text" name="city" class="form-control" id="inputCity" value="{{ old('city', $user->city) }}">
                                             {!!$errors->first("city", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputState" class="form-label text-muted mb-0">State <span class="text-danger">*</span></label>
-                                            <input type="text" name="state" class="form-control" id="inputState" value="{{ old('state', $user->state) }}" required>
+                                            <input type="text" name="state" class="form-control" id="inputState" value="{{ old('state', $user->state) }}">
                                             {!!$errors->first("state", "<span class='text-danger'>:message</span>")!!}
                                         </div>
                                         
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputCountry" class="form-label text-muted mb-0">Country  <span class="text-danger">*</span></label>
-                                            <select name="country" class="form-select" id="inputCountry" required>
+                                            <select name="country" class="form-select" id="inputCountry">
                                                 <option value="" disabled selected>Select...</option>
                                                 @foreach ($countries as $country)
                                                     <option value="{{$country->id}}" @if ($user->country == $country->id) selected="selected" @endif >{{$country->name}}</option>
@@ -260,7 +272,7 @@
                                 <label for="inputPhoneNumber" class="form-label text-muted mb-0">Cell Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode" required>
+                                        <select name="phone_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
                                                 <option value="{{$country->phone}}" {{ old('phone_code', $user->phone_code) == $country->phone ? 'selected' : '' }}>+{{$country->phone}} ({{$country->name}})</option>
@@ -269,7 +281,7 @@
                                         <small>Country</small>
                                     </div>
                                     <div class="w-75">
-                                        <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('phone_number', $user->phone_number) }}" required>
+                                        <input type="text" name="phone_number" class="form-control no-spaces rounded-0 rounded-end inputNumber" id="inputPhoneNumber" placeholder="_ _ _ _ _ _ _ _" maxlength="12" value="{{ old('phone_number', $user->phone_number) }}">
                                         <small>Number</small>
                                     </div>
                                 </div>
@@ -315,8 +327,8 @@
                             <div class="col-md-6">
                                 <label for="inputSolapin" class="form-label text-muted mb-0">Conference badge <span class="text-danger">*</span> <small class="fw-normal">(A first and last name)</small></label>
                                 <div class="d-flex">
-                                    <input type="text" class="form-control convert_mayus" name="solapin_name" id="inputSolapin" value="{{ old('solapin_name', $user->solapin_name) }}" placeholder="First Name" required>
-                                    <input type="text" class="form-control convert_mayus" name="solapin_lastname" id="inputSolapin" value="{{ old('solapin_lastname', $user->solapin_lastname) }}" placeholder="Last Name" required>
+                                    <input type="text" class="form-control convert_mayus" name="solapin_name" id="inputSolapin" value="{{ old('solapin_name', $user->solapin_name) }}" placeholder="First Name" >
+                                    <input type="text" class="form-control convert_mayus" name="solapin_lastname" id="inputSolapin" value="{{ old('solapin_lastname', $user->solapin_lastname) }}" placeholder="Last Name" >
                                 </div>
                                 {!!$errors->first("solapin_name", "<span class='text-danger'>:message</span>")!!}
                             </div>
@@ -1029,13 +1041,13 @@
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
                                             <label for="invoice_social_reason" class="form-label text-muted mb-0"><span id="lbl_invoice_social_reason">Name/Entity</span> <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="" value="{{ old('invoice_social_reason', $myinscription->invoice_social_reason ?? '') }}" required>
+                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="" value="{{ old('invoice_social_reason', $myinscription->invoice_social_reason ?? '') }}">
                                         </div>
                                         <div class="col-md-4">
                                             <label for="invoice_type_document" class="form-label text-muted mb-0" id="lbl_invoice_type_document">Document Type and Number<span class="text-danger">*</span></label>
                                             <div class="d-flex">
                                                 <div class="w-25">
-                                                    <select name="invoice_type_document" id="invoice_type_document" class="form-select rounded-0 rounded-start" required>
+                                                    <select name="invoice_type_document" id="invoice_type_document" class="form-select rounded-0 rounded-start">
                                                         <option value="" selected disabled>Select...</option>
                                                         <option value="ID Tax Payer" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'ID Tax Payer' ? 'selected' : '' }} >ID Tax Payer</option>
                                                         <option value="RUC" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'RUC' ? 'selected' : '' }}>RUC</option>
@@ -1045,13 +1057,13 @@
                                                     </select>
                                                 </div>
                                                 <div class="w-75">
-                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end" placeholder="Document Number" value="{{ old('invoice_ruc', $myinscription->invoice_ruc ?? '') }}" required>
+                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end" placeholder="Document Number" value="{{ old('invoice_ruc', $myinscription->invoice_ruc ?? '') }}">
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Address</span> <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="" maxlength="50" autocomplete="new-address" value="{{ old('invoice_address', $myinscription->invoice_address ?? '') }}" required>
+                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="" maxlength="50" autocomplete="new-address" value="{{ old('invoice_address', $myinscription->invoice_address ?? '') }}">
                                         </div>
                                     </div>
 
@@ -1130,7 +1142,8 @@
                             </div>
                             
                             <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-primary btn-lg" id="btnSubInscription">Register Now</button>
+                                <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save</button>
+                                <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
                             </div>
                         </form>
                     </div>

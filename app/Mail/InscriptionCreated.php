@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
+use App\Models\Country;
 
 class InscriptionCreated extends Mailable
 {
@@ -25,6 +26,10 @@ class InscriptionCreated extends Mailable
     {
         $this->userinfo = $data['user'];
         $this->datainscription = $data['datainscription'];
+
+        //Country
+        $country = Country::find($this->userinfo->country);
+        $this->userinfo->country_name = $country?->name;
     }
 
     /**
@@ -34,7 +39,8 @@ class InscriptionCreated extends Mailable
      */
     public function build()
     {
+
         return $this->view('emails.inscription_created')
-        ->subject('(DEMO) PRE REGISTRATION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country.')');
+        ->subject('(DEMO) PRE REGISTRATION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country_name.')');
     }
 }

@@ -1,13 +1,22 @@
 document.addEventListener("DOMContentLoaded", function () {
     const formInscription = document.getElementById("formInscription");
+    var btnSaveInscription = document.getElementById("btnSaveInscription");
     var btnSubInscription = document.getElementById("btnSubInscription");
+
     formInscription.addEventListener("submit", function (event) {
-        btnSubInscription.disabled = true;
-        // Realiza la validación personalizada aquí
-        if (!validarCamposInscription()) {
-            event.preventDefault(); // Detiene el envío del formulario si la validación falla
-            btnSubInscription.disabled = false;
+        const action = event.submitter.value; // save o register
+        if (action === "register") {
+            btnSubInscription.textContent = "Processing...";
+            if (!validarCamposInscription()) {
+                event.preventDefault();
+                btnSubInscription.textContent = "Register Now";
+            }
         }
+
+        if (action === "save") {
+            btnSaveInscription.textContent = "Saving draft...";
+        }
+
     });
 
     // Eliminar espacios en tiempo real
@@ -371,8 +380,6 @@ const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 
 const selectedValueCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked').value;
 function handleCategoryRadioButtons(selectedValueCategory){
-
-    alert(selectedValueCategory);
     
     if(!selectedValueCategory) return;
 

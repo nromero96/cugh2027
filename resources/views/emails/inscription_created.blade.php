@@ -42,7 +42,7 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Country</strong></td>
-                                    <td>{{ $userinfo->country }}</td>
+                                    <td>{{ $userinfo->country_name }}</td>
                                 </tr>
                                 <tr style="background-color:#f9f9f9;">
                                     <td><strong>Category</strong></td>
