@@ -751,15 +751,15 @@ span {
 }
 
 .form-check-input {
-  background-color: #e0e6ed;
-  border-color: #e0e6ed;
+  background-color: #e0e6ed1a;
+  border-color: #bfc9d4;
   width: 17px;
   height: 17px;
   margin-top: 0.21em;
   transition: background-color .15s ease-in-out,background-position .15s ease-in-out,border-color .15s ease-in-out,box-shadow .15s ease-in-out;
   
   &:focus {
-    border-color: #e0e6ed;
+    border-color: #bfc9d4;
     box-shadow: none;
   }
   &:checked {
@@ -3753,7 +3753,7 @@ fieldset:disabled .btn {
   }
 
   .form-check-input {
-    background-color: #bfc9d4;
+    background-color: #e0e6ed1a;
     border-color: #bfc9d4;
   }
   

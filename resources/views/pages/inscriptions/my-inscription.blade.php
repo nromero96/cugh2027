@@ -951,7 +951,7 @@
                                                     <tr>
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
-                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}">
+                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }}>
                                                                 <label class="form-check-label mb-0 ms-1 cursor-pointer" for="category_{{ $category->id }}">{{ $category->name }}{!! $infomark !!}
                                                                 <small class="text-muted">{!! $category->description !!}</small>
                                                                 </label>
@@ -1037,11 +1037,11 @@
                                                 <div class="w-25">
                                                     <select name="invoice_type_document" id="invoice_type_document" class="form-select rounded-0 rounded-start" required>
                                                         <option value="" selected disabled>Select...</option>
-                                                        <option value="ID Tax Payer" {{ old('invoice_type_document') == 'ID Tax Payer' ? 'selected' : '' }} >ID Tax Payer</option>
-                                                        <option value="RUC" {{ old('invoice_type_document') == 'RUC' ? 'selected' : '' }} disabled>RUC</option>
-                                                        <option value="DNI" {{ old('invoice_type_document') == 'DNI' ? 'selected' : '' }} >DNI</option>
-                                                        <option value="Passport" {{ old('invoice_type_document') == 'Passport' ? 'selected' : '' }} >Passport</option>
-                                                        <option value="Other" {{ old('invoice_type_document') == 'Other' ? 'selected' : '' }} >Other</option>
+                                                        <option value="ID Tax Payer" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'ID Tax Payer' ? 'selected' : '' }} >ID Tax Payer</option>
+                                                        <option value="RUC" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'RUC' ? 'selected' : '' }}>RUC</option>
+                                                        <option value="DNI" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'DNI' ? 'selected' : '' }} >DNI</option>
+                                                        <option value="Passport" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'Passport' ? 'selected' : '' }} >Passport</option>
+                                                        <option value="Other" {{ old('invoice_type_document', $myinscription->invoice_type_document) == 'Other' ? 'selected' : '' }} >Other</option>
                                                     </select>
                                                 </div>
                                                 <div class="w-75">

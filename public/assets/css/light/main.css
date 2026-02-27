@@ -649,15 +649,15 @@ span.red {
 }
 
 .form-check-input {
-  background-color: #e0e6ed;
-  border-color: #e0e6ed;
+  background-color: rgba(224, 230, 237, 0.1019607843);
+  border-color: #bfc9d4;
   width: 17px;
   height: 17px;
   margin-top: 0.21em;
   transition: background-color 0.15s ease-in-out, background-position 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
 }
 .form-check-input:focus {
-  border-color: #e0e6ed;
+  border-color: #bfc9d4;
   box-shadow: none;
 }
 .form-check-input:checked {
@@ -3026,7 +3026,7 @@ fieldset:disabled .btn {
   margin-bottom: 0;
 }
 .table .form-check-input {
-  background-color: #bfc9d4;
+  background-color: rgba(224, 230, 237, 0.1019607843);
   border-color: #bfc9d4;
 }
 .table thead {

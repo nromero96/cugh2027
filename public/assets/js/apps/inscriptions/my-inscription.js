@@ -96,8 +96,11 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
 
-    //Change Country
-    document.getElementById('inputCountry').addEventListener('change', function () {
+    //Country Prices
+    const countrySelect = document.getElementById('inputCountry');
+    function loadPrices(countryId) {
+
+        if (!countryId) return;
 
         const csrf = document.querySelector('meta[name="csrf-token"]').content;
 
@@ -108,7 +111,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 'X-CSRF-TOKEN': csrf
             },
             body: JSON.stringify({
-                country_id: this.value
+                country_id: countryId
             })
         })
         .then(res => res.json())
@@ -117,13 +120,11 @@ document.addEventListener("DOMContentLoaded", function () {
             Object.keys(prices).forEach(id => {
                 const price = prices[id];
 
-                // actualizar span
                 const priceSpan = document.getElementById('dc_price_' + id);
                 if (priceSpan) {
                     priceSpan.innerText = price;
                 }
 
-                // actualizar radio data
                 const radio = document.getElementById('category_' + id);
                 if (radio) {
                     radio.dataset.catprice = price;
@@ -133,10 +134,18 @@ document.addEventListener("DOMContentLoaded", function () {
             calculateTotalPrice();
         });
 
+        invoiceOptions(countryId);
+    }
 
-        invoiceOptions(this.value);
-
+    // Evento change Country
+    countrySelect.addEventListener('change', function () {
+        loadPrices(this.value);
     });
+
+    // Ejecutar al cargar si ya tiene valor contry
+    if (countrySelect.value) {
+        loadPrices(countrySelect.value);
+    }
 
 
     function invoiceOptions(value){
@@ -331,11 +340,17 @@ function calculateTotalPrice() {
   paymentotalElement.textContent = totalPrice; // Ajusta el formato según necesites
 }
 
+
 // Agrega un event listener para los cambios en los radios y checkboxes
+
 categoryRadioButtons.forEach(radio => {
-  radio.addEventListener('change', calculateTotalPrice);
-  radio.addEventListener('change', handleCategoryRadioButtons);
+  radio.addEventListener('change', function (e) {
+      calculateTotalPrice();
+      handleCategoryRadioButtons(e.target.value);
+  });
 });
+
+
 
 
 // Calcula el precio total inicial
@@ -353,9 +368,13 @@ const specialCodeVerify = document.getElementById('specialcode_verify');
 const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 
 // Función para manejar el clic categoryRadioButtons
-function handleCategoryRadioButtons(){
+
+const selectedValueCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked').value;
+function handleCategoryRadioButtons(selectedValueCategory){
+
+    alert(selectedValueCategory);
     
-    const selectedValueCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked').value;
+    if(!selectedValueCategory) return;
 
     if(selectedValueCategory === '3' || selectedValueCategory === '4' || selectedValueCategory === '5'){
       
@@ -428,6 +447,10 @@ function handleCategoryRadioButtons(){
     const radioCategory = document.getElementById('category_6');
     radioCategory.setAttribute('data-catprice', '00');
 
+}
+
+if(selectedValueCategory){
+    handleCategoryRadioButtons(selectedValueCategory);
 }
 
 //if  clic in radio invoice if value is yes add class in dv_invoice_info
