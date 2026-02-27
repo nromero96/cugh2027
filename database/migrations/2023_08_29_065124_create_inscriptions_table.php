@@ -17,20 +17,20 @@ class CreateInscriptionsTable extends Migration
             $table->id();
             $table->string('token', 64)->unique();
             $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('category_inscription_id');
-            $table->decimal('price_category', 8, 2);
-            $table->decimal('total', 8, 2);
+            $table->unsignedBigInteger('category_inscription_id')->nullable();
+            $table->decimal('price_category', 8, 2)->nullable();
+            $table->decimal('total', 8, 2)->nullable();
             $table->string('special_code')->nullable();
             $table->string('document_file')->nullable();
-            $table->string('invoice');
+            $table->string('invoice')->nullable();
             $table->string('invoice_type')->nullable();
             $table->string('invoice_type_document')->nullable();
             $table->string('invoice_ruc')->nullable();
             $table->string('invoice_social_reason')->nullable();
             $table->string('invoice_address')->nullable();
-            $table->string('payment_method');
+            $table->string('payment_method')->nullable();
             $table->string('voucher_file')->nullable();
-            $table->string('status')->default('Pending');
+            $table->string('status')->default('Draft');
             $table->timestamps();
         });
     }

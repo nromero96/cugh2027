@@ -81,7 +81,7 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
 
-        return User::create([
+        $user = User::create([
             'name' => '',
             'email' => $data['email'],
             'document_type' => $data['document_type'],
@@ -89,8 +89,19 @@ class RegisterController extends Controller
             'password' => Hash::make($data['password']),
             'status' => 'active',
             'photo' => 'default-profile.jpg',
-        ])->assignRole('Participante');
+        ]);
 
+        // Asignar rol
+        $user->assignRole('Participante');
+
+        // Crear inscripción automáticamente (draft)
+        $user->inscription()->firstOrCreate(
+            ['user_id' => $user->id],
+            ['invoice_type' => 'Boleta'],
+            ['status' => 'Draft']
+        );
+
+        return $user;
 
     }
 }

@@ -17,12 +17,6 @@
                             $userRole = $user->roles->pluck('name')->toArray();
                     @endphp
                     
-                    @if($user->confir_information == '' && $userRole[0] != 'Administrador')
-                            <div class="alert alert-danger text-center" role="alert">
-                                <strong>{{__("¡Atención!")}}</strong> {{__("Debes completar tu información personal para poder inscribirte.")}}<br><br>
-                                <a href="{{ route('users.myprofile') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Completar Información")}}</a>
-                            </div>
-                    @else
 
                     @if(session('success'))
                         <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -112,7 +106,7 @@
                                     </tbody>
                                 </table>
                         </div>
-                    @endif
+                    
                 
             </div>
         </div>

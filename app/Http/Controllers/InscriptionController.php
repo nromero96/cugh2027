@@ -628,13 +628,8 @@ class InscriptionController extends Controller
 
     public function registerMyInscription(){
 
-        //verificar si el usuario ya tiene una inscripción
-        $inscription = Inscription::where('user_id', \Auth::user()->id)->first();
-        if($inscription){
-            return redirect()->route('inscriptions.index')->with('error', 'You already have an existing registration. Please review it in the Registrations section.');
-        }
-
-        $id = \Auth::user()->id;
+        $user = auth()->user();
+        $id = $user->id;
 
         $data = [
             'category_name' => 'inscriptions',
@@ -645,23 +640,18 @@ class InscriptionController extends Controller
 
         //get CategoryInscription
         $category_inscriptions = CategoryInscription::orderBy('order', 'asc')->get();
+        //List Country
         $countries = Country::orderByRaw("CASE WHEN name = 'Perú' THEN 0 ELSE 1 END, name ASC")->get();
-
-        $user = User::find($id);
-
-        
-        //verificar si tengo alguna inscripcion
-        $myinscription = Inscription::where('user_id', $id);
-
         //List Member Institution
         $memberinstitutions = MemberInstitution::all();
 
+        $user = User::find($id);
+
+        //Obtener la inscripción del usuario
+        $myinscription = $user->inscription;
+
         //solo los roles de Administrador y Secretaria pueden ver esta vista
-        if ($myinscription) {
-            return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user)->with('memberinstitutions', $memberinstitutions);
-        }else{
-            return redirect()->route('inscriptions.index')->with('error', 'Ya tiene una inscripción, revise su inscripción en la sección de inscripciones');
-        }
+        return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user)->with('memberinstitutions', $memberinstitutions)->with('myinscription', $myinscription);
     }
 
     public function storeMyInscription(Request $request){
@@ -669,17 +659,6 @@ class InscriptionController extends Controller
         $iduser = \Auth::user()->id;
 
         Log::info('Datos de la inscripción: '.json_encode($request->all()));
-
-        // Verificar si el usuario ya tiene una inscripción que NO sea Draft
-        $inscription = Inscription::where('user_id', $iduser)
-            ->where('status', '!=', 'Draft')
-            ->first();
-
-        if ($inscription) {
-            return redirect()
-                ->route('inscriptions.index')
-                ->with('error', 'You already have an existing registration. Please review it in the Registrations section.');
-        }
 
         //validar datos
         $validatedData = request()->validate([
@@ -715,6 +694,36 @@ class InscriptionController extends Controller
             'whatsapp_number' => 'nullable|string',
             'solapin_name' => 'required|string',
             'solapin_lastname' => 'required|string',
+
+            //Questionnaire Data
+            'sector' => 'nullable|array',
+            'other_sector' => 'nullable|string',
+
+            'area_of_work' => 'nullable|array',
+            'other_area_of_work' => 'nullable|string',
+
+            'how_did_you_hear_about' => 'nullable|array',
+            'other_how_did_you_hear_about' => 'nullable|string',
+
+            'why_attending' => 'nullable|array',
+            'other_why_attending' => 'nullable|string',
+
+            'ability_to_present_work' => 'nullable|string',
+
+            'how_is_your_attendance_funded' => 'nullable|array',
+            'other_how_is_your_attendance_funded' => 'nullable|string',
+
+            'your_areas_of_focus_in_global_health' => 'nullable|array',
+            'other_your_areas_of_focus_in_global_health' => 'nullable|string',
+
+            'obstacles_to_attending_cughs_conferences' => 'nullable|array',
+            'other_obstacles_to_attending_cughs_conferences' => 'nullable|string',
+
+            'receive_news_and_updates' => 'nullable|string',
+            'contact_info' => 'nullable|string',
+            'oral_poster_abstract_presenter' => 'nullable|string',
+            'panel_presenter_moderator' => 'nullable|string',
+
             //data inscription
             'category_inscription_id' => 'required|numeric',
             'invoice' => 'required|string',
@@ -764,11 +773,43 @@ class InscriptionController extends Controller
             $user->whatsapp_number = $request->whatsapp_number;
             $user->solapin_name = $request->solapin_name;
             $user->solapin_lastname = $request->solapin_lastname;
-            $user->confir_information = 'si';
+
+            //Questionnaire Data
+            $user->sector = $request->sector ?? [];
+            $user->other_sector = $request->other_sector;
+
+            $user->area_of_work = $request->area_of_work ?? [];
+            $user->other_area_of_work = $request->other_area_of_work;
+
+            $user->how_did_you_hear_about = $request->how_did_you_hear_about;
+            $user->other_how_did_you_hear_about = $request->other_how_did_you_hear_about;
+
+            $user->why_attending = $request->why_attending;
+            $user->other_why_attending = $request->other_why_attending;
+
+            $user->ability_to_present_work = $request->ability_to_present_work;
+
+            $user->how_is_your_attendance_funded = $request->how_is_your_attendance_funded;
+            $user->other_how_is_your_attendance_funded = $request->other_how_is_your_attendance_funded;
+
+            $user->your_areas_of_focus_in_global_health = $request->your_areas_of_focus_in_global_health;
+            $user->other_your_areas_of_focus_in_global_health = $request->other_your_areas_of_focus_in_global_health;
+
+            $user->obstacles_to_attending_cughs_conferences = $request->obstacles_to_attending_cughs_conferences;
+            $user->other_obstacles_to_attending_cughs_conferences = $request->other_obstacles_to_attending_cughs_conferences;
+
+            $user->receive_news_and_updates = $request->receive_news_and_updates;
+            $user->contact_info = $request->contact_info;
+            $user->oral_poster_abstract_presenter = $request->oral_poster_abstract_presenter;
+            $user->panel_presenter_moderator = $request->panel_presenter_moderator;
+
             $user->save();
+
+            //Buscar inscripción del usuario para actualizarla
+            $inscription = Inscription::where('user_id', $iduser)->first();
             
-            // Insertar inscripción
-            $inscription = new Inscription();
+            // Actualizar inscripción del usuario
+            $inscription = Inscription::find($inscription->id);
             $inscription->user_id = $iduser;
             $inscription->category_inscription_id = $request->category_inscription_id;
 
@@ -843,21 +884,6 @@ class InscriptionController extends Controller
                 $forma_de_pago = '001';
                 $inscription->status = 'Pending';
                 $inscription->save();
-
-                // Enviar correo
-                $user = User::find($iduser);
-                $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
-                    ->where('inscriptions.id', $inscription->id)
-                    ->first();
-                $data = [
-                    'user' => $user,
-                    'datainscription' => $datainscription,
-                ];
-
-                // Mail::to($user->email)
-                //     ->cc(config('services.correonotificacion.inscripcion'))
-                //     ->send(new \App\Mail\InscriptionCreated($data));
 
                 DB::commit();
             }

@@ -268,19 +268,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     // SECTOR
-    toggleOtherCheckbox('input[name="sector"][value="Other"]', 'other_sector');
+    toggleOtherCheckbox('input[name="sector[]"][value="Other"]', 'other_sector');
     //AREA(S) OF WORK
-    toggleOtherCheckbox('input[name="area_of_work"][value="Other"]', 'other_area_of_work');
+    toggleOtherCheckbox('input[name="area_of_work[]"][value="Other"]', 'other_area_of_work');
     //HOW DID YOU HEAR ABOUT THE CUGH CONFERENCE
-    toggleOtherCheckbox('input[name="how_did_you_hear_about"][value="Other"]', 'other_how_did_you_hear_about');
+    toggleOtherCheckbox('input[name="how_did_you_hear_about[]"][value="Other"]', 'other_how_did_you_hear_about');
     //WHY ARE YOU ATTENDING THE CONFERENCE?
-    toggleOtherCheckbox('input[name="why_attending"][value="Other"]', 'other_why_attending');
+    toggleOtherCheckbox('input[name="why_attending[]"][value="Other"]', 'other_why_attending');
     //HOW IS YOUR ATTENDANCE FUNDED?
-    toggleOtherCheckbox('input[name="how_is_your_attendance_funded"][value="Other"]', 'other_how_is_your_attendance_funded');
+    toggleOtherCheckbox('input[name="how_is_your_attendance_funded[]"][value="Other"]', 'other_how_is_your_attendance_funded');
     //YOUR AREAS OF FOCUS IN GLOBAL HEALTH
-    toggleOtherCheckbox('input[name="your_areas_of_focus_in_global_health"][value="Other"]', 'other_your_areas_of_focus_in_global_health');
+    toggleOtherCheckbox('input[name="your_areas_of_focus_in_global_health[]"][value="Other"]', 'other_your_areas_of_focus_in_global_health');
     //OBSTACLES TO ATTENDING CUGH'S CONFERENCES
-    toggleOtherCheckbox('input[name="obstacles_to_attending_cughs_conferences"][value="Other"]', 'other_obstacles_to_attending_cughs_conferences');
+    toggleOtherCheckbox('input[name="obstacles_to_attending_cughs_conferences[]"][value="Other"]', 'other_obstacles_to_attending_cughs_conferences');
 
 });
 

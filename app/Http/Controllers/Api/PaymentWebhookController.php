@@ -34,7 +34,10 @@ class PaymentWebhookController extends Controller
             return response()->json(['message' => 'Incomplete payment data'], 400);
         }
 
-        $inscription = Inscription::find($numeroInscripcion);
+        $inscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
+                    ->where('inscriptions.id', $numeroInscripcion)
+                    ->first();
 
         if (!$inscription) {
             return response()->json(['message' => 'Inscription not found'], 404);

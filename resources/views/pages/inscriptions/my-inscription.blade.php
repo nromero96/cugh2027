@@ -30,7 +30,7 @@
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 mb-2 col-12">
                                 <h4>
-                                    Complete your personal details....
+                                    My Registration #{{ $myinscription->id }}
                                 </h4>
                             </div>
                         </div>
@@ -330,60 +330,63 @@
                                             <div class="col-md-12">
                                                 <label for="sector" class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
                                                 <div class="row">
+                                                    @php
+                                                        $selectedSectors = old('sector', $user->sector ?? []);
+                                                    @endphp
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Academic" {{ old('sector', $user->sector) == 'Academic' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Academic" {{ in_array('Academic', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Academic</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Funding Organization" {{ old('sector', $user->sector) == 'Funding Organization' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Funding Organization" {{ in_array('Funding Organization', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Funding Organization</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Government" {{ old('sector', $user->sector) == 'Government' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Government" {{ in_array('Government', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Government</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Intergovernmental organization" {{ old('sector', $user->sector) == 'Intergovernmental organization' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Intergovernmental organization" {{ in_array('Intergovernmental organization', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Intergovernmental organization</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Non-profit/NGO/Civil Society Organization" {{ old('sector', $user->sector) == 'Non-profit/NGO/Civil Society Organization' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Non-profit/NGO/Civil Society Organization" {{ in_array('Non-profit/NGO/Civil Society Organization', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Non-profit/NGO/Civil Society Organization</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Private Sector" {{ old('sector', $user->sector) == 'Private Sector' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Private Sector" {{ in_array('Private Sector', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Private Sector</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Research Institute" {{ old('sector', $user->sector) == 'Research Institute' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Research Institute" {{ in_array('Research Institute', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Research Institute</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Think Tank" {{ old('sector', $user->sector) == 'Think Tank' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Think Tank" {{ in_array('Think Tank', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Think Tank</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="sector" value="Other" {{ old('sector', $user->sector) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="sector[]" value="Other" {{ in_array('Other', $selectedSectors) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
-                                                        <input type="text" name="other_sector" class="form-control mb-2" id="other_sector" value="{{ old('other_sector') }}" placeholder="Please specify">
+                                                        <input type="text" name="other_sector" class="form-control mb-2" id="other_sector" value="{{ old('other_sector', $user->other_sector) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("sector", "<span class='text-danger'>:message</span>")!!}
@@ -391,73 +394,78 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="area_of_work" class="form-label text-muted mb-0 mt-2">AREA(S) OF WORK <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                
+                                                @php
+                                                    $selectedAreaofworks = old('sector', $user->area_of_work ?? []);
+                                                @endphp
+                                                
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Academic Administration" {{ old('area_of_work', $user->area_of_work) == 'Academic Administration' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Academic Administration" {{ in_array('Academic Administration', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Academic Administration</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Faculty" {{ old('area_of_work', $user->area_of_work) == 'Faculty' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Faculty" {{ in_array('Faculty', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Faculty</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Student Undergraduate" {{ old('area_of_work', $user->area_of_work) == 'Student Undergraduate' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Student Undergraduate" {{ in_array('Student Undergraduate', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Student Undergraduate</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Postgraduate Student" {{ old('area_of_work', $user->area_of_work) == 'Postgraduate Student' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Postgraduate Student" {{ in_array('Postgraduate Student', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Postgraduate Student</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Advocacy" {{ old('area_of_work', $user->area_of_work) == 'Advocacy' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Advocacy" {{ in_array('Advocacy', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Advocacy</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Research" {{ old('area_of_work', $user->area_of_work) == 'Research' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Research" {{ in_array('Research', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Research</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Education" {{ old('area_of_work', $user->area_of_work) == 'Education' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Education" {{ in_array('Education', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Education</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Funding" {{ old('area_of_work', $user->area_of_work) == 'Funding' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Funding" {{ in_array('Funding', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Funding</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Implementation" {{ old('area_of_work', $user->area_of_work) == 'Implementation' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Implementation" {{ in_array('Implementation', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Implementation</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Politics/Policy making" {{ old('politics', $user->area_of_work) == 'Politics/Policy making' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Politics/Policy making" {{ in_array('Politics/Policy making', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Politics/Policy making</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="area_of_work" value="Other" {{ old('other', $user->area_of_work) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="area_of_work[]" value="Other" {{ in_array('Other', $selectedAreaofworks) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
-                                                        <input type="text" name="other_area_of_work" class="form-control mb-2" id="other_area_of_work" value="{{ old('area_of_work', $user->area_of_work) }}" placeholder="Please specify">
+                                                        <input type="text" name="other_area_of_work" class="form-control mb-2" id="other_area_of_work" value="{{ old('other_area_of_work', $user->other_area_of_work) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("area_of_work", "<span class='text-danger'>:message</span>")!!}
@@ -465,46 +473,49 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="how_did_you_hear_about" class="form-label text-muted mb-0 mt-2">HOW DID YOU HEAR ABOUT THE CUGH CONFERENCE <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                @php
+                                                    $selectedHowdidyouhearabout = old('how_did_you_hear_about', $user->how_did_you_hear_about ?? []);
+                                                @endphp
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="My institution is a member" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'My institution is a member' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="My institution is a member" {{ in_array('My institution is a member', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">My institution is a member</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Promotional emails from CUGH" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Promotional emails from CUGH' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="Promotional emails from CUGH" {{ in_array('Promotional emails from CUGH', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Promotional emails from CUGH</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="CUGH newsletters" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'CUGH newsletters' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="CUGH newsletters" {{ in_array('CUGH newsletters', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">CUGH newsletters</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Saw a flyer/information via non-CUGH site" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Saw a flyer/information via non-CUGH site' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="Saw a flyer/information via non-CUGH site" {{ in_array('Saw a flyer/information via non-CUGH site', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Saw a flyer/information via non-CUGH site</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="From social media (Facebook, Twitter, etc.)" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'From social media (Facebook, Twitter, etc.)' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="From social media (Facebook, Twitter, etc.)" {{ in_array('From social media (Facebook, Twitter, etc.)', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">From social media (Facebook, Twitter, etc.)</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Through a colleague/friend" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Through a colleague/friend' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="Through a colleague/friend" {{ in_array('Through a colleague/friend', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Through a colleague/friend</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about" value="Other" {{ old('how_did_you_hear_about', $user->how_did_you_hear_about) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_did_you_hear_about[]" value="Other" {{ in_array('Other', $selectedHowdidyouhearabout) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
                                                         <input type="text" class="form-control mb-2" id="other_how_did_you_hear_about" name="other_how_did_you_hear_about" value="{{ old('other_how_did_you_hear_about', $user->other_how_did_you_hear_about) }}" placeholder="Please specify">
@@ -515,55 +526,58 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="why_attending" class="form-label text-muted mb-0 mt-2">WHY ARE YOU ATTENDING THE CONFERENCE? <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                @php
+                                                    $selectedWhyattending = old('why_attending', $user->why_attending ?? []);
+                                                @endphp
                                                 <div class="row">
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To learn about the latest in global health issues" {{ old('why_attending', $user->why_attending) == 'To learn about the latest in global health issues' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To learn about the latest in global health issues" {{ in_array('To learn about the latest in global health issues', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To learn about the latest in global health issues</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To network" {{ old('why_attending', $user->why_attending) == 'To network' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To network" {{ in_array('To network', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To network</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To find funding" {{ old('why_attending', $user->why_attending) == 'To find funding' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To find funding" {{ in_array('To find funding', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To find funding</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To identify a new educational/research opportunity" {{ old('why_attending', $user->why_attending) == 'To identify a new educational/research opportunity' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To identify a new educational/research opportunity" {{ in_array('To identify a new educational/research opportunity', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To identify a new educational/research opportunity</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To find a job" {{ old('why_attending', $user->why_attending) == 'To find a job' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To find a job" {{ in_array('To find a job', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To find a job</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To interact with speakers/presenters/moderators" {{ old('why_attending', $user->why_attending) == 'To interact with speakers/presenters/moderators' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To interact with speakers/presenters/moderators" {{ in_array('To interact with speakers/presenters/moderators', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To interact with speakers/presenters/moderators</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="To present my work to peers, colleagues, topic experts" {{ old('why_attending', $user->why_attending) == 'To present my work to peers, colleagues, topic experts' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="To present my work to peers, colleagues, topic experts" {{ in_array('To present my work to peers, colleagues, topic experts', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">To present my work to peers, colleagues, topic experts</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-6">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="why_attending" value="Other" {{ old('why_attending', $user->why_attending) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="why_attending[]" value="Other" {{ in_array('Other', $selectedWhyattending) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
-                                                        <input type="text" name="other_why_attending" class="form-control mb-2" id="other_why_attending" value="{{ old('other_why_attending') }}" placeholder="Please specify">
+                                                        <input type="text" name="other_why_attending" class="form-control mb-2" id="other_why_attending" value="{{ old('other_why_attending', $user->other_why_attending) }}" placeholder="Please specify">
                                                     </div>
                                                 </div>
                                                 {!!$errors->first("why_attending", "<span class='text-danger'>:message</span>")!!}
@@ -592,28 +606,30 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="how_is_your_attendance_funded" class="form-label text-muted mb-0 mt-2">HOW IS YOUR ATTENDANCE FUNDED? <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                @php
+                                                    $selectedHowisyourattendancefunded = old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded ?? []);
+                                                @endphp
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By myself" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By myself' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded[]" value="By myself" {{ in_array('By myself', $selectedHowisyourattendancefunded) ? 'checked' : '' }}>
                                                             <span class="form-check-label">By myself</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By my program/school university" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By my program/school university' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded[]" value="By my program/school university" {{ in_array('By my program/school university', $selectedHowisyourattendancefunded) ? 'checked' : '' }}>
                                                             <span class="form-check-label">By my program/school university</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="By my place of employment" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'By my place of employment' ? 'checked' : '' }}>
-                                                            <span class="form-check-label">By my place of employment</span>
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded[]" value="By my place of employment" {{ in_array('By my place of employment', $selectedHowisyourattendancefunded) ? 'checked' : '' }}>                                                            <span class="form-check-label">By my place of employment</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded" value="Other" {{ old('how_is_your_attendance_funded', $user->how_is_your_attendance_funded) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="how_is_your_attendance_funded[]" value="Other" {{ in_array('Other', $selectedHowisyourattendancefunded) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
                                                         <input type="text" class="form-control mb-2" name="other_how_is_your_attendance_funded" id="other_how_is_your_attendance_funded" value="{{ old('other_how_is_your_attendance_funded', $user->other_how_is_your_attendance_funded) }}" placeholder="Please specify">
@@ -624,166 +640,168 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="your_areas_of_focus_in_global_health" class="form-label text-muted mb-0 mt-2">YOUR AREAS OF FOCUS IN GLOBAL HEALTH <span class="text-danger">*</span> <small>(Check all that apply)</small></label>
+                                                @php
+                                                    $selectedYourareasglobal = old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health ?? []);
+                                                @endphp
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Administration" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Administration' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Administration" {{ in_array('Administration', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Administration</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Advocacy/Communication" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Advocacy/Communication' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Advocacy/Communication" {{ in_array('Advocacy/Communication', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Advocacy/Communication</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Capacity Building" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Capacity Building' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Capacity Building" {{ in_array('Capacity Building', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Capacity Building</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Disaster Management" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Disaster Management' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Disaster Management" {{ in_array('Disaster Management', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Disaster Management</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Education" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Education' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Education" {{ in_array('Education', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Education</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Emergency Medicine" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Emergency Medicine' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Emergency Medicine" {{ in_array('Emergency Medicine', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Emergency Medicine</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Environment/One Health/Planetary Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Environment/One Health/Planetary Health' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Environment/One Health/Planetary Health" {{ in_array('Environment/One Health/Planetary Health', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Environment/One Health/Planetary Health</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Governance" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Governance' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Governance" {{ in_array('Governance', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Governance</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Economics" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Economics' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Economics" {{ in_array('Economics', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Economics</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Policy" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Policy' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Policy" {{ in_array('Policy', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Policy</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Implementation" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Implementation' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Implementation" {{ in_array('Implementation', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Implementation</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Infectious Diseases/Pandemic prevention and response" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Infectious Diseases/Pandemic prevention and response' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Infectious Diseases/Pandemic prevention and response" {{ in_array('Infectious Diseases/Pandemic prevention and response', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Infectious Diseases/Pandemic prevention and response</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Mental Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Mental Health' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Mental Health" {{ in_array('Mental Health', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Mental Health</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="NCDS" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'NCDS' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="NCDS" {{ in_array('NCDS', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">NCDS</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Nutrition/Food Security" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Nutrition/Food Security' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Nutrition/Food Security" {{ in_array('Nutrition/Food Security', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Nutrition/Food Security</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Oral Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Oral Health' ? 'checked' : '' }}>
-                                                            <span class="form-check-label">Oral Health</span>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Oral Health" {{ in_array('Oral Health', $selectedYourareasglobal) ? 'checked' : '' }}>                                                            <span class="form-check-label">Oral Health</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Pediatrics" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Pediatrics' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Pediatrics" {{ in_array('Pediatrics', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Pediatrics</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Politics/Political Science" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Politics/Political Science' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Politics/Political Science" {{ in_array('Politics/Political Science', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Politics/Political Science</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Public Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Public Health' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Public Health" {{ in_array('Public Health', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Public Health</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Research" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Research' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Research" {{ in_array('Research', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Research</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Social Sciences" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Social Sciences' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Social Sciences" {{ in_array('Social Sciences', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Social Sciences</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Student Services/International Education" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Student Services/International Education' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Student Services/International Education" {{ in_array('Student Services/International Education', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Student Services/International Education</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Surgery/Trauma" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Surgery/Trauma' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Surgery/Trauma" {{ in_array('Surgery/Trauma', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Surgery/Trauma</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Veterinary Sciences" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Veterinary Sciences' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Veterinary Sciences" {{ in_array('Veterinary Sciences', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Veterinary Sciences</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Water/Sanitation" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Water/Sanitation' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Water/Sanitation" {{ in_array('Water/Sanitation', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Water/Sanitation</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Women's Health" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Women\'s Health' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Women's Health" {{ in_array("Women's Health", $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Women's Health</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health" value="Other" {{ old('your_areas_of_focus_in_global_health', $user->your_areas_of_focus_in_global_health) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="your_areas_of_focus_in_global_health[]" value="Other" {{ in_array('Other', $selectedYourareasglobal) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
                                                         <input type="text" name="other_your_areas_of_focus_in_global_health" id="other_your_areas_of_focus_in_global_health" class="form-control mb-2" value="{{ old('other_your_areas_of_focus_in_global_health', $user->other_your_areas_of_focus_in_global_health) }}" placeholder="Please specify">
@@ -794,22 +812,25 @@
                                             </div>
                                             <div class="col-md-12">
                                                 <label for="obstacles_to_attending_cughs_conferences" class="form-label text-muted mb-0 mt-2">OBSTACLES TO ATTENDING CUGH'S CONFERENCES <span class="text-danger">*</span></label>
+                                                @php
+                                                    $selectedObstaclestoattendingcughsconferences = old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences ?? []);
+                                                @endphp
                                                 <div class="row">
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Financial" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Financial' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences[]" value="Financial" {{ in_array('Financial', $selectedObstaclestoattendingcughsconferences) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Financial</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Visas & other immigration factors" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Visas & other immigration factors' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences[]" value="Visas & other immigration factors" {{ in_array('Visas & other immigration factors', $selectedObstaclestoattendingcughsconferences) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Visas & other immigration factors</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-4">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences" value="Other" {{ old('obstacles_to_attending_cughs_conferences', $user->obstacles_to_attending_cughs_conferences) == 'Other' ? 'checked' : '' }}>
+                                                            <input class="form-check-input" type="checkbox" name="obstacles_to_attending_cughs_conferences[]" value="Other" {{ in_array('Other', $selectedObstaclestoattendingcughsconferences) ? 'checked' : '' }}>
                                                             <span class="form-check-label">Other</span>
                                                         </label>
                                                         <input type="text" name="other_obstacles_to_attending_cughs_conferences" id="other_obstacles_to_attending_cughs_conferences" class="form-control mb-2" value="{{ old('other_obstacles_to_attending_cughs_conferences', $user->other_obstacles_to_attending_cughs_conferences) }}" placeholder="Please specify">
@@ -843,8 +864,8 @@
                                                 <div class="row">
                                                     <div class="col-md-12">
                                                         <label class="form-check-label">
-                                                            <input class="form-check-input" type="radio" name="contact_info" value="I agree that my contact information can be shared with other attendees (Conference App)" {{ old('contact_info', $user->contact_info) == 'I agree that my contact information can be shared with other attendees (Conference App).' ? 'checked' : '' }}>
-                                                            <span class="form-check-label">I agree that my contact information can be shared with other attendees (Conference App)</span>
+                                                            <input class="form-check-input" type="radio" name="contact_info" value="I agree that my contact information can be shared with other attendees (Conference App)" {{ old('contact_info', $user->contact_info) == 'I agree that my contact information can be shared with other attendees (Conference App)' ? 'checked' : '' }}>
+                                                            <span class="form-check-label">I agree that my contact information can be shared with other attendees (Conference App).</span>
                                                         </label>
                                                     </div>
                                                     <div class="col-md-12">
@@ -992,13 +1013,13 @@
                                 
                                     <div class="">
                                         <div class="form-check form-check-primary form-check-inline" id="dv_invoice_type_boleta">
-                                            <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_boleta" value="Boleta" checked="">
+                                            <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_boleta" value="Boleta" {{ old('invoice_type', $myinscription->invoice_type ?? 'Boleta') == 'Boleta' ? 'checked' : '' }}>
                                             <label class="form-check-label mb-0 cursor-pointer" for="invoice_type_boleta">
                                                 Boleta
                                             </label>
                                         </div>
                                         <div class="form-check form-check-primary form-check-inline d-none" id="dv_invoice_type_factura">
-                                            <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_factura" value="Factura">
+                                            <input class="form-check-input cursor-pointer" type="radio" name="invoice_type" id="invoice_type_factura" value="Factura" {{ old('invoice_type', $myinscription->invoice_type ?? 'Factura') == 'Factura' ? 'checked' : '' }}>
                                             <label class="form-check-label mb-0 cursor-pointer" for="invoice_type_factura">
                                                 Factura
                                             </label>
@@ -1008,7 +1029,7 @@
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
                                             <label for="invoice_social_reason" class="form-label text-muted mb-0"><span id="lbl_invoice_social_reason">Name/Entity</span> <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="" required>
+                                            <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control" placeholder="" value="{{ old('invoice_social_reason', $myinscription->invoice_social_reason ?? '') }}" required>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="invoice_type_document" class="form-label text-muted mb-0" id="lbl_invoice_type_document">Document Type and Number<span class="text-danger">*</span></label>
@@ -1024,13 +1045,13 @@
                                                     </select>
                                                 </div>
                                                 <div class="w-75">
-                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end" placeholder="Document Number" required>
+                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end" placeholder="Document Number" value="{{ old('invoice_ruc', $myinscription->invoice_ruc ?? '') }}" required>
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-4">
                                             <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Address</span> <span class="text-danger">*</span></label>
-                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="" maxlength="50" autocomplete="new-address" required>
+                                            <input type="text" name="invoice_address" id="invoice_address" class="form-control" placeholder="" maxlength="50" autocomplete="new-address" value="{{ old('invoice_address', $myinscription->invoice_address ?? '') }}" required>
                                         </div>
                                     </div>
 

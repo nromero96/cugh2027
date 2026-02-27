@@ -55,7 +55,34 @@ class User extends Authenticatable
         'photo',
         'solapin_name',
         'solapin_lastname',
-        'confir_information',
+
+        'sector',
+        'other_sector',
+
+        'area_of_work',
+        'other_area_of_work',
+
+        'how_did_you_hear_about',
+        'other_how_did_you_hear_about',
+
+        'why_attending',
+        'other_why_attending',
+
+        'ability_to_present_work',
+
+        'how_is_your_attendance_funded',
+        'other_how_is_your_attendance_funded',
+
+        'your_areas_of_focus_in_global_health',
+        'other_your_areas_of_focus_in_global_health',
+
+        'obstacles_to_attending_cughs_conferences',
+        'other_obstacles_to_attending_cughs_conferences',
+
+        'receive_news_and_updates',
+        'contact_info',
+        'oral_poster_abstract_presenter',
+        'panel_presenter_moderator',
     ];
 
     /**
@@ -76,6 +103,13 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'is_cugh_member' => 'boolean',
+        'sector' => 'array',
+        'area_of_work' => 'array',
+        'how_did_you_hear_about' => 'array',
+        'why_attending' => 'array',
+        'how_is_your_attendance_funded' => 'array',
+        'your_areas_of_focus_in_global_health' => 'array',
+        'obstacles_to_attending_cughs_conferences' => 'array',
     ];
 
     public function inscription()

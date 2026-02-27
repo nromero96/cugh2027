@@ -33,12 +33,6 @@
                             $userRole = $user->roles->pluck('name')->toArray();
                     @endphp
                     
-                    @if($user->confir_information == '' && $userRole[0] != 'Administrador')
-                            <div class="alert alert-danger text-center" role="alert">
-                                <strong>{{__("¡Atención!")}}</strong> {{__("Debes completar tu información personal para poder reservar.")}}<br><br>
-                                <a href="{{ route('users.myprofile') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Completar Información")}}</a>
-                            </div>
-                    @else
 
                     <div class="widget-header pt-4">
                         <div class="row">
@@ -122,7 +116,6 @@
                             </table>
                         </div>
                     </div>
-                    @endif
                 </div>
             </div>
         </div>

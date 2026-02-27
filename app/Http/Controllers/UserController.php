@@ -248,7 +248,6 @@ class UserController extends Controller
             'workplace' => $request['workplace'],
             'photo' => $photouser,
             'solapin_name' => $request['solapin_name'],
-            'confir_information' => $request['confir_information'],
         ]);
 
 

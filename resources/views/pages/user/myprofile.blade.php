@@ -31,7 +31,6 @@
                     </div>
                     <div class="widget-content widget-content-area pt-0">
                         
-                        @if ($user->confir_information)
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label class="form-label fw-bold">First Name</label>
@@ -181,11 +180,6 @@
 
                             </div>
                         </div>
-                        @else
-                            <div class="alert alert-danger">
-                                Please complete your registration in the <a href="{{route('inscriptions.myinscription')}}">My Inscription</a>
-                            </div>
-                        @endif
                     </div>
                 </div>
             </div>
