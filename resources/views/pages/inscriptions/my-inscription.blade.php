@@ -1076,14 +1076,10 @@
 
 
                                     <!-- RADIO OCULTO: NO PAYMENT -->
-                                        <input type="radio"
-                                            name="payment_method"
-                                            value="none"
-                                            id="payment_method_none"
-                                            checked
-                                            hidden>
+                                    <input type="radio" name="payment_method" value="none" id="payment_method_none" checked hidden>
 
-                                    <div class="text-center" id="dv_payment_method">
+
+                                    <div class="text-center @if($myinscription->status == 'Paid' || $myinscription->status == 'Processing') d-none @else d-block @endif" id="dv_payment_method">
                                         <div class="form-check form-check-primary form-check-inline">
                                             <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer">
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_transfer">
@@ -1138,19 +1134,64 @@
                                         </p>
                                     </div>
 
+
+                                    @if ($myinscription->payment_method == 'Bank Transfer/Wire')
+                                        <div class="row mt-1">
+                                            <div class="col-md-12">
+                                                <div class="mt-1">
+                                                    <a href="{{ asset('storage/uploads/voucher_file').'/'.$inscription->voucher_file}}" class="badge badge-light-primary text-start me-2 bs-tooltip" data-toggle="tooltip" data-placement="top" title="" data-bs-original-title="Descargar" target="_blank">
+                                                        {{ $inscription->voucher_file }}
+                                                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                    @if ($myinscription->payment_method == 'Credit/Debit Card' && $paymentcards->count() > 0)
+                                        @foreach ($paymentcards as $paymentcard)
+                                            <div class="card px-3 py-3 mt-3" @if($paymentcard->status_payment == 'AUTORIZADO') style="background-color: #00ab5545;" @else style="background-color: #cc1f2f14;" @endif>
+                                                <div class="row mt-1">
+                                                    <div class="col-3">
+                                                        <label class="form-label fw-bold mb-0"># Transaction number:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->purchasenumber }}</span>
+                                                    </div>
+                                                    <div class="col-3">
+                                                        <label class="form-label fw-bold mb-0">Card #:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->card_number }}</span>
+                                                    </div>
+                                                    <div class="col-2">
+                                                        <label class="form-label fw-bold mb-0">Amount:</label><br>
+                                                        <span class="bx-text">{{ $paymentcard->amount.' '.$paymentcard->currency }}</span>
+                                                    </div>
+                                                    <div class="col-4">
+                                                        <label class="form-label fw-bold mb-0">Transaction Date:</label><br>
+                                                        <span class="bx-text">{{$paymentcard->transaction_date}}</span>
+                                                    </div>
+                                                    <div class="col-12 mt-2">
+                                                        <span class="bx-text">{{ $paymentcard->action_description }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        @endforeach
+                                    @endif
+
                                 </div>
                             </div>
                             
-                        @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
-                            <div class="col-12 text-center">
-                                <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save</button>
-                                <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
-                            </div>
-                        @endif
-
+                            @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
+                                <div class="col-12 text-center">
+                                    <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save</button>
+                                    <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
+                                </div>
+                            @endif
                         </form>
                     </div>
                 </div>
+
+
+
+
             </div>
         </div>
 

@@ -650,6 +650,9 @@ class InscriptionController extends Controller
         //Obtener la inscripción del usuario
         $myinscription = $user->inscription;
 
+        //List of payment cards
+        $paymentcards = Payment::where('inscription_id', $myinscription->id)->orderBy('id', 'desc')->get();
+
         //solo los roles de Administrador y Secretaria pueden ver esta vista
         return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user)->with('memberinstitutions', $memberinstitutions)->with('myinscription', $myinscription);
     }

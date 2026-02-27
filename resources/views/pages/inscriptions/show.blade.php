@@ -349,8 +349,6 @@
                                     @endif
 
                                     @if ($inscription->payment_method == 'Credit/Debit Card' && $paymentcards->count() > 0)
-
-                                    
                                         @foreach ($paymentcards as $paymentcard)
                                             <div class="card px-3 py-3 mt-3" @if($paymentcard->status_payment == 'AUTORIZADO') style="background-color: #00ab5545;" @else style="background-color: #cc1f2f14;" @endif>
                                                 <div class="row mt-1">
