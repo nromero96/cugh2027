@@ -807,7 +807,7 @@ class InscriptionController extends Controller
                 'panel_presenter_moderator' => 'nullable|string',
 
                 //data inscription
-                'category_inscription_id' => 'required|numeric',
+                'category_inscription_id' => 'nullable|numeric',
                 'invoice' => 'required|string',
                 'invoice_type' => 'required|string',
                 'invoice_type_document' => 'nullable|string',
@@ -866,21 +866,21 @@ class InscriptionController extends Controller
             $user->area_of_work = $request->area_of_work ?? [];
             $user->other_area_of_work = $request->other_area_of_work;
 
-            $user->how_did_you_hear_about = $request->how_did_you_hear_about;
+            $user->how_did_you_hear_about = $request->how_did_you_hear_about ?? [];
             $user->other_how_did_you_hear_about = $request->other_how_did_you_hear_about;
 
-            $user->why_attending = $request->why_attending;
+            $user->why_attending = $request->why_attending ?? [];
             $user->other_why_attending = $request->other_why_attending;
 
             $user->ability_to_present_work = $request->ability_to_present_work;
 
-            $user->how_is_your_attendance_funded = $request->how_is_your_attendance_funded;
+            $user->how_is_your_attendance_funded = $request->how_is_your_attendance_funded ?? [];
             $user->other_how_is_your_attendance_funded = $request->other_how_is_your_attendance_funded;
 
-            $user->your_areas_of_focus_in_global_health = $request->your_areas_of_focus_in_global_health;
+            $user->your_areas_of_focus_in_global_health = $request->your_areas_of_focus_in_global_health ?? [];
             $user->other_your_areas_of_focus_in_global_health = $request->other_your_areas_of_focus_in_global_health;
 
-            $user->obstacles_to_attending_cughs_conferences = $request->obstacles_to_attending_cughs_conferences;
+            $user->obstacles_to_attending_cughs_conferences = $request->obstacles_to_attending_cughs_conferences ?? [];
             $user->other_obstacles_to_attending_cughs_conferences = $request->other_obstacles_to_attending_cughs_conferences;
 
             $user->receive_news_and_updates = $request->receive_news_and_updates;
@@ -901,10 +901,14 @@ class InscriptionController extends Controller
             
             $categoryInscription = CategoryInscription::find($request->category_inscription_id);
 
-            if ($country_inscription->price_type === 'Middle Income') {
-                $price_category = $categoryInscription->price_low;
-            } else { // High Income
-                $price_category = $categoryInscription->price;
+            if ($categoryInscription) {
+                // Si se encuentra la categoría
+                $price_category = $country_inscription->price_type === 'Middle Income'
+                    ? $categoryInscription->price_low
+                    : $categoryInscription->price;
+            } else {
+                // Si no llega category_inscription_id o no se encuentra
+                $price_category = 0;
             }
 
             $inscription->price_category = $price_category;
@@ -944,7 +948,7 @@ class InscriptionController extends Controller
             }
 
             if($action == 'save'){
-                $inscription->status = 'draft';
+                $inscription->status = 'Draft';
                 $inscription->save();
                 DB::commit();
                 return redirect()->route('inscriptions.myinscription')->with('success', 'Draft saved successfully. Registration is not completed yet.');

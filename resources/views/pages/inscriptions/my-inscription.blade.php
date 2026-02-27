@@ -229,7 +229,7 @@
 
                                         <div class="col-md-4 mt-3">
                                             <label for="inputCountry" class="form-label text-muted mb-0">Country  <span class="text-danger">*</span></label>
-                                            <select name="country" class="form-select" id="inputCountry">
+                                            <select name="country" class="form-select" id="inputCountry" required>
                                                 <option value="" disabled selected>Select...</option>
                                                 @foreach ($countries as $country)
                                                     <option value="{{$country->id}}" @if ($user->country == $country->id) selected="selected" @endif >{{$country->name}}</option>
@@ -1141,10 +1141,13 @@
                                 </div>
                             </div>
                             
+                        @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
                             <div class="col-12 text-center">
                                 <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save</button>
                                 <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
                             </div>
+                        @endif
+
                         </form>
                     </div>
                 </div>

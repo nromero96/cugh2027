@@ -378,7 +378,10 @@ const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 
 // Función para manejar el clic categoryRadioButtons
 
-const selectedValueCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked').value;
+
+const selectedRadioCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
+const selectedValueCategory = selectedRadioCategory ? selectedRadioCategory.value : null;
+
 function handleCategoryRadioButtons(selectedValueCategory){
     
     if(!selectedValueCategory) return;
