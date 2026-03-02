@@ -85,6 +85,10 @@ mix.sass('resources/sass/light/assets/main.scss', 'public/assets/css/light')
     .sass('resources/sass/light/plugins/tagify/custom-tagify.scss','public/plugins/css/light/tagify')
     .sass('resources/sass/dark/plugins/tagify/custom-tagify.scss','public/plugins/css/dark/tagify')
 
+    //Filepond
+    .sass('resources/sass/light/plugins/filepond/custom-filepond.scss','public/plugins/css/light/filepond')
+    .sass('resources/sass/dark/plugins/filepond/custom-filepond.scss','public/plugins/css/dark/filepond')
+
 
 
     .sourceMaps();

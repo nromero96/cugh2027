@@ -5,6 +5,8 @@
     "/layouts/vertical-light-menu/css/light/loader.css": "/layouts/vertical-light-menu/css/light/loader.css",
     "/assets/css/dark/main.css": "/assets/css/dark/main.css",
     "/assets/css/light/main.css": "/assets/css/light/main.css",
+    "/plugins/css/dark/filepond/custom-filepond.css": "/plugins/css/dark/filepond/custom-filepond.css",
+    "/plugins/css/light/filepond/custom-filepond.css": "/plugins/css/light/filepond/custom-filepond.css",
     "/plugins/css/dark/tagify/custom-tagify.css": "/plugins/css/dark/tagify/custom-tagify.css",
     "/plugins/css/light/tagify/custom-tagify.css": "/plugins/css/light/tagify/custom-tagify.css",
     "/assets/css/dark/apps/suppliers.css": "/assets/css/dark/apps/suppliers.css",

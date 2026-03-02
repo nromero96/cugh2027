@@ -36,8 +36,9 @@
 }
 
 .filepond--root .filepond--drop-label, .filepond--drip, .filepond--panel-center, .filepond--panel-top, .filepond--panel-bottom {
-  background-color: #eceffe;
+  background-color: #fff4e0;
   border-radius: 9px;
+  border: 2px dashed #cc1f2ff7;
 }
 
 [data-filepond-item-state*=error] .filepond--item-panel, [data-filepond-item-state*=invalid] .filepond--item-panel {

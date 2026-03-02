@@ -1002,8 +1002,44 @@
                                     <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg)</small>
 
                                     <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span></label>
-                                    <input type="file" name="document_file" id="document_file" class="file-control">
+                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span>
+                                    </label>
+
+                                    @if (!empty($myinscription->document_file))
+                                    <div class="mt-2">
+                                        <div class="card border shadow-sm w-100">
+                                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+
+                                                <!-- Nombre + Descargar -->
+                                                <a href="{{ asset('storage/uploads/document_file/'.$myinscription->document_file) }}"
+                                                target="_blank"
+                                                class="text-decoration-none fw-semibold text-primary d-flex align-items-center gap-2">
+
+                                                    <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                                                    {{ $myinscription->document_file }}
+                                                </a>
+
+                                                <!-- Botón eliminar -->
+                                                <form action="" 
+                                                    method="POST"
+                                                    onsubmit="return confirm('¿Seguro que deseas eliminar este archivo?')">
+                                                    @csrf
+                                                    @method('DELETE')
+
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                        <i class="bi bi-trash"></i> Eliminar
+                                                    </button>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
+
+                                    <input type="file" name="document_file" id="document_file" class="file-control d-none">
+
+                                    
+                                    
                                 </div>
 
                             </div>
@@ -1078,8 +1114,8 @@
                                     <!-- RADIO OCULTO: NO PAYMENT -->
                                     <input type="radio" name="payment_method" value="none" id="payment_method_none" checked hidden>
 
-
-                                    <div class="text-center @if($myinscription->status == 'Paid' || $myinscription->status == 'Processing') d-none @else d-block @endif" id="dv_payment_method">
+                                    
+                                    <div class="text-center" id="dv_payment_method">
                                         <div class="form-check form-check-primary form-check-inline">
                                             <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer">
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_transfer">
