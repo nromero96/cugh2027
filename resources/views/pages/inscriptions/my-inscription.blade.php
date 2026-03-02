@@ -1002,8 +1002,37 @@
                                     <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg)</small>
 
                                     <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span></label>
+                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span>
+                                    </label>
                                     <input type="file" name="document_file" id="document_file" class="file-control">
+                                    @if (!empty($myinscription->document_file))
+                                    <div class="mt-2">
+                                        <div class="card border shadow-sm w-100">
+                                            <div class="card-body d-flex justify-content-between align-items-center flex-wrap">
+
+                                                <!-- Nombre + Descargar -->
+                                                <a href="{{ asset('storage/uploads/document_file/'.$myinscription->document_file) }}"
+                                                target="_blank"
+                                                class="text-decoration-none fw-semibold text-primary d-flex align-items-center gap-2">
+
+                                                    <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                                                    {{ $myinscription->document_file }}
+                                                </a>
+
+                                                <!-- Botón eliminar -->
+                                                <a href="javascript:void(0)"
+                                                class="text-decoration-none fw-semibold text-danger d-flex align-items-center gap-2"
+                                                data-id="{{ $myinscription->id }}"
+                                                data-name="{{ $myinscription->document_file }}"
+                                                id="btn_delete_document_file">
+                                                    <i class="bi bi-trash fs-5"></i>
+                                                    Delete File
+                                                </a>
+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @endif
                                 </div>
 
                             </div>
@@ -1135,7 +1164,7 @@
                                     </div>
 
 
-                                    @if ($myinscription->payment_method == 'Bank Transfer/Wire')
+                                    @if ($myinscription->payment_method == 'Bank Transfer/Wire' && $myinscription->voucher_file != null)
                                         <div class="row mt-1">
                                             <div class="col-md-12">
                                                 <div class="mt-1">

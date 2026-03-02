@@ -367,7 +367,6 @@ calculateTotalPrice();
 
 // Obtén los elementos del DOM
 const dvDocumentFile = document.getElementById('dv_document_file');
-const inputDocumentFile = document.getElementById('document_file');
 const dvSpecialCode = document.getElementById('dv_specialcode');
 const inputSpecialCode = document.getElementById('specialcode');
 const txtPriceSpecialCode = document.getElementById('dc_price_5');
@@ -388,26 +387,22 @@ function handleCategoryRadioButtons(selectedValueCategory){
 
     if(selectedValueCategory === '3' || selectedValueCategory === '4' || selectedValueCategory === '5'){
       
-      //Document file required
-      dvDocumentFile.classList.remove('d-none');
-      inputDocumentFile.setAttribute('required', 'required');
-
-      //Special code required not validation
-      dvSpecialCode.classList.add('d-none');
-      inputSpecialCode.value = '';
-      inputSpecialCode.removeAttribute('required');
-      inputSpecialCode.removeAttribute('readonly');
-      txtPriceSpecialCode.textContent = '00';
-      descriptionSpecialCode.textContent = '';
-      specialCodeVerify.value = '';
-      btnValidateSpecialCode.classList.remove('d-none');
-      btnClearSpecialCode.classList.add('d-none');
+        //Document file required
+        dvDocumentFile.classList.remove('d-none');
+        
+        inputSpecialCode.value = '';
+        inputSpecialCode.removeAttribute('required');
+        inputSpecialCode.removeAttribute('readonly');
+        txtPriceSpecialCode.textContent = '00';
+        descriptionSpecialCode.textContent = '';
+        specialCodeVerify.value = '';
+        btnValidateSpecialCode.classList.remove('d-none');
+        btnClearSpecialCode.classList.add('d-none');
 
     }else if(selectedValueCategory === '1' || selectedValueCategory === '2'){
         
         //Document file not required
         dvDocumentFile.classList.add('d-none');
-        inputDocumentFile.removeAttribute('required');
         
         //Special code required not validation
         dvSpecialCode.classList.add('d-none');
@@ -424,7 +419,6 @@ function handleCategoryRadioButtons(selectedValueCategory){
         
         //Document file not required
         dvDocumentFile.classList.remove('d-none');
-        inputDocumentFile.setAttribute('required', 'required');
 
         //Special code required validation
         dvSpecialCode.classList.remove('d-none');
@@ -439,7 +433,6 @@ function handleCategoryRadioButtons(selectedValueCategory){
         
         //Document file not required
         dvDocumentFile.classList.add('d-none');
-        inputDocumentFile.removeAttribute('required');
 
         //Special code required not validation
         dvSpecialCode.classList.add('d-none');
@@ -608,22 +601,28 @@ function handlePaymentMethod(){
     }
 }
 
-const inputIds = ["document_file", "voucher_file"];
-
-inputIds.forEach((inputId) => {
-  const inputElement = document.getElementById(inputId);
-  FilePond.create(inputElement, {
-      
-    
-      onaddfilestart: () => {
+const inputDocumentFile = document.getElementById('document_file');
+const pondDocument = FilePond.create(inputDocumentFile, {
+    onaddfilestart: () => {
         btnSubInscription.disabled = true;
         btnSubInscription.textContent = 'Uploading file... Please wait.';
-      },
-      onprocessfile: () => {
-        btnSubInscription.disabled = false,
+    },
+    onprocessfile: () => {
+        btnSubInscription.disabled = false;
         btnSubInscription.textContent = 'Register Now';
-      }
-  });
+    }
+});
+
+const inputVoucherFile  = document.getElementById("voucher_file");
+const pondVoucher = FilePond.create(inputVoucherFile, {
+    onaddfilestart: () => {
+        btnSubInscription.disabled = true;
+        btnSubInscription.textContent = 'Uploading file... Please wait.';
+    },
+    onprocessfile: () => {
+        btnSubInscription.disabled = false;
+        btnSubInscription.textContent = 'Register Now';
+    }
 });
 
 FilePond.setOptions({
