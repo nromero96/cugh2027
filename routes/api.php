@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\InscriptionApiController;
+use App\Http\Controllers\Api\CountryController;
 
 /*
 |--------------------------------------------------------------------------
@@ -21,5 +22,8 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::get('v1/list-countries', [CountryController::class, 'index']);
+
 Route::post('v1/payments/university/webhook', [PaymentWebhookController::class, 'handle']);
 Route::get('v1/registration/{token}', [InscriptionApiController::class, 'showForUniversity']);
+
