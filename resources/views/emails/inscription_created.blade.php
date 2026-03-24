@@ -5,6 +5,10 @@
     <title>Registration Confirmation</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
+    <br><br>
+    <p style="text-align: center;">
+        <img src="{{ asset('assets/img/logo2-mail.png') }}" alt="Logo CUGH" style="width: 130px; max-width: 130px; height: auto; display: block;">
+    </p>
     
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8; padding:30px 0;">
         <tr>
@@ -18,8 +22,8 @@
                             <h1 style="color:#ffffff; margin:0; font-size:22px; letter-spacing:0.5px;">
                                 REGISTRATION # {{ $datainscription->id }}
                             </h1>
-                            <p style="color:#F2A413; margin:8px 0 0 0; font-size:14px;">
-                                In Process
+                            <p style="color:#F2A413; margin:8px 0 0 0; font-size:15px; font-weight:bold;">
+                                IN PROCESS
                             </p>
                         </td>
                     </tr>
