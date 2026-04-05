@@ -13,6 +13,8 @@ use App\Http\Controllers\WorkController;
 use App\Http\Controllers\ExhibitorController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\SpecialCodeController;
+use App\Http\Controllers\AbstractPostController;
+use App\Http\Controllers\WorkshopController;
 
 
 use App\Http\Controllers\LocalizationController;
@@ -89,6 +91,9 @@ Route::get('/register', function () {
 Route::get('/password-recovery', function () {
     return view('auth.passwords.email');
 });
+
+//Workshops online
+Route::get('workshops-register', [WorkshopController::class, 'registerWorkshop'])->name('workshops.registerworkshop');
 
 //Programs
 Route::get('programa-preliminar', [ProgramController::class, 'showOnlinePrograms'])->name('onlineprograms.preliminary');
@@ -168,6 +173,14 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //HotelReservations
     Route::resource('hotelreservations', HotelReservationController::class)->names('hotelreservations');
+
+
+    //Abstracts
+    Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');
+
+    //Workshops
+    Route::resource('workshops', WorkshopController::class)->names('workshops');
+    
 
     //Works
     Route::resource('works', WorkController::class)->names('works');

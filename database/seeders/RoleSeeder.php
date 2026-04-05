@@ -74,6 +74,26 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'hotelreservations.destroy',
                             'description' => 'Eliminar Reserva de Hotel'])->syncRoles([$role1, $role2]);
 
+        //Abstract
+        Permission::create(['name' => 'abstract_posts.index',
+                            'description' => 'Listar Abstracts'])->syncRoles([$role1, $role2, $role3, $role6]);
+        Permission::create(['name' => 'abstract_posts.create',
+                            'description' => 'Crear Abstract'])->syncRoles([$role1, $role2, $role3]);
+        Permission::create(['name' => 'abstract_posts.edit',
+                            'description' => 'Editar Abstract'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'abstract_posts.destroy',
+                            'description' => 'Eliminar Abstract'])->syncRoles([$role1, $role2]);
+
+        //Workshops
+        Permission::create(['name' => 'workshops.index',
+                            'description' => 'Listar Workshops'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'workshops.create',
+                            'description' => 'Crear Workshop'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'workshops.edit',
+                            'description' => 'Editar Workshop'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'workshops.destroy',
+                            'description' => 'Eliminar Workshop'])->syncRoles([$role1, $role2]);
+
         //Works
         Permission::create(['name' => 'works.index',
                             'description' => 'Listar Trabajos'])->syncRoles([$role1, $role2, $role3, $role6]);

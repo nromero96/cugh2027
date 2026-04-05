@@ -22,6 +22,139 @@ html {
     font-size: 12px;
 }
 
+#container_institution{
+    border: 1px solid #bfc9d4;
+    border-radius: 6px;
+    padding: 10px 10px 20px;
+}
+
+.container-row-institution {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.row-institution {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.row-institution .number-institution {
+    width: 15px;
+    text-align: right;
+    color: #6c757d;
+}
+
+.row-institution input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px dotted #a4a4a4;
+    outline: none;
+    padding: 6px !important;
+    border-radius: 0px !important;
+}
+
+.row-institution input:focus {
+    border-bottom: 1.5px solid #000;
+}
+
+.btn-remove-institution {
+    border: none;
+    background: transparent;
+    color: #999;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn-remove-institution:hover {
+    color: red;
+}
+
+#container_coauthors{
+  border: 1px solid #bfc9d4;
+    border-radius: 6px;
+    padding: 10px 10px 20px;
+}
+
+.row-coauthors {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.number-coauthors {
+    width: 15px;
+    text-align: right;
+    color: #6c757d;
+}
+
+.row-coauthors input {
+    flex: 1;
+    border: none;
+    border-bottom: 1px dotted #a4a4a4;
+    outline: none;
+    padding: 6px !important;
+    border-radius: 0px !important;
+}
+
+.row-coauthors input:focus {
+    border-bottom: 1.5px solid #000;
+}
+
+.btn-remove-coauthors {
+    border: none;
+    background: transparent;
+    color: #999;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.btn-remove-coauthors:hover {
+    color: red;
+}
+
+
+.multi-select-container {
+    display: flex;
+    flex-wrap: wrap;
+    border: 1px solid #dee2e6;
+    padding: 5px;
+    border-radius: 6px;
+    min-height: 40px;
+    gap: 5px;
+}
+
+.multi-select-container .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.tag {
+    background: #ff9502;
+    color: white;
+    padding: 3px 8px;
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    font-size: 14px;
+}
+
+.tag .remove-tag {
+    margin-left: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.multi-select-container select {
+    border: none;
+    outline: none;
+    flex: 1;
+    min-width: 120px;
+    padding: 5px;
+    font-size: 14px;
+}
+
 .btn-vertical {
     writing-mode: vertical-rl;
     text-orientation: upright;

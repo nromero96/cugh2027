@@ -19,30 +19,6 @@
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
-                        
-                        @php
-                            //lista de correos array
-                            $emailspermitidos = [
-                                'dermatologiaebmsp.hsi@gmail.com',
-                                'leofierro@yahoo.com',
-                                'stefany_phv@hotmail.com',
-                                'dermatologiaebmsp.hsi@gmail.com',
-                                'leofierro@yahoo.com',
-                                'irene.m.rdz@gmail.com',
-                                'maril.94@hotmail.com',
-                            ];
-
-                            //get email user loged
-                            $authuser = Auth::user();
-                            $authuseremail = $authuser->email;
-                        @endphp
-
-                        @if(!in_array($authuseremail, $emailspermitidos))
-                            <div class="alert alert-danger" role="alert">
-                                <h5 class="alert-heading">¡Atención!</h5>
-                                <p>We're sorry, we've closed the submission period.</p>
-                            </div>
-                        @else
                             <form class="row g-3" action="{{ route('works.store') }}" method="POST" enctype="multipart/form-data">
                                 @csrf
                                 <div class="col-md-6">
@@ -171,7 +147,7 @@
                                     <button type="submit" name="action" class="btn btn-primary" value="finalizado" disabled>{{__("Finalizar")}}</button>
                                 </div>
                             </form>
-                        @endif
+                        
                     </div>
                 </div>
             </div>
