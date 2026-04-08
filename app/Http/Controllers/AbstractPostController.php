@@ -394,6 +394,14 @@ class AbstractPostController extends Controller
      */
     public function destroy(AbstractPost $abstractPost)
     {
-        //
+        // 🔒 Validar que sea el dueño
+        if ($abstractPost->user_id != \Auth::id()) {
+            abort(403);
+        }
+
+        $abstractPost->delete();
+
+        return redirect()->route('abstract_posts.index')
+            ->with('success', 'Deleted successfully');
     }
 }
