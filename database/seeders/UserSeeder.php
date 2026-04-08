@@ -27,5 +27,18 @@ class UserSeeder extends Seeder
             'photo' => 'default-profile.jpg'
         ])->assignRole('Administrador');
 
+        User::create([
+            'name' => 'Rosa',
+            'lastname' => 'Sheen',
+            'second_lastname' => '-',
+            'email' => 'admin@rosmarasociados.com',
+            'nationality' => '1',
+            'password' => bcrypt('123456789'),
+            'document_number' => '11111111',
+            'country' => '1',
+            'status' => 'active',
+            'photo' => 'default-profile.jpg'
+        ])->assignRole('Administrador');
+
     }
 }

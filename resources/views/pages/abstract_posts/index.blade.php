@@ -33,16 +33,16 @@
                     
                     
                     <div class="widget-content widget-content-area pt-0">
+                        <div class="table-responsive">
                             <table class="table table-hover table-striped table-bordered" id="work-list">
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("#") }}</th>
-                                        <th scope="col">{{__("Author") }}</th>
-                                        <th scope="col">{{__("Country") }}</th>
-                                        <th scope="col">{{__("Knowledge area")}}</th>
-                                        <th scope="col">{{__("category")}}</th>
+                                        <th scope="col">{{__("Author")}}</th>
+                                        <th scope="col">{{__("Type")}}</th>
                                         <th scope="col">{{__("Title")}}</th>
                                         <th scope="col">{{__("Status")}}</th>
+                                        <th scope="col">{{__("Last Update")}}</th>
                                         <th scope="col">{{__("Action")}}</th>
                                     </tr>
                                 </thead>
@@ -64,12 +64,12 @@
                                             </tr>
                                         @endif
                                     @else
-                                        @foreach ($abstract_posts as $work)
+                                        @foreach ($abstract_posts as $abstrpost)
                                             <tr>
                                                 <td>
-                                                    {{$work->id}}
+                                                    {{$abstrpost->id}}
 
-                                                    @if($user->id == 1 && $work->status == 'revisión')
+                                                    @if($user->id == 1 && $abstrpost->status == 'submitted')
                                                         <form class="d-inline" action="{{ route('works.sendmailworkaccepted', $work->id) }}" method="POST">
                                                             @csrf
                                                             @method('PUT')
@@ -81,45 +81,42 @@
 
                                                 </td>
                                                 <td>
-                                                    {{$work->user_name.' '.$work->user_lastname.' '.$work->user_second_lastname}}
+                                                    {{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}
                                                 </td>
                                                 <td>
-                                                    {{$work->user_country}}
+                                                    <span class="badge badge-light-secondary text-capitalize">{{ $abstrpost->presentation_type }}</span><br>
+                                                    {{$abstrpost->abstract_type}}
                                                 </td>
                                                 <td>
-                                                    {{$work->knowledge_area}}
+                                                    {{$abstrpost->title}}
                                                 </td>
                                                 <td>
-                                                    {{$work->category}}
-                                                </td>
-                                                <td>
-                                                    {{$work->title}}
-                                                </td>
-                                                <td>
-                                                    @if($work->status == 'borrador')
-                                                        <span class="badge badge-light-warning">En curso...</span>
-                                                    @elseif ($work->status == 'finalizado')
-                                                        <span class="badge badge-light-dark text-capitalize">{{ $work->status }}</span>
-                                                    @elseif ($work->status == 'revisión')
-                                                        <span class="badge badge-light-info text-capitalize">{{ $work->status }}</span>
-                                                    @elseif ($work->status == 'aceptado')
-                                                        <span class="badge badge-light-success text-capitalize">{{ $work->status }}</span>
-                                                    @elseif ($work->status == 'rechazado')
-                                                        <span class="badge badge-light-danger text-capitalize">{{ $work->status }}</span>
+                                                    @if($abstrpost->status == 'draft')
+                                                        <span class="badge badge-light-warning text-capitalize">In progress</span>
+                                                    @elseif ($abstrpost->status == 'submitted')
+                                                        <span class="badge badge-light-info text-capitalize">{{ $abstrpost->status }}</span>
+                                                    @elseif ($abstrpost->status == 'accepted')
+                                                        <span class="badge badge-light-success text-capitalize">{{ $abstrpost->status }}</span>
+                                                    @elseif ($abstrpost->status == 'refused')
+                                                        <span class="badge badge-light-danger text-capitalize">{{ $abstrpost->status }}</span>
                                                     @endif
-
                                                 </td>
+
+                                                <td>
+                                                    {{ date('Y-m-d H:i', strtotime($abstrpost->updated_at)) }}
+                                                </td>
+
                                                 <td class="text-center">
-                                                    @if($work->status != 'borrador' || Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Calificador') || Auth::user()->hasRole('Secretaria'))
-                                                        <a href="{{ route('works.show', $work->id) }}" class="badge badge-light-primary text-start me-2 action-show bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Ver") }}">
+                                                    @if($abstrpost->status != 'draft' || Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Calificador') || Auth::user()->hasRole('Secretaria'))
+                                                        <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" class="badge badge-light-primary text-start me-2 action-show bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Ver") }}">
                                                             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><path d="M12 9a3 3 0 1 0 0 6 3 3 0 1 0 0-6z"></path></svg>
                                                         </a>
                                                     @endif
-                                                    @if($work->status == 'borrador' && $work->user_id == $user->id)
-                                                        <a href="{{ route('works.edit', $work->id) }}" class="badge badge-light-primary text-start me-2 action-edit bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Editar") }}">
+                                                    @if($abstrpost->status == 'draft' && $abstrpost->user_id == $user->id)
+                                                        <a href="{{ route('abstract_posts.edit', $abstrpost->id) }}" class="badge badge-light-primary text-start me-2 action-edit bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Editar") }}">
                                                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-edit-3"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
                                                         </a>
-                                                        <form class="d-inline" action="{{ route('works.destroy', $work->id) }}" method="POST">
+                                                        <form class="d-inline" action="{{ route('abstract_posts.destroy', $abstrpost->id) }}" method="POST">
                                                             @csrf
                                                             @method('DELETE')
                                                                 <button type="submit" class="badge badge-light-danger text-start action-delete bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Eliminar") }}">
@@ -134,6 +131,7 @@
                                     @endif
                                 </tbody>
                             </table>
+                        </div>
                     </div>
                     
             </div>

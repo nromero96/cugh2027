@@ -1,4 +1,4 @@
-<div class="footer-wrapper">
+<div class="footer-wrapper no-print">
     <div class="footer-section f-section-1">
         <p class="">Copyright © <a target="_blank" href="#">CUGH 2027</a>, All rights reserved.</p>
     </div>

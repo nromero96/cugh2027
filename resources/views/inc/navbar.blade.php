@@ -1,4 +1,4 @@
-<div class="header-container container-xxl">
+<div class="header-container container-xxl no-print">
     <header class="header navbar navbar-expand-sm expand-header">
 
         <a href="javascript:void(0);" class="sidebarCollapse">

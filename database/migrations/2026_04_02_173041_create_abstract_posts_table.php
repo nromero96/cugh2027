@@ -18,12 +18,12 @@ class CreateAbstractPostsTable extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('presentation_type')->nullable();
             $table->string('title',250)->nullable();
-            $table->text('co_authors')->nullable();
-            $table->text('institutions')->nullable();
+            $table->json('co_authors')->nullable();
+            $table->json('institutions')->nullable();
             $table->string('abstract_type')->nullable();
             $table->string('subtopic')->nullable();
             $table->text('body')->nullable();
-            $table->text('keywords')->nullable();
+            $table->json('keywords')->nullable();
             $table->string('status',50)->default('draft');
             $table->timestamps();
         });

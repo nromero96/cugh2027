@@ -19,52 +19,102 @@
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
-                            <form class="row g-3" action="{{ route('works.store') }}" method="POST" enctype="multipart/form-data">
+                            <form class="row g-3" action="{{ route('abstract_posts.store') }}" method="POST">
                                 @csrf
 
                                 <div class="col-md-12">
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="presentation_type" id="presentation_type1" value="Oral Presentation" checked>
+                                        <input class="form-check-input" type="radio" name="presentation_type" id="presentation_type1" value="Oral Presentation" {{ old('presentation_type', 'Oral Presentation') == 'Oral Presentation' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="presentation_type1">Oral Presentation</label>
                                     </div>
                                     <div class="form-check form-check-inline">
-                                        <input class="form-check-input" type="radio" name="presentation_type" id="presentation_type2" value="Poster">
+                                        <input class="form-check-input" type="radio" name="presentation_type" id="presentation_type2" value="Poster" {{ old('presentation_type') == 'Poster' ? 'checked' : '' }}>
                                         <label class="form-check-label" for="presentation_type2">Poster</label>
                                     </div>
+                                    @error('presentation_type')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="col-md-12">
                                     <label for="optionsAbstractType" class="form-label text-muted mb-0">Abstract Type</label>
-                                    <select name="abstract_type" class="form-select" id="optionsAbstractType">
+                                    <select name="abstract_type" class="form-select @error('abstract_type') is-invalid @enderror" id="optionsAbstractType">
                                         <option value="">Select...</option>
-                                        <option value="Scientific Abstract">Scientific Abstract</option>
-                                        <option value="Program & Project Abstract">Program & Project Abstract</option>
-                                        <option value="Global Health Education Abstract">Global Health Education Abstract</option>
+                                        <option value="Scientific Abstract"
+                                            {{ old('abstract_type') == 'Scientific Abstract' ? 'selected' : '' }}>
+                                            Scientific Abstract
+                                        </option>
+
+                                        <option value="Program & Project Abstract"
+                                            {{ old('abstract_type') == 'Program & Project Abstract' ? 'selected' : '' }}>
+                                            Program & Project Abstract
+                                        </option>
+
+                                        <option value="Global Health Education Abstract"
+                                            {{ old('abstract_type') == 'Global Health Education Abstract' ? 'selected' : '' }}>
+                                            Global Health Education Abstract
+                                        </option>
                                     </select>
+                                    @error('abstract_type')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="col-md-12">
                                     <label for="selectSubtopic" class="form-label text-muted mb-0">Sub theme</label>
                                     <select name="subtopic" class="form-select" id="selectSubtopic">
                                         <option value="">Select...</option>
-                                        <option value="Health Policy">Health Policy</option>
-                                        <option value="Health Promotion">Health Promotion</option>
-                                        <option value="Health Education">Health Education</option>
-                                        <option value="Health Care">Health Care</option>
-                                        <option value="Health Care Financing">Health Care Financing</option>
+
+                                        <option value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care"
+                                            {{ old('subtopic') == 'Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care' ? 'selected' : '' }}>
+                                            Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care
+                                        </option>
+
+                                        <option value="Social Determinants of Health"
+                                            {{ old('subtopic') == 'Social Determinants of Health' ? 'selected' : '' }}>
+                                            Social Determinants of Health
+                                        </option>
+
+                                        <option value="Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution"
+                                            {{ old('subtopic') == 'Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution' ? 'selected' : '' }}>
+                                            Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution
+                                        </option>
+
+                                        <option value="Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases"
+                                            {{ old('subtopic') == 'Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases' ? 'selected' : '' }}>
+                                            Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases
+                                        </option>
+
+                                        <option value="Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research"
+                                            {{ old('subtopic') == 'Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research' ? 'selected' : '' }}>
+                                            Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research
+                                        </option>
+
+                                        <option value="Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions"
+                                            {{ old('subtopic') == 'Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions' ? 'selected' : '' }}>
+                                            Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions
+                                        </option>
                                     </select>
+
                                 </div>
                                 
                                 <div class="col-md-12">
                                     <label for="inputName" class="form-label text-muted mb-0">Title</label>
-                                    <input type="text" name="title" class="form-control" id="inputTitle">
+                                    <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" id="inputTitle" value="{{ old('title') }}">
                                     <small id="charCountTitle">0 / 250</small>
+                                    @error('title')
+                                        <br><small class="text-danger">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="col-md-12">
                                     <label class="form-label text-muted mb-0">Co-authors</label>
 
-                                    <div id="container_coauthors"></div>
+                                    <div id="container_coauthors" class=" @error('co_authors') border border-danger @enderror"></div>
+
+                                    @error('co_authors')
+                                        <small class="text-danger">{{ $message }}</small><br>
+                                    @enderror
 
                                     <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRowCoAuthors()">
                                         + Add co-author
@@ -74,7 +124,11 @@
                                 <div class="col-md-12">
                                     <label class="form-label text-muted mb-0">Institution</label>
 
-                                    <div id="container_institution"></div>
+                                    <div id="container_institution" class="@error('institutions') border border-danger @enderror"></div>
+
+                                    @error('institutions')
+                                        <small class="text-danger">{{ $message }}</small><br>
+                                    @enderror
 
                                     <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRowInstitution()">
                                         + Add institution
@@ -85,22 +139,25 @@
 
                                 <div class="col-md-12">
                                     <label for="inputDescription" class="form-label text-muted mb-0">
-                                        Body text (
-                                        <a href="https://pdfobject.com/pdf/sample.pdf" target="_blank">
-                                            <small class="text-info text-decoration-underline">Read the guidelines</small>
-                                        </a>
-                                        )
+                                        Body text 
+                                        (<a href="https://cughlima2027.org/wp-content/uploads/2026/04/Abstract-structure-and-text-by-type.pdf" target="_blank"><small class="text-info text-decoration-underline">Read the guidelines</small></a>)
+
+                                        (<a href="https://cughlima2027.org/wp-content/uploads/files/example-abstract.jpeg" target="_blank"><small class="text-info text-decoration-underline">Example</small></a>)
+
                                     </label>
-                                    <textarea name="body" class="form-control" id="inputDescription" rows="15" placeholder="...." maxlength="3000"></textarea>
+                                    <textarea name="body" class="form-control @error('body') is-invalid @enderror" id="inputDescription" rows="15" placeholder="...." maxlength="3000">{{ old('body') }}</textarea>
                                     <small id="charCount">0 / 3000</small>
+                                    @error('body')
+                                        <br><small class="text-danger">{{ $message }}</small>
+                                    @enderror
                                 </div>
 
                                 <div class="col-md-12">
                                     <label for="inputKeywords" class="form-label text-muted mb-2 d-block">Keywords <small class="text-danger">(Please choose between 1 and 3 keyword(s))</small></label>
 
-                                    <div class="multi-select-container" id="multiTopics">
+                                    <div class="multi-select-container @error('keywords') border border-danger @enderror" id="multiKeywords">
                                         <div class="tags"></div>
-                                        <select id="topicsSelect">
+                                        <select id="keywordsSelect">
                                             <option value="" disabled selected>Select a keyword...</option>
                                             <option value="AI">Artificial Intelligence (AI)</option>
                                             <option value="Architecture">Architecture</option>
@@ -166,15 +223,19 @@
                                         </select>
                                     </div>
 
-                                    <input type="hidden" name="topics[]" id="topicsInput">
+                                    <input type="hidden" name="keywords" id="keywordsInput">
+
+                                    @error('keywords')
+                                        <small class="text-danger">{{ $message }}</small>
+                                    @enderror
 
                                     
                                 </div>
 
                                 
                                 <div class="col-12 text-end">
-                                    <button type="submit" name="action" class="btn btn-outline-secondary" value="borrador" disabled>Save as Draft</button>
-                                    <button type="submit" name="action" class="btn btn-primary" value="finalizado" disabled>Send for Review</button>
+                                    <button type="submit" name="action" class="btn btn-outline-secondary" value="draft">Save as Draft</button>
+                                    <button type="submit" name="action" class="btn btn-primary" value="submitted">Send for Review</button>
                                 </div>
                             </form>
                         
@@ -187,128 +248,38 @@
 
 </div>
 
-<script>
-function addRowInstitution(value = '') {
-    const container = document.getElementById('container_institution');
-
-    const html = `
-        <div class="row-institution">
-            <div class="number-institution"></div>
-            <input type="text" name="institutions[]" class="form-control form-control-sm"
-                placeholder="e.g. e.g. Universidad Peruana Cayetano Heredia - Lima - Medical Sciences" value="${value}">
-            <button type="button" class="btn-remove-institution" onclick="removeRowInstitution(this)">×</button>
-        </div>
-    `;
-
-    container.insertAdjacentHTML('beforeend', html);
-    updateNumbersInstitution();
-}
-
-function removeRowInstitution(btn) {
-    const container = document.getElementById('container_institution');
-    if(container.children.length <= 1) return; // ❌ nunca eliminar la primera fila
-
-    btn.parentElement.remove();
-    updateNumbersInstitution();
-}
-
-function updateNumbersInstitution() {
-    const numbers = document.querySelectorAll('#container_institution .number-institution');
-    numbers.forEach((el, i) => el.innerText = (i + 1) + '.');
-}
-
-// ⚡ Inicia con 1 fila por defecto (sin botón eliminar)
-window.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('container_institution');
-
-    const html = `
-        <div class="row-institution">
-            <div class="number-institution">1.</div>
-            <input type="text" name="institutions[]" class="form-control form-control-sm"
-                placeholder="e.g. Universidad Peruana Cayetano Heredia - Lima - Medical Sciences">
-            <button type="button" class="btn-remove-institution" onclick="removeRowInstitution(this)" disabled>×</button>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', html);
-});
-</script>
-
-<script>
-function addRowCoAuthors(value = '') {
-    const container = document.getElementById('container_coauthors');
-
-    const html = `
-        <div class="row-coauthors">
-            <div class="number-coauthors"></div>
-            <input type="text" name="co_authors[]" class="form-control form-control-sm"
-                placeholder="e.g. John Doe" value="${value}">
-            <button type="button" class="btn-remove-coauthors" onclick="removeRowCoAuthors(this)">×</button>
-        </div>
-    `;
-
-    container.insertAdjacentHTML('beforeend', html);
-    updateNumbersCoAuthors();
-}
-
-function removeRowCoAuthors(btn) {
-    const container = document.getElementById('container_coauthors');
-    if(container.children.length <= 1) return; // ❌ nunca eliminar la primera fila
-
-    btn.parentElement.remove();
-    updateNumbersCoAuthors();
-}
-
-function updateNumbersCoAuthors() {
-    const numbers = document.querySelectorAll('#container_coauthors .number-coauthors');
-    numbers.forEach((el, i) => el.innerText = (i + 1) + '.');
-}
-
-// ⚡ Inicia con 1 fila por defecto (primera fila no eliminable)
-window.addEventListener('DOMContentLoaded', () => {
-    const container = document.getElementById('container_coauthors');
-
-    const html = `
-        <div class="row-coauthors">
-            <div class="number-coauthors">1.</div>
-            <input type="text" name="co_authors[]" class="form-control form-control-sm" placeholder="e.g. John Doe">
-            <button type="button" class="btn-remove-coauthors" disabled>×</button>
-        </div>
-    `;
-    container.insertAdjacentHTML('beforeend', html);
-});
-</script>
 
 
 <script>
-const select = document.getElementById('topicsSelect');
-const tagsContainer = document.querySelector('#multiTopics .tags');
-const hiddenInput = document.getElementById('topicsInput');
+const select = document.getElementById('keywordsSelect');
+const tagsContainer = document.querySelector('#multiKeywords .tags');
+const hiddenInput = document.getElementById('keywordsInput');
 
-let selectedTopics = [];
+let selectedKeywords = [];
 
 select.addEventListener('change', () => {
     const value = select.value;
     if(!value) return;
 
-    if(selectedTopics.includes(value)) {
+    if(selectedKeywords.includes(value)) {
         select.value = '';
         return;
     }
 
-    if(selectedTopics.length >= 3) {
-        alert("You can select up to 3 topics only.");
+    if(selectedKeywords.length >= 3) {
+        alert("You can select up to 3 keywords only.");
         select.value = '';
         return;
     }
 
-    selectedTopics.push(value);
+    selectedKeywords.push(value);
     renderTags();
     select.value = '';
 });
 
 function renderTags() {
     tagsContainer.innerHTML = '';
-    selectedTopics.forEach((topic, index) => {
+    selectedKeywords.forEach((topic, index) => {
         const tag = document.createElement('div');
         tag.className = 'tag';
         tag.innerHTML = `${topic} <span class="remove-tag" onclick="removeTag(${index})">×</span>`;
@@ -316,13 +287,29 @@ function renderTags() {
     });
 
     // actualizar input oculto para enviar al backend
-    hiddenInput.value = JSON.stringify(selectedTopics);
+    hiddenInput.value = JSON.stringify(selectedKeywords);
 }
 
 function removeTag(index) {
-    selectedTopics.splice(index, 1);
+    selectedKeywords.splice(index, 1);
     renderTags();
 }
+
+
+const optionsAbstractType = document.getElementById('optionsAbstractType');
+const selectSubtopic = document.getElementById('selectSubtopic');
+
+optionsAbstractType.addEventListener('change', function() {
+    const selectedValue = this.value;
+
+    if (selectedValue === 'Global Health Education Abstract') {
+        selectSubtopic.value = '';
+        selectSubtopic.disabled = true;
+    } else {
+        selectSubtopic.disabled = false;
+    }
+});
+
 </script>
 
 <script>
@@ -363,6 +350,315 @@ function titleTextCounter(inputId, counterId, maxChars = 250) {
 // ⚡ Inicializar contador para Title
 titleTextCounter('inputTitle', 'charCountTitle', 250);
 
+</script>
+
+
+<script>
+// =============================
+// GENERADOR DE IDs ÚNICOS
+// =============================
+function generateId() {
+    return 'id_' + Math.random().toString(36).substr(2, 9);
+}
+
+// =============================
+// CO-AUTHORS
+// =============================
+function addRowCoAuthors(name = '', lastname = '') {
+    const container = document.getElementById('container_coauthors');
+    const id = generateId();
+
+    const html = `
+        <div class="row-coauthors d-flex align-items-center gap-2 mb-2" data-id="${id}">
+            <div class="number-coauthors"></div>
+
+            <input type="text" name="co_authors_name[]" oninput="updateCoAuthorsOptions()" class="form-control form-control-sm" placeholder="Name" value="${name}">
+            <input type="text" name="co_authors_lastname[]" oninput="updateCoAuthorsOptions()" class="form-control form-control-sm" placeholder="Last Name" value="${lastname}">
+
+            <!-- hidden input con ID -->
+            <input type="hidden" name="co_authors_id[]" value="${id}">
+
+            <button type="button" class="btn-remove-coauthors" onclick="removeRowCoAuthors(this)">×</button>
+        </div>
+    `;
+    container.insertAdjacentHTML('beforeend', html);
+    updateNumbersCoAuthors();
+    updateCoAuthorsOptions();
+}
+
+function removeRowCoAuthors(btn) {
+    const container = document.getElementById('container_coauthors');
+    if (container.children.length <= 1) return;
+
+    btn.parentElement.remove();
+    updateNumbersCoAuthors();
+    updateCoAuthorsOptions();
+}
+
+function updateNumbersCoAuthors() {
+    const numbers = document.querySelectorAll('#container_coauthors .number-coauthors');
+    numbers.forEach((el, i) => el.innerText = (i + 1) + '.');
+}
+
+// =============================
+// GET CO-AUTHORS (SIN VACÍOS)
+// =============================
+function getCoAuthorsList() {
+    const rows = document.querySelectorAll('#container_coauthors .row-coauthors');
+    let list = [];
+
+    rows.forEach(row => {
+        const id = row.dataset.id;
+        const name = row.querySelector('[name="co_authors_name[]"]').value.trim();
+        const lastname = row.querySelector('[name="co_authors_lastname[]"]').value.trim();
+
+        if (!name && !lastname) return;
+
+        list.push({
+            id: id,
+            text: `${name || ''} ${lastname || ''}`.trim()
+        });
+    });
+
+    return list;
+}
+
+// =============================
+// GET USED CO-AUTHORS
+// =============================
+function getUsedCoAuthors() {
+    const inputs = document.querySelectorAll('.institution-input');
+    let used = [];
+
+    inputs.forEach(input => {
+        let values = input.value ? JSON.parse(input.value) : [];
+        used = used.concat(values);
+    });
+
+    return used;
+}
+
+// =============================
+// INSTITUTIONS
+// =============================
+function addRowInstitution(value = '') {
+    const container = document.getElementById('container_institution');
+
+    const html = `
+        <div class="row-institution mb-3">
+            <div class="d-flex gap-2">
+                <div class="number-institution"></div>
+
+                <input type="text" name="institutions[]" 
+                    class="form-control form-control-sm mb-2"
+                    placeholder="Institution name" value="${value}">
+
+                <button type="button" class="btn-remove-institution" onclick="removeRowInstitution(this)">×</button>
+            </div>
+            <div>
+                <div class="multi-select-container">
+                    <div class="tags institution-tags"></div>
+
+                    <select class="coauthor-select form-control form-control-sm">
+                        <option value="">Please select co-authors that work at the same institution...</option>
+                    </select>
+                </div>
+                <input type="hidden" name="institution_coauthors[]" class="institution-input">
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', html);
+    updateNumbersInstitution();
+    updateCoAuthorsOptions();
+}
+
+function removeRowInstitution(btn) {
+    const container = document.getElementById('container_institution');
+    if (container.children.length <= 1) return;
+
+    btn.closest('.row-institution').remove();
+    updateNumbersInstitution();
+    updateCoAuthorsOptions();
+}
+
+function updateNumbersInstitution() {
+    const numbers = document.querySelectorAll('#container_institution .number-institution');
+    numbers.forEach((el, i) => el.innerText = (i + 1) + '.');
+}
+
+// =============================
+// UPDATE SELECTS
+// =============================
+function updateCoAuthorsOptions() {
+    const selects = document.querySelectorAll('.coauthor-select');
+    const coauthors = getCoAuthorsList();
+    const used = getUsedCoAuthors();
+
+    selects.forEach(select => {
+        const container = select.closest('.row-institution');
+        const input = container.querySelector('.institution-input');
+        const selectedValues = input.value ? JSON.parse(input.value) : [];
+
+        select.innerHTML = `<option value="">Please select co-authors that work at the same institution...</option>`;
+
+        coauthors.forEach(ca => {
+            const option = document.createElement('option');
+            option.value = ca.id;
+            option.textContent = ca.text;
+            select.appendChild(option);
+        });
+    });
+
+    refreshAllInstitutionTags(); // 🔥 FIX TIEMPO REAL
+}
+
+// =============================
+// SELECT → TAG
+// =============================
+document.addEventListener('change', function(e) {
+    if (!e.target.classList.contains('coauthor-select')) return;
+
+    const select = e.target;
+    const value = select.value;
+    if (!value) return;
+
+    const container = select.closest('.row-institution');
+    const inputHidden = container.querySelector('.institution-input');
+
+    let selected = inputHidden.value ? JSON.parse(inputHidden.value) : [];
+
+    if (selected.includes(value)) {
+        select.value = '';
+        return;
+    }
+
+    selected.push(value);
+    inputHidden.value = JSON.stringify(selected);
+
+    renderInstitutionTags(container, selected);
+    updateCoAuthorsOptions();
+
+    select.value = '';
+});
+
+// =============================
+// RENDER TAGS
+// =============================
+function renderInstitutionTags(container, selected) {
+    const tagsContainer = container.querySelector('.institution-tags');
+    const coauthors = getCoAuthorsList();
+
+    tagsContainer.innerHTML = '';
+
+    selected.forEach((id, index) => {
+        const ca = coauthors.find(c => c.id == id);
+        if (!ca) return;
+
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        tag.innerHTML = `
+            ${ca.text} 
+            <span class="remove-tag" onclick="removeInstitutionTag(this, ${index})">×</span>
+        `;
+
+        tagsContainer.appendChild(tag);
+    });
+}
+
+// =============================
+// REMOVE TAG
+// =============================
+function removeInstitutionTag(el, index) {
+    const container = el.closest('.row-institution');
+    const inputHidden = container.querySelector('.institution-input');
+
+    let selected = JSON.parse(inputHidden.value || '[]');
+    selected.splice(index, 1);
+
+    inputHidden.value = JSON.stringify(selected);
+
+    renderInstitutionTags(container, selected);
+    updateCoAuthorsOptions();
+}
+
+// =============================
+// REFRESH TAGS (FIX TIEMPO REAL)
+// =============================
+function refreshAllInstitutionTags() {
+    const rows = document.querySelectorAll('.row-institution');
+
+    rows.forEach(row => {
+        const input = row.querySelector('.institution-input');
+        let selected = input.value ? JSON.parse(input.value) : [];
+
+        renderInstitutionTags(row, selected);
+    });
+}
+
+// =============================
+// INIT
+// =============================
+window.addEventListener('DOMContentLoaded', () => {
+
+    // -----------------------------
+    // CO-AUTHOR inicial
+    // -----------------------------
+    const id = generateId();
+    const c1 = `
+        <div class="row-coauthors d-flex align-items-center gap-2 mb-2" data-id="${id}">
+            <div class="number-coauthors">1.</div>
+
+            <input type="text" name="co_authors_name[]" 
+                oninput="updateCoAuthorsOptions()"
+                class="form-control form-control-sm" oninput="updateCoAuthorsOptions()" placeholder="Name">
+
+            <input type="text" name="co_authors_lastname[]" 
+                oninput="updateCoAuthorsOptions()"
+                class="form-control form-control-sm" oninput="updateCoAuthorsOptions()" placeholder="Last Name">
+
+            <!-- 🔥 Hidden input con ID -->
+            <input type="hidden" name="co_authors_id[]" value="${id}">
+
+            <button type="button" class="btn-remove-coauthors" disabled>×</button>
+        </div>
+    `;
+    document.getElementById('container_coauthors').insertAdjacentHTML('beforeend', c1);
+
+    // -----------------------------
+    // INSTITUTION inicial
+    // -----------------------------
+    const i1 = `
+        <div class="row-institution mb-3">
+            <div class="d-flex gap-2">
+                <div class="number-institution">1.</div>
+
+                <input type="text" name="institutions[]" 
+                    class="form-control form-control-sm mb-2"
+                    placeholder="Institution name">
+
+                <button type="button" class="btn-remove-institution" disabled>×</button>
+            </div>
+            <div>
+                <div class="multi-select-container">
+                    <div class="tags institution-tags"></div>
+
+                    <select class="coauthor-select form-control form-control-sm">
+                        <option value="">Please select co-authors that work at the same institution...</option>
+                    </select>
+                </div>
+
+                <!-- hidden input para guardar IDs -->
+                <input type="hidden" name="institution_coauthors[]" class="institution-input">
+            </div>
+        </div>
+    `;
+    document.getElementById('container_institution').insertAdjacentHTML('beforeend', i1);
+
+    // Actualizar selects de co-authors para instituciones
+    updateCoAuthorsOptions();
+    
+});
 </script>
 
 

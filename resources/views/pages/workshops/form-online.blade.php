@@ -262,9 +262,9 @@
             </span>
 
             <h6 class="fw-bold mt-2">Important Dates</h6>
-            <span>- October 15ᵗʰ, 2026: Application deadline.<br>
-            - October 31ˢᵗ, 2026: Acceptance notification.<br>
-            - December 15ᵗʰ, 2026: Last day to cancel for full refund.<br>
+            - <span><b class="text-danger">October 15ᵗʰ, 2026:</b> Application deadline.<br>
+            - <b class="text-danger">October 31ˢᵗ, 2026:</b> Acceptance notification.<br>
+            - <b class="text-danger">December 15ᵗʰ, 2026:</b> Last day to cancel for full refund.<br>
             </span>
 
             <span class="mt-2 d-block mb-0">

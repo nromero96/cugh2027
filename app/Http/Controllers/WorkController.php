@@ -263,7 +263,6 @@ class WorkController extends Controller
      */
     public function edit($id)
     {
-
         //validate if work is from user logged
         $work = Work::find($id);
         $iduser = \Auth::user()->id;
@@ -287,8 +286,6 @@ class WorkController extends Controller
             ->where('works.id', $id)
             ->first();
         return view('pages.works.edit')->with($data)->with('work', $work);
-    
-
     }
 
     /**
