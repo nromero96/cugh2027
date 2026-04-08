@@ -133,23 +133,13 @@
                                             @endif
 
                                             @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
-                                                <a href="{{ route('inscriptions.manualregistrationparticipant') }}" class="btn btn-secondary">Nuevo</a>
-
+                                                
                                                 <a href="{{ route('inscriptions.rejects') }}" class="btn btn-danger px-2">
                                                     <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
                                                 </a>
 
                                                 <a href="{{ route('inscriptions.exportexcel') }}" class="btn btn-success">
                                                     Excel
-                                                </a>
-
-                                                <a href="{{ route('inscriptions.accompanists') }}" class="btn btn-info">
-                                                    <svg width="21" height="21" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                                                        <path d="M9 3a4 4 0 1 0 0 8 4 4 0 1 0 0-8z"></path>
-                                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                                    </svg>
                                                 </a>
 
                                             @endif
@@ -193,7 +183,7 @@
                                                 <tr>
                                                     <td colspan="7" class="text-center">
                                                         <h6 class="mt-2">{{__("No hay inscripciones registradas")}}</h6>
-                                                        <a href="{{ route('inscriptions.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Comprar Nuevo")}}</a>
+                                                        <a href="#" class="btn btn-primary mb-4 ms-3 me-3">{{__("Comprar Nuevo")}}</a>
                                                     </td>
                                                 </tr>
                                             @else

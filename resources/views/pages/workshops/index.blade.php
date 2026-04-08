@@ -23,13 +23,13 @@
                             <table class="table table-hover table-striped table-bordered">
                                 <thead>
                                     <tr>
-                                        <th scope="col">{{__("Id")}}</th>
-                                        <th scope="col">{{__("Nombre")}}</th>
-                                        <th scope="col">{{__("País")}}</th>
-                                        <th scope="col">{{__("Correo")}}</th>
-                                        <th scope="col">{{__("Teléfono")}}</th>
+                                        <th scope="col">ID</th>
+                                        <th scope="col">Name</th>
+                                        <th scope="col">Institution</th>
+                                        <th scope="col">E-mail</th>
+                                        <th scope="col">Phone</th>
                                         <th scope="col">{{__("")}}</th>
-                                        <th scope="col">{{__("Fecha")}}</th>
+                                        <th scope="col">Date</th>
                                     </tr>
                                 </thead>
                                 <tbody>
