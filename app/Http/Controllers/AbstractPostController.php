@@ -66,6 +66,8 @@ class AbstractPostController extends Controller
         $id_user = \Auth::user()->id;
         $action = $request->action;
 
+        $keywords = json_decode($request->keywords ?? '[]', true);
+
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([
@@ -110,12 +112,12 @@ class AbstractPostController extends Controller
             }
 
             // VALIDACIÓN DE KEYWORDS
-            $keywords = json_decode($request->keywords ?? '[]', true);
-            if (!$keywords || count($keywords) < 1 || count($keywords) > 3) {
+            if (!is_array($keywords) || count($keywords) < 1 || count($keywords) > 3) {
                 return back()->withErrors([
                     'keywords' => 'Select between 1 and 3 keywords'
                 ])->withInput();
             }
+
         }
 
         // =========================
@@ -169,7 +171,7 @@ class AbstractPostController extends Controller
 
         $abstractpost->co_authors = json_encode($coAuthors);
         $abstractpost->institutions = json_encode($institutions);
-        $abstractpost->keywords = json_encode($keywords ?? []);
+        $abstractpost->keywords = json_encode($keywords);
 
         $abstractpost->save();
 
@@ -270,6 +272,8 @@ class AbstractPostController extends Controller
 
         $action = $request->action;
 
+        $keywords = json_decode($request->keywords ?? '[]', true);
+
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([
@@ -314,8 +318,7 @@ class AbstractPostController extends Controller
             }
 
             // VALIDACIÓN DE KEYWORDS
-            $keywords = json_decode($request->keywords ?? '[]', true);
-            if (!$keywords || count($keywords) < 1 || count($keywords) > 3) {
+            if (!is_array($keywords) || count($keywords) < 1 || count($keywords) > 3) {
                 return back()->withErrors([
                     'keywords' => 'Select between 1 and 3 keywords'
                 ])->withInput();
@@ -367,7 +370,7 @@ class AbstractPostController extends Controller
 
         $abstractPost->co_authors = json_encode($coAuthors);
         $abstractPost->institutions = json_encode($institutions);
-        $abstractPost->keywords = json_encode($keywords ?? []);
+        $abstractPost->keywords = json_encode($keywords);
 
         $abstractPost->save();
 
