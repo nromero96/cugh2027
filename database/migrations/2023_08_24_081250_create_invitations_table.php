@@ -16,6 +16,9 @@ class CreateInvitationsTable extends Migration
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
             $table->string('full_name');
+            $table->string('job_position');
+            $table->string('institution');
+            $table->string('passport_number');
             $table->string('email');
             $table->string('country');
             $table->string('phone_code');

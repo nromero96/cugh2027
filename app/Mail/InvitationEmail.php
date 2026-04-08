@@ -30,9 +30,9 @@ class InvitationEmail extends Mailable
     public function build()
     {
         return $this->view('emails.invitation')
-            ->subject('Invitacion CUGH 2027 - '.$this->fullName.' - '.$this->country.'')
+            ->subject('CUGH 2027: Invitation for '.$this->fullName.' - '.$this->country.'')
             ->attach($this->pdfFilePath, [
-                'as' => 'Invitacion CUGH 2027 - '.$this->fullName.' - '.$this->country.'.pdf',
+                'as' => 'CUGH 2027: Invitation for '.$this->fullName.' - '.$this->country.'.pdf',
                 'mime' => 'application/pdf',
             ]);
     }

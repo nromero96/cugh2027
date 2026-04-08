@@ -7,7 +7,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>Solicitar carta de invitación</title>
+    <title>Invitation letter - CUGH 2027</title>
     <link rel="icon" type="image/x-icon" href="{{ asset('assets/img/favicon.ico') }}"/>
     <link href="{{ asset('layouts/vertical-light-menu/css/light/loader.css') }}" rel="stylesheet" type="text/css" />
     <link href="{{ asset('layouts/vertical-light-menu/css/dark/loader.css') }}" rel="stylesheet" type="text/css" />
@@ -141,7 +141,6 @@
 
     <div class="auth-container d-flex">
         <div class="container mx-auto align-self-center">
-
             <form method="POST">
                 @csrf
                 <div class="card mt-1 mb-1">
@@ -151,19 +150,34 @@
                                         {{-- Cargo description --}}
                                         <div class="row mb-2 mt-4">
                                             <div class="col-md-8 mb-3">
-                                                <label class="form-label mb-0">{{ __('Nombre completo') }} <span class="infototi" data-bs-toggle="tooltip" data-bs-placement="top" title="Incluir su nombre completo tal como aparece en el pasaporte." ></span></label>
-                                                <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Nombre completo" oninput="convertirAMayusculas()" required>
+                                                <label class="form-label text-muted mb-0">Full name<span class="text-danger">*</span> <span class="infototi" data-bs-toggle="tooltip" data-bs-placement="top" title="Please include your full name as it appears on your passport." ></span></label>
+                                                <input type="text" name="full_name" id="full_name" class="form-control" placeholder="Full name" oninput="convertirAMayusculas()" required>
                                             </div>
 
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label mb-0">{{ __('Correo electrónico') }}</label>
-                                                <input type="email" name="email" id="email" class="form-control" placeholder="Ingrese su correo electrónico" required>
+                                                <label class="form-label text-muted mb-0">Job position<span class="text-danger">*</span></label>
+                                                <input type="text" name="job_position" id="job_position" class="form-control" placeholder="Job position" required>
                                             </div>
 
                                             <div class="col-md-4 mb-3">
-                                                <label class="form-label mb-0">{{ __('País') }}</label>
+                                                <label class="form-label text-muted mb-0">Institution<span class="text-danger">*</span></label>
+                                                <input type="text" name="institution" id="institution" class="form-control" placeholder="Institution" required>
+                                            </div>
+
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label text-muted mb-0">Passport number<span class="text-danger">*</span></label>
+                                                <input type="text" name="passport_number" id="passport_number" class="form-control" placeholder="Passport number" required>
+                                            </div>
+
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label text-muted mb-0">E-mail address<span class="text-danger">*</span></label>
+                                                <input type="email" name="email" id="email" class="form-control" placeholder="Enter your e-mail address" required>
+                                            </div>
+
+                                            <div class="col-md-4 mb-3">
+                                                <label class="form-label text-muted mb-0">Country<span class="text-danger">*</span></label>
                                                 <select name="country" id="country" class="form-select" required>
-                                                    <option value="">Buscar y seleccionar...</option>
+                                                    <option value="">Search and select...</option>
                                                     @foreach ($countries as $country)
                                                         <option value="{{ $country->name }}">{{ $country->name }}</option>
                                                     @endforeach
@@ -171,7 +185,7 @@
                                             </div>
 
                                             <div class="col-md-4 mb-3">
-                                                <label for="phone" class="form-label mb-0 d-block">{{ __('Teléfono') }} <span class="text-danger">*</span></label>
+                                                <label for="phone" class="form-label text-muted mb-0 d-block">Cell phone<span class="text-danger">*</span></label>
                                                 <input type="hidden" name="phone_code" id="phone_code" value="1">
                                                 <input type="tel" id="phone" name="phone" class="form-control" required>
                                                 <!-- Agrega el contenedorphone para mostrar la bandera y el código -->
@@ -179,7 +193,7 @@
                                             </div>
 
                                             <div class="col-md-4 mb-3">
-                                                <button type="submit" class="btn btn-primary mt-4 w-100">{{ __('SOLICITAR') }}</button>
+                                                <button type="submit" class="btn btn-primary mt-4 w-100">REQUEST</button>
                                             </div>
                                         </div>
                                     </div>
@@ -226,7 +240,7 @@
 
             // Deshabilitar el botón y cambiar el texto
             submitButton.disabled = true;
-            submitButton.textContent = "Generando...";
+            submitButton.textContent = "Sending..., please wait...";
 
             // Obtener los datos del formulario
             const formData = new FormData(form);
@@ -243,9 +257,9 @@
                     //console.log(data.message);
                     const alertHTML = `
                         <div class="alert alert-success text-center mb-0" role="alert">
-                            <p class="mb-1"><b>¡Invitación generada y enviada con éxito!</b></p>
-                            <p class="mb-0">Por favor, revisa tu correo electrónico.</p>
-                            <a href="#" class="btn btn-primary mt-2">Solicitar Nuevo</a>
+                            <p class="mb-1"><b>Invitation successfully generated and sent!</b></p>
+                            <p class="mb-0">Please check your email.</p>
+                            <a href="#" class="btn btn-primary mt-2">Request New</a>
                         </div>
                         `;
 
@@ -253,17 +267,17 @@
 
                 } else {
                     // Mostrar mensaje de error genérico
-                    alert("Hubo un error al enviar la solicitud, por favor intente nuevamente.")
+                    alert("There was an error submitting the request. Please try again.")
                 }
             })
             .catch(error => {
                 console.error("Error:", error);
-                alert("CATCH: Hubo un error al enviar la solicitud, por favor intente nuevamente.")
+                alert("CATCH: There was an error submitting the request. Please try again.")
             })
             .finally(() => {
                 // Habilitar el botón y restaurar el texto original
                 submitButton.disabled = false;
-                submitButton.textContent = "{{ __('SOLICITAR') }}";
+                submitButton.textContent = "{{ __('REQUEST') }}";
             });
         });
     });

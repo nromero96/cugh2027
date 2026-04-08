@@ -8,5 +8,5 @@ use Illuminate\Database\Eloquent\Model;
 class Invitation extends Model
 {
     use HasFactory;
-    protected $fillable = ['full_name', 'email', 'country', 'phone_code', 'phone','file_name'];
+    protected $fillable = ['full_name', 'job_position', 'institution', 'passport_number', 'email', 'country', 'phone_code', 'phone','file_name'];
 }

@@ -46,6 +46,9 @@ class InvitationController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string',
+            'job_position' => 'required|string',
+            'institution' => 'required|string',
+            'passport_number' => 'required|string',
             'email' => 'required|email',
             'phone_code' => 'required|string',
             'phone' => 'required|string',
@@ -71,6 +74,8 @@ class InvitationController extends Controller
     {
         
         //GET path logo and firma
+        $background = public_path('assets/img/bg-letter-invitation.jpg');
+
         $logo = public_path('assets/img/logo.png');
         $firma = public_path('assets/img/firma-dr-gustavo-camino.png');
 
@@ -83,38 +88,91 @@ class InvitationController extends Controller
         // Agregar "Lima," al inicio
         $fechaactual = 'Lima, ' . $fechaactual;
 
+        $content_date = <<<EOD
+            <p style="text-align: left;">{$fechaactual}</p>
+        EOD;
+
+        $content_numeber = <<<EOD
+            <p style="text-align: left;">Carta N° {$invitation->id} – CUGH2027</p>
+        EOD;
+
         $content = <<<EOD
-            <p style="font-size:15px;text-align:center; color:#c40000;"><img src="{$logo}" alt="logo" width="80" height="80" /><br><b>XLI REUNIÓN ANUAL DE DERMATÓLOGOS LATINOAMERICANOS</b><br><b style="color:#000;font-size:13px;text-align:center;">Swissôtel Lima, 8 al 11 de Mayo de 2024</b><br><br></p>
-            <p>{$fechaactual}</p>
             <p>Señor(a) Doctor(a)</p>
-            <p><strong>{$invitation->full_name}</strong></p>
-            <p><strong>E-mail:</strong> {$invitation->email}</p>
-            <p><strong>País:</strong> {$invitation->country}</p>
+            <p><strong>{$invitation->full_name}</strong><br><strong>{$invitation->job_position}</strong><br><strong>{$invitation->institution}</strong><br><strong>Pasaporte Nº:</strong> {$invitation->passport_number}<br><strong>E-mail:</strong> {$invitation->email}<br><strong>País:</strong> {$invitation->country}</p>
             <p>Estimado(a) colega:</p>
-            <p style="text-align: justify;">Es grato dirigirme a usted para invitarle muy cordialmente a participar en la <b>XLI Reunión Anual de Dermatólogos Latinoamericanos</b> que se realizará en la ciudad de Lima, del 8 al 11 de mayo de 2026.</p>
-            <p style="text-align: justify;">El evento dermatológico más importante de la región congregará en Lima a más de 2,500 profesionales especialistas y residentes en dermatología, procedentes de los países que integran CUGH 2027, de América, Europa y Asia Pacífico.  Esperamos que esta invitación encuentre en Ud. favorable acogida que le permita disfrutar de un congreso con alta calidad científica con la presencia de destacados profesores internacionales especialmente invitados para la ocasión.</p>
+            <p style="text-align: justify;">Es grato dirigirme a usted para invitarle muy cordialmente a participar en la <b><i>18<sup>th</sup> Annual Conference CUGH 2027 Transforming Global Health:</i></b> Partnerships, power, leadership and technology in a rapidly changing world; conferencia que se realizará en la ciudad de Lima, del 25 al 28 de febrero de 2027.</p>
+            <p style="text-align: justify;">Este evento es un hito histórico, ya que será la primera vez que la Conferencia Anual del Consortium of Universities for Global Health (CUGH) se celebre fuera de los Estados Unidos, lo que ofrece una oportunidad para continuar trabajando en los temas de la salud global, destacando los retos e innovaciones de la región de América Latina y el Caribe, sobre todo del Perú.</p>
+            <p style="text-align: justify;">La presente invitación se emite con el fin de apoyar su solicitud de visa para ingresar al Perú. Cabe señalar que los organizadores del evento no asumirán responsabilidad financiera por gastos de viaje, alojamiento u otros relacionados con su visita.<br>Esperamos que esta invitación encuentre en Ud. favorable acogida que le permita disfrutar de un encuentro con profesionales, investigadores y líderes en salud global de todo el mundo, con el objetivo de intercambiar conocimientos y fortalecer la colaboración internacional. </p>
             <p>Hacemos propicia esta oportunidad para reiterarle nuestros más cordiales saludos.</p>
             <br>
             <p>Atentamente,</p>
-            <p><img src="{$firma}" alt="logo" width="120" /><br><b>Dr. Gustavo Camino</b><br>Presidente<br>CUGH 2027</p>
-            <br>
-            <br>
-            <p style="font-size:10px;text-align:center;">Nota: Esta invitación es exclusiva para inscribirse en CUGH 2027 y no incluye gastos de viaje a Perú:<br>
-            pasaje aéreo, hospedaje o traslados en Lima.
-            </p>
-            <p style="font-size:10px;text-align:center; color:blue;"><b>Secretaría & Organización: Tel. (51 1) 983481269 - 998672199</b><br>
-            E-mail: inscripciones@rosmarasociados.com 
-            </p>
+            <p><img src="{$firma}" alt="logo" width="120" /><br>Patricia J. García, MD, MPH, PhD<br><b style="font-size: 8px;">Presidenta<br><i>18<sup>th</sup> Annual Conference CUGH 2027<br>Transforming Global Health:</i></b><br><i style="font-size: 8px;">Partnerships, power, leadership and technology in a rapidly changing world</i></p>
         EOD;
 
         // Set up the PDF content using TCPDF methods
         $pdf = new TCPDF();
         $pdf->SetPrintHeader(false);
         $pdf->SetPrintFooter(false);
-        $pdf->SetFooterMargin(0);
+
+        // Ajustar márgenes a 0 para que la imagen de fondo ocupe toda la página
+        $pdf->SetMargins(0, 0, 0, true);
+        $pdf->SetAutoPageBreak(false, 0);
+
         $pdf->AddPage();
-        $pdf->SetFont('helvetica', '', 11);
-        $pdf->writeHTML($content, true, false, true, false, '');
+        // Fondo ocupa toda la página
+        $pdf->Image(
+            $background,
+            0, 0,
+            $pdf->getPageWidth(),
+            $pdf->getPageHeight(),
+            '', '', '', false, 300, '', false, false, 0
+        );
+        $pdf->SetFont('helvetica', '', 9);
+
+        // Fecha arriba a la derecha
+        $pdf->writeHTMLCell(
+            50,        // ancho del bloque
+            0,         // altura automática
+            150,       // X en mm desde izquierda
+            60,        // Y en mm desde arriba
+            $content_date, 
+            0,         // borde 0
+            0,         // salto de línea 0 = siguiente contenido continua
+            false,     // fill
+            true,      // reset height
+            'R',       // alineación dentro del bloque
+            true       // autocells
+        );
+
+        // Carta N° arriba a la izquierda
+        $pdf->writeHTMLCell(
+            50,
+            0,
+            22,
+            60,
+            $content_numeber,
+            0,
+            0,
+            false,
+            true,
+            'L',
+            true
+        );
+
+        // Cuerpo de la carta
+        $pdf->writeHTMLCell(
+            170,        // ancho = usa todo disponible dentro de los márgenes
+            0,
+            22,
+            70,
+            $content,
+            0,
+            1,        // salto de línea después
+            false,
+            true,
+            'J',
+            true
+        );
 
         // Save the PDF to the specified directory
         $pdfFilePath = storage_path('app/public/uploads/invitation_letters/') . 'invitation_' . time() . '.pdf';

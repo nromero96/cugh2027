@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Invitación Email</title>
+    <title>Invitation</title>
 </head>
 <body>
-    <p>Estimado(a) <b>{{ $fullName }}</b>,</p>
-    <p>Es un placer atender su solicitud de carta de invitación para la <b>XLI Reunión Anual de Dermatólogos Latinoamericanos</b>, que se llevará a cabo del 8 al 11 de mayo de 2024 en el Swissôtel Lima.</p>
-    <p>Nos complace invitarle a participar en este evento de gran relevancia para la comunidad dermatológica. Adjunto encontrará su carta de invitación, la cual puede utilizar para los requerimientos que necesite.</p>
-    <p>Agradecemos su interés en unirse a nosotros y esperamos contar con su presencia en este congreso.</p>
-    <p>Si necesita más información o asistencia adicional, no dude en ponerse en contacto con nosotros.</p><br>
-    <p>Atentamente,<br>Comité Organizador<br><b>CUGH 2027</b><br>+51 983 481 269<br>info@CUGH2027.org</p>
+    <p>Dear <b>{{ $fullName }}</b>,</p>
+    <p>We are pleased to extend to you an <b>official invitation</b> to attend the <b>18<sup>th</sup> Annual CUGH Conference 2027: Transforming Global Health – Partnerships, Power, Leadership, and Technology in a Rapidly Changing World</b>, taking place in <b>Lima, Peru, from February 25 to 28, 2027</b>.</p>
+    <p>Please find your official invitation letter attached, which you may use for visa application or other official purposes.</p>
+    <p>We look forward to your participation and are happy to provide any additional information if needed.</p>
+    <p>Best regards,<br><b>Organizing Committee</b><br>CUGH 2027<br>+51 983 481 269<br>info@cughlima2027.org</p>
 </body>
 </html>
