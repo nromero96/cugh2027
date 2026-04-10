@@ -20,6 +20,7 @@ class CreateCategoryInscriptionsTable extends Migration
             $table->decimal('price_low', 8, 2);
             $table->string('description')->nullable();
             $table->string('type');
+            $table->enum('membership_type', ['member', 'non-member', 'all'])->default('all');
             $table->timestamps();
         });
     }

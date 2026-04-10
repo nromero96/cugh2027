@@ -1,4 +1,5 @@
 document.addEventListener("DOMContentLoaded", function () {
+
     const formInscription = document.getElementById("formInscription");
     var btnSaveInscription = document.getElementById("btnSaveInscription");
     var btnSubInscription = document.getElementById("btnSubInscription");
@@ -18,6 +19,106 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
     });
+
+
+    const cughMembership = {
+
+        init: function () {
+            this.bindEvents();
+            this.runInitialState();
+        },
+
+        bindEvents: function () {
+
+            document.addEventListener('change', (e) => {
+
+                if (e.target.matches('input[name="is_cugh_member"]')) {
+
+                    const type = e.target.value == '1'
+                        ? 'member'
+                        : 'non-member';
+
+                    this.updateCategories(type);
+                }
+
+            });
+
+        },
+
+        updateCategories: function (type) {
+
+            let firstVisibleRadio = null;
+
+            document.querySelectorAll('.category-row').forEach(row => {
+
+                const membership = row.dataset.membership;
+                const radio = row.querySelector('input[type="radio"]');
+
+                if (!radio) return;
+
+                if (membership === 'all' || membership === type) {
+
+                    // ✅ mostrar
+                    row.classList.remove('d-none');
+
+                    // ✅ habilitar
+                    radio.disabled = false;
+
+                    // guardar primera opción válida
+                    if (!firstVisibleRadio) {
+                        firstVisibleRadio = radio;
+                    }
+
+                } else {
+
+                    // ❌ ocultar
+                    row.classList.add('d-none');
+
+                    // ❌ limpiar selección
+                    radio.checked = false;
+
+                    // ❌ deshabilitar (clave)
+                    radio.disabled = true;
+                }
+
+            });
+
+            // 🔥 auto seleccionar si no hay uno elegido
+            const selected = document.querySelector('input[name="category_inscription_id"]:checked');
+
+            if (!selected && firstVisibleRadio) {
+
+                firstVisibleRadio.checked = true;
+
+                // dispara tu lógica existente (NO la tocamos)
+                firstVisibleRadio.dispatchEvent(new Event('change'));
+            }
+
+            // 🔥 recalcular total SIN romper tu código
+            if (typeof calculateTotalPrice === "function") {
+                calculateTotalPrice();
+            }
+        },
+
+        runInitialState: function () {
+
+            const selected = document.querySelector('input[name="is_cugh_member"]:checked');
+
+            if (selected) {
+
+                const type = selected.value == '1'
+                    ? 'member'
+                    : 'non-member';
+
+                this.updateCategories(type);
+            }
+        }
+
+    };
+
+    // 🚀 inicializar módulo
+    cughMembership.init();
+
 
     // Eliminar espacios en tiempo real
     const noSpacesInputs = document.querySelectorAll('.no-spaces');
@@ -103,58 +204,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
     });
-
-
-    //Country Prices
-    const countrySelect = document.getElementById('inputCountry');
-    function loadPrices(countryId) {
-
-        if (!countryId) return;
-
-        const csrf = document.querySelector('meta[name="csrf-token"]').content;
-
-        fetch('/category-inscriptions/prices', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': csrf
-            },
-            body: JSON.stringify({
-                country_id: countryId
-            })
-        })
-        .then(res => res.json())
-        .then(prices => {
-
-            Object.keys(prices).forEach(id => {
-                const price = prices[id];
-
-                const priceSpan = document.getElementById('dc_price_' + id);
-                if (priceSpan) {
-                    priceSpan.innerText = price;
-                }
-
-                const radio = document.getElementById('category_' + id);
-                if (radio) {
-                    radio.dataset.catprice = price;
-                }
-            });
-
-            calculateTotalPrice();
-        });
-
-        invoiceOptions(countryId);
-    }
-
-    // Evento change Country
-    countrySelect.addEventListener('change', function () {
-        loadPrices(this.value);
-    });
-
-    // Ejecutar al cargar si ya tiene valor contry
-    if (countrySelect.value) {
-        loadPrices(countrySelect.value);
-    }
 
 
     function invoiceOptions(value){
@@ -633,3 +682,5 @@ FilePond.setOptions({
       },
   },
 });
+
+

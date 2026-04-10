@@ -111,10 +111,12 @@ Route::post('upload',[UploadController::class, 'store']);
 Route::get('online-search-posters', [PosterController::class, 'searchPostersPage'])->name('searchPostersPage');
 
 
-Route::post(
-    '/category-inscriptions/prices',
-    [CategoryInscriptionController::class, 'pricesByCountry']
-)->name('category_inscriptions.prices');
+//Category Inscriptions
+Route::get('/categories-by-membership/{type}', [CategoryInscriptionController::class, 'getCategories'])
+    ->name('categories.byMember');
+
+Route::post('/category-inscriptions/prices', [CategoryInscriptionController::class, 'pricesByCountry'])
+    ->name('categories.prices');
 
 
 //routes for user login

@@ -737,10 +737,10 @@ class InscriptionController extends Controller
                 'category_inscription_id' => 'required|numeric',
                 'invoice' => 'required|string',
                 'invoice_type' => 'required|string',
-                'invoice_type_document' => 'nullable|string',
-                'invoice_ruc' => 'nullable|string',
-                'invoice_social_reason' => 'nullable|string',
-                'invoice_address' => 'nullable|string|max:50',
+                'invoice_type_document' => 'required|string',
+                'invoice_ruc' => 'required|string',
+                'invoice_social_reason' => 'required|string',
+                'invoice_address' => 'required|string|max:50',
                 'payment_method' => 'required|string',
             ];
 

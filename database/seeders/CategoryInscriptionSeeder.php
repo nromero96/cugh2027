@@ -23,6 +23,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 1,
                 'status' => 'active',
+                'membership_type' => 'member',
             ],
             [
                 'name' => 'Delegate (Non-Member)',
@@ -32,6 +33,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 2,
                 'status' => 'active',
+                'membership_type' => 'non-member',
             ],
             [
                 'name' => 'Student (Member)',
@@ -41,6 +43,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 3,
                 'status' => 'active',
+                'membership_type' => 'member',
             ],
             [
                 'name' => 'Student (Non-Member)',
@@ -50,6 +53,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 4,
                 'status' => 'active',
+                'membership_type' => 'non-member',
             ],
             [
                 'name' => 'Scholars',
@@ -59,6 +63,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 5,
                 'status' => 'active',
+                'membership_type' => 'all',
             ],
             [
                 'name' => 'Special Code',
@@ -68,6 +73,7 @@ class CategoryInscriptionSeeder extends Seeder
                 'type' => 'radio',
                 'order' => 6,
                 'status' => 'active',
+                'membership_type' => 'all',
             ],
         ];
 

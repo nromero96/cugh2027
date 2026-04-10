@@ -10,6 +10,17 @@ use App\Models\CategoryInscription;
 
 class CategoryInscriptionController extends Controller
 {
+
+    public function getCategories($type)
+    {
+        $categories = CategoryInscription::where('status', 'active')
+            ->whereIn('membership_type', [$type, 'all'])
+            ->orderBy('order')
+            ->get();
+
+        return response()->json($categories);
+    }
+
     public function pricesByCountry(Request $request)
     {
         $request->validate([
