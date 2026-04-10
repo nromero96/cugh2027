@@ -15,6 +15,16 @@ class CreatePanelsTable extends Migration
     {
         Schema::create('panels', function (Blueprint $table) {
             $table->id();
+            // Panel
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->text('objectives')->nullable();
+
+            // JSON
+            $table->json('contact')->nullable();
+            $table->json('moderator')->nullable();
+            $table->json('speakers')->nullable();
+            
             $table->timestamps();
         });
     }
