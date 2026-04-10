@@ -77,7 +77,7 @@ class InvitationController extends Controller
         $background = public_path('assets/img/bg-letter-invitation.jpg');
 
         $logo = public_path('assets/img/logo.png');
-        $firma = public_path('assets/img/firma-dr-gustavo-camino.png');
+        $firma = public_path('assets/img/firma-pg.png');
 
         // Establecer la zona horaria
         date_default_timezone_set('America/Lima');
