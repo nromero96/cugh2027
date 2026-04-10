@@ -112,11 +112,10 @@ Route::get('online-search-posters', [PosterController::class, 'searchPostersPage
 
 
 //Category Inscriptions
-Route::get('/categories-by-membership/{type}', [CategoryInscriptionController::class, 'getCategories'])
-    ->name('categories.byMember');
-
-Route::post('/category-inscriptions/prices', [CategoryInscriptionController::class, 'pricesByCountry'])
-    ->name('categories.prices');
+Route::post(
+    '/category-inscriptions/prices',
+    [CategoryInscriptionController::class, 'pricesByCountry']
+)->name('category_inscriptions.prices');
 
 
 //routes for user login

@@ -205,6 +205,57 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
+    //Country Prices
+    const countrySelect = document.getElementById('inputCountry');
+    function loadPrices(countryId) {
+
+        if (!countryId) return;
+
+        const csrf = document.querySelector('meta[name="csrf-token"]').content;
+
+        fetch('/category-inscriptions/prices', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf
+            },
+            body: JSON.stringify({
+                country_id: countryId
+            })
+        })
+        .then(res => res.json())
+        .then(prices => {
+
+            Object.keys(prices).forEach(id => {
+                const price = prices[id];
+
+                const priceSpan = document.getElementById('dc_price_' + id);
+                if (priceSpan) {
+                    priceSpan.innerText = price;
+                }
+
+                const radio = document.getElementById('category_' + id);
+                if (radio) {
+                    radio.dataset.catprice = price;
+                }
+            });
+
+            calculateTotalPrice();
+        });
+
+        invoiceOptions(countryId);
+    }
+
+    // Evento change Country
+    countrySelect.addEventListener('change', function () {
+        loadPrices(this.value);
+    });
+
+    // Ejecutar al cargar si ya tiene valor contry
+    if (countrySelect.value) {
+        loadPrices(countrySelect.value);
+    }
+
 
     function invoiceOptions(value){
         if(value == '176'){
