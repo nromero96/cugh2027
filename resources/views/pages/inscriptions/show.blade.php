@@ -420,40 +420,6 @@
 
                             </div>
 
-
-
-                            <div class="col-md-5 text-end align-self-end">
-                                
-                                @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
-
-                                    @if($inscription->status == 'Pagado' && $inscription->status_compr == 'Ninguna' )
-                                        <div id="actionbtncompr">
-                                            <a href="javascript:;" class="btn btn-primary mb-1 btnrequestcompr" data-inscription="{{ $inscription->id }}" >{{__("Emitir comprobante")}}</a>
-                                        </div>
-                                    @endif
-
-                                    @if($inscription->status_compr == 'Pendiente' || $inscription->status_compr == 'Procesando')
-                                        <span class="badge badge-light-warning">Generando Comprobante...</span>
-                                    @endif
-                                
-                                @endif
-
-                                @if($inscription->status_compr == 'Informado')
-                                    <span class="badge badge-light-success">Comprobante Emitido: {{ $inscription->num_compr }}</span><br>
-                                    @if($inscription->compr_pdf == 'T')
-                                        <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.pdf'}}" target="_blank" class="text-info">{{__("PDF")}}</a> 
-                                    @endif
-
-                                    @if($inscription->compr_xml == 'T')
-                                        | <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("XML")}}</a> 
-                                    @endif
-
-                                    @if($inscription->compr_cdr == 'T')
-                                        | <a href="{{ asset('storage/uploads/comprobantes_file').'/R'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("CDR")}}</a>
-                                    @endif
-                                @endif
-                            </div>
-
                         </div>
                     </div>
                 </div>

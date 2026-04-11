@@ -52,26 +52,7 @@
                                             <p>{{$inscription->user_country}}</p>
                                             <p>{{$inscription->category_inscription_name}}</p>
                                             <p>US$ {{$inscription->total}}</p>
-                                            @if($inscription->status == 'Paid')
-                                                @if($inscription->status_compr == 'Informed')
-                                                    <hr>
-                                                    @if($inscription->compr_pdf == 'T')
-                                                        <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.pdf'}}" target="_blank" class="text-info">{{__("PDF")}}</a>
-                                                    @endif
-
-                                                    @if($inscription->compr_xml == 'T')
-                                                        | <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("XML")}}</a>
-                                                    @endif
-
-                                                    @if($inscription->compr_cdr == 'T')
-                                                        | <a href="{{ asset('storage/uploads/comprobantes_file').'/R'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("CDR")}}</a>
-                                                    @endif
-                                                @endif
-                                            @endif
-
-
                                             <div>
-
                                                 @php 
                                                     if($inscription->payment_method == 'none'){
                                                         $payment_method = 'No payment required';
@@ -86,8 +67,8 @@
                                                     <span class="badge badge-light-info">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Pending')
                                                     <span class="badge badge-light-warning">{{ $inscription->status .' ('.$payment_method.')' }}</span>
-                                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0 || $inscription->special_code == 'PAXROSMAR') )
-                                                        {{-- <a href="{{ route('inscriptions.paymentniubiz', $inscription->id) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pagar")}}</a> --}}
+                                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0) )
+                                                        <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pagar")}}</a>
                                                     @endif
                                                 @elseif ($inscription->status == 'Refused')
                                                     <span class="badge badge-light-danger">{{ $inscription->status .' ('.$payment_method.')' }}</span>
@@ -116,7 +97,7 @@
                                 <form action="{{ route('inscriptions.index') }}" method="GET" class="mb-0" >
                                     <div class="row">
                                         <div class="col-md-2 align-self-center">
-                                            <h4>Inscripciones</h4>
+                                            <h4>Registrations</h4>
                                         </div>
                                         <div class="col-md-1 align-self-center ps-0">
                                             <select name="listforpage" class="form-select form-control-sm ms-0" id="listforpage" onchange="this.form.submit()">
@@ -127,10 +108,6 @@
                                             </select>
                                         </div>
                                         <div class="col-md-4 align-self-center">
-
-                                            @if(\Auth::user()->hasRole('Participante'))
-                                                <a href="{{ route('inscriptions.create') }}" class="btn btn-secondary">Nuevo</a>
-                                            @endif
 
                                             @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                                 
@@ -147,7 +124,7 @@
                                         </div>
                                         <div class="col-md-5 align-self-center text-end">
                                             <div class="input-group">
-                                                <input type="text" class="form-control mb-2 mb-md-0" name="search" placeholder="Buscar..." value="{{ request('search') }}">
+                                                <input type="text" class="form-control mb-2 mb-md-0" name="search" placeholder="Search..." value="{{ request('search') }}">
                                                 @if(request('search') != '')
                                                     <a href="{{ route('inscriptions.index') }}" class="btn btn-outline-light px-1" id="button-addon2" style="border-left: 0px;border-color: #bfc9d4;background: white;">
                                                         <svg width="24" height="24" fill="none" stroke="#9e9e9e" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.1" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -157,7 +134,7 @@
                                                         </svg>
                                                     </a>
                                                 @endif
-                                                <button type="submit" class="btn btn-primary" id="button-addon2">Buscar</button>
+                                                <button type="submit" class="btn btn-primary" id="button-addon2">Search</button>
                                             </div>
                                         </div>
                                     </div>
@@ -169,21 +146,20 @@
                                     <table class="table table-hover table-striped table-bordered mb-0" id="inscrip-list">
                                         <thead>
                                             <tr>
-                                                <th scope="col">{{__("Id")}}</th>
-                                                <th scope="col">{{__("Participante")}}</th>
-                                                <th scope="col">{{__("País")}}</th>
-                                                <th scope="col">{{__("Categoría")}}</th>
-                                                <th scope="col">{{__("Pago")}}</th>
-                                                <th scope="col">{{__("Estado")}}</th>
-                                                <th scope="col">{{__("Fecha")}}</th>
+                                                <th scope="col">{{__("ID")}}</th>
+                                                <th scope="col">{{__("Participant")}}</th>
+                                                <th scope="col">{{__("Country")}}</th>
+                                                <th scope="col">{{__("Category")}}</th>
+                                                <th scope="col">{{__("Payment")}}</th>
+                                                <th scope="col">{{__("Status")}}</th>
+                                                <th scope="col">{{__("Date")}}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @if ($inscriptions->isEmpty())
                                                 <tr>
                                                     <td colspan="7" class="text-center">
-                                                        <h6 class="mt-2">{{__("No hay inscripciones registradas")}}</h6>
-                                                        <a href="#" class="btn btn-primary mb-4 ms-3 me-3">{{__("Comprar Nuevo")}}</a>
+                                                        <h6 class="mt-2">There are no registrations recorded.</h6>
                                                     </td>
                                                 </tr>
                                             @else
@@ -209,40 +185,26 @@
                                                         </td>
                                                         <td>
                                                             @php
-                                                                if($inscription->payment_method == 'Tarjeta'){
+                                                                if($inscription->payment_method == 'Credit/Debit Card'){
                                                                     $textmp = 'TC';
                                                                 }else{
                                                                     $textmp = 'DT';
                                                                 }
                                                             @endphp
 
-                                                            @if($inscription->status == 'Pagado')
+                                                            @if($inscription->status == 'Paid')
                                                                 <span class="badge badge-light-success">{{ $inscription->status .' ('.$textmp.')' }}</span>
-
-                                                                @if($inscription->status_compr == 'Informado')
-
-                                                                    @if($inscription->compr_pdf == 'T')
-                                                                        <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.pdf'}}" target="_blank" class="text-info">{{__("PDF")}}</a>
-                                                                    @endif
-
-                                                                    @if($inscription->compr_xml == 'T')
-                                                                    | <a href="{{ asset('storage/uploads/comprobantes_file').'/'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("XML")}}</a>
-                                                                    @endif
-
-                                                                    @if($inscription->compr_cdr == 'T')
-                                                                    | <a href="{{ asset('storage/uploads/comprobantes_file').'/R'.$inscription->num_compr.'.zip'}}" target="_blank" class="text-info">{{__("CDR")}}</a>
-                                                                    @endif
-
-                                                                @endif
-
-                                                            @elseif ($inscription->status == 'Procesando')
+                                                            @elseif ($inscription->status == 'Processing')
                                                                 <span class="badge badge-light-info">{{ $inscription->status .' ('.$textmp.')' }}</span>
-                                                            @elseif ($inscription->status == 'Pendiente')
+                                                            @elseif ($inscription->status == 'Pending')
                                                                 <span class="badge badge-light-warning">{{ $inscription->status .' ('.$textmp.')' }}</span>
-                                                                @if($inscription->payment_method == 'Tarjeta' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0 || $inscription->special_code == 'PAXROSMAR') )
-                                                                    {{-- <a href="{{ route('inscriptions.paymentniubiz', $inscription->id) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pagar")}}</a> --}}
+                                                                @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0) )
+                                                                    <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pay")}}</a>
                                                                 @endif
-                                                            @elseif ($inscription->status == 'Rechazado')
+
+                                                            @elseif ($inscription->status == 'Draft')
+                                                                <span class="badge badge-light-primary">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                            @elseif ($inscription->status == 'Refused')
                                                                 <span class="badge badge-light-danger">{{ $inscription->status .' ('.$textmp.')' }}</span>
                                                             @endif
                                                         </td>
