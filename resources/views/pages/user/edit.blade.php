@@ -69,7 +69,7 @@
                                 <select name="country" class="form-select" id="inputCountry" required>
                                     <option value="">Seleccione...</option>
                                     @foreach ($countries as $country)
-                                        <option value="{{$country->name}}" @if ($user->country == $country->name) selected="selected" @endif >{{$country->name}}</option>
+                                        <option value="{{$country->id}}" @if ($user->country == $country->id) selected="selected" @endif >{{$country->name}}</option>
                                     @endforeach
                                 </select>
                                 {!!$errors->first("country", "<span class='text-danger'>:message</span>")!!}

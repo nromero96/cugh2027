@@ -33,7 +33,7 @@ class UserSeeder extends Seeder
             'second_lastname' => '-',
             'email' => 'admin@rosmarasociados.com',
             'nationality' => '1',
-            'password' => bcrypt('123456789'),
+            'password' => bcrypt('RosaSheen123'),
             'document_number' => '11111111',
             'country' => '1',
             'status' => 'active',

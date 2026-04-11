@@ -157,7 +157,6 @@ class UserController extends Controller
             'state' => $request['state'],
             'city' => $request['city'],
             'address' => $request['address'],
-            'postal_code' => $request['postal_code'],
             'phone_code' => $request['phone_code'],
             'phone_code_city' => $request['phone_code_city'],
             'phone_number' => $request['phone_number'],
