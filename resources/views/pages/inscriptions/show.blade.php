@@ -339,11 +339,11 @@
                                         </div>
                                     @endif
 
-                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->status != 'Paid')
+                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->status == 'Pending')
                                         <div class="row mt-1">
                                             <div class="col-12">
                                                 <label class="form-label fw-bold mb-0">Pending Payment:</label><br>
-                                                <a href="{{ route('inscriptions.repeatpayment', $inscription->id) }}" class="btn btn-primary mt-2">Go to Pay</a>
+                                                <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary mt-2">Go to Pay</a>
                                             </div>
                                         </div>
                                     @endif
