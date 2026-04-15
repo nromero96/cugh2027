@@ -89,6 +89,10 @@ class UserController extends Controller
 
 
         $users->name = $request->name;
+        $users->lastname = '';
+        $users->second_lastname = '';
+        $users->document_type = '';
+        $users->document_number = '';
         $users->email = $request->email;
         $users->password = bcrypt($request->password);
         $users->photo = $photouser;
