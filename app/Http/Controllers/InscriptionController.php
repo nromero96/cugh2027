@@ -438,6 +438,7 @@ class InscriptionController extends Controller
             ->join('users', 'inscriptions.user_id', '=', 'users.id')
             ->join('countries as un', 'users.nationality', '=', 'un.id')
             ->join('countries as uc', 'users.country', '=', 'uc.id')
+            ->leftJoin('member_institutions', 'users.cugh_member_institution', '=', 'member_institutions.id')
             ->select('inscriptions.*', 
                     'category_inscriptions.name as category_inscription_name', 
                     'users.salutation as user_salutation',
@@ -447,7 +448,7 @@ class InscriptionController extends Controller
                     'users.degrees as user_degrees',
                     'users.other_degrees as user_other_degrees',
                     'users.is_cugh_member as user_is_cugh_member',
-                    'users.cugh_member_institution as user_cugh_member_institution',
+                    'member_institutions.name as cugh_member_institution_name',
                     'users.job_title as user_job_title',
                     'users.document_type as user_document_type', 
                     'users.document_number as user_document_number',

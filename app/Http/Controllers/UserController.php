@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
 use App\Models\Country;
+use App\Models\MemberInstitution;
 
 use Image;
 
@@ -116,13 +117,15 @@ class UserController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        $user = User::find($id);
-        $roles = Role::all();
+        $memberinstitutions = MemberInstitution::all();
 
+        $user = User::find($id);
+
+        $roles = Role::all();
         $countries = Country::all();
 
         // $pageName = 'analytics';
-        return view('pages.user.edit')->with($data)->with('user',$user)->with('roles',$roles)->with('countries',$countries);
+        return view('pages.user.edit')->with($data)->with('user',$user)->with('memberinstitutions', $memberinstitutions)->with('roles',$roles)->with('countries',$countries);
     }
 
     public function update(Request $request, $id)
