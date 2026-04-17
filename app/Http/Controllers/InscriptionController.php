@@ -55,10 +55,10 @@ class InscriptionController extends Controller
 
         if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria') || \Auth::user()->hasRole('Hotelero') || \Auth::user()->hasRole('Check-in')) {
 
-            $inscriptions = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+            $inscriptions = Inscription::leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
-                ->join('countries', 'users.country', '=', 'countries.id')
-                ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country')
+                ->leftJoin('countries', 'users.country', '=', 'countries.id')
+                ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country', 'users.email as user_email')
                 ->where('inscriptions.status', '!=', 'Rechazado')
                 ->where(function ($query) use ($search) {
                     if(strcasecmp($search, 'pendiente pagar') === 0){
@@ -96,7 +96,7 @@ class InscriptionController extends Controller
         } else {
             $inscriptions = Inscription::leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
-                ->join('countries', 'users.country', '=', 'countries.id')
+                ->leftJoin('countries', 'users.country', '=', 'countries.id')
                 ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country')
                 ->where('inscriptions.user_id', $iduser)
                 ->orderBy('inscriptions.id', 'desc')
@@ -421,11 +421,21 @@ class InscriptionController extends Controller
      */
     public function show($id)
     {
-        //solo mostrar su inscripciones del usuario logueado y para roles de Administrador y Secretaria
-        $iduser = \Auth::user()->id;
-        $inscription = Inscription::where('id', $id)->where('user_id', $iduser)->first();
+        $userAuth = \Auth::user();
 
-        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria') || \Auth::user()->hasRole('Hotelero') || \Auth::user()->hasRole('Check-in')  || $inscription) {
+        // Buscar inscripción SOLO para validación (ligera)
+        $myinscription = Inscription::where('id', $id)
+            ->where('user_id', $userAuth->id)
+            ->first();
+
+        // Validación de acceso
+        if (
+            $userAuth->hasRole('Administrador') ||
+            $userAuth->hasRole('Secretaria') ||
+            $userAuth->hasRole('Hotelero') ||
+            $userAuth->hasRole('Check-in') ||
+            $myinscription
+        ) {
 
             $data = [
                 'category_name' => 'inscriptions',
@@ -433,57 +443,49 @@ class InscriptionController extends Controller
                 'has_scrollspy' => 0,
                 'scrollspy_offset' => '',
             ];
-    
-            $inscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-            ->join('users', 'inscriptions.user_id', '=', 'users.id')
-            ->join('countries as un', 'users.nationality', '=', 'un.id')
-            ->join('countries as uc', 'users.country', '=', 'uc.id')
-            ->leftJoin('member_institutions', 'users.cugh_member_institution', '=', 'member_institutions.id')
-            ->select('inscriptions.*', 
-                    'category_inscriptions.name as category_inscription_name', 
-                    'users.salutation as user_salutation',
-                    'users.name as user_name', 
-                    'users.lastname as user_lastname', 
-                    'users.second_lastname as user_second_lastname',
-                    'users.degrees as user_degrees',
-                    'users.other_degrees as user_other_degrees',
-                    'users.is_cugh_member as user_is_cugh_member',
-                    'member_institutions.name as cugh_member_institution_name',
-                    'users.job_title as user_job_title',
-                    'users.document_type as user_document_type', 
-                    'users.document_number as user_document_number',
+
+            // 🔹 Obtener inscripción con datos necesarios
+            $inscription = Inscription::leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+                ->select(
+                    'inscriptions.*',
+                    'category_inscriptions.name as category_inscription_name'
+                )
+                ->where('inscriptions.id', $id)
+                ->first();
+
+            // 🔹 Obtener usuario por separado (más limpio y escalable)
+            $user = User::leftJoin('countries as un', 'users.nationality', '=', 'un.id')
+                ->leftJoin('countries as uc', 'users.country', '=', 'uc.id')
+                ->leftJoin('member_institutions', 'users.cugh_member_institution', '=', 'member_institutions.id')
+                ->select(
+                    'users.*',
                     'un.name as user_nationality',
-                    'users.gender as user_gender',
-                    'users.occupation as user_occupation',
-                    'users.occupation_other as user_occupation_other',
-                    'users.workplace as user_workplace',
-                    'users.address as user_address',
-                    'users.city as user_city',
-                    'users.state as user_state',
                     'uc.name as user_country',
-                    'users.work_phone_code as user_work_phone_code',
-                    'users.work_phone_code_city as user_work_phone_code_city',
-                    'users.work_phone_number as user_work_phone_number',
-                    'users.phone_code as user_phone_code',
-                    'users.phone_number as user_phone_number',
-                    'users.whatsapp_code as user_whatsapp_code',
-                    'users.whatsapp_number as user_whatsapp_number',
-                    'users.email as user_email',
-                    'users.cc_email as user_cc_email',
-                    'users.solapin_name as user_solapin_name',
-                    'users.solapin_lastname as user_solapin_lastname',)
-            ->where('inscriptions.id', $id)
-            ->first();
+                    'member_institutions.name as cugh_member_institution_name'
+                )
+                ->where('users.id', $inscription->user_id)
+                ->first();
 
-            //List of payment cards
-            $paymentcards = Payment::where('inscription_id', $id)->orderBy('id', 'desc')->get();
+            // 🔹 Listado de pagos
+            $paymentcards = Payment::where('inscription_id', $id)
+                ->orderBy('id', 'desc')
+                ->get();
 
-            //notes status
-            $statusnotes = StatusNote::where('inscription_id', $id)->orderBy('id', 'desc')->get();
+            // 🔹 Notas de estado
+            $statusnotes = StatusNote::where('inscription_id', $id)
+                ->orderBy('id', 'desc')
+                ->get();
 
-            return view('pages.inscriptions.show')->with($data)->with('inscription', $inscription)->with('paymentcards', $paymentcards)->with('statusnotes', $statusnotes);
-        }else{
-            return redirect()->route('inscriptions.index')->with('error', 'No tiene permisos para ver esta inscripción');
+            return view('pages.inscriptions.show')
+                ->with($data)
+                ->with('inscription', $inscription)
+                ->with('user', $user)
+                ->with('paymentcards', $paymentcards)
+                ->with('statusnotes', $statusnotes);
+
+        } else {
+            return redirect()->route('inscriptions.index')
+                ->with('error', 'Permission denied, you do not have permission to view this inscription.');
         }
     }
 
@@ -495,59 +497,7 @@ class InscriptionController extends Controller
      */
     public function edit($id)
     {
-        //solo mostrar al rol de Administrador y Secretaria
-        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')) {
-            
-            $data = [
-                'category_name' => 'inscriptions',
-                'page_name' => 'inscriptions_edit',
-                'has_scrollspy' => 0,
-                'scrollspy_offset' => '',
-            ];
-    
-            $inscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-            ->join('users', 'inscriptions.user_id', '=', 'users.id')
-            ->leftJoin('accompanists', 'inscriptions.accompanist_id', '=', 'accompanists.id')
-            ->select('inscriptions.*', 
-                    'category_inscriptions.name as category_inscription_name', 
-                    'users.name as user_name', 
-                    'users.lastname as user_lastname', 
-                    'users.second_lastname as user_second_lastname', 
-                    'users.document_type as user_document_type', 
-                    'users.document_number as user_document_number',
-                    'users.country as user_country',
-                    'users.state as user_state',
-                    'users.city as user_city',
-                    'users.address as user_address',
-                    'users.postal_code as user_postal_code',
-                    'users.phone_code as user_phone_code',
-                    'users.phone_code_city as user_phone_code_city',
-                    'users.phone_number as user_phone_number',
-                    'users.whatsapp_code as user_whatsapp_code',
-                    'users.whatsapp_number as user_whatsapp_number',
-                    'users.email as user_email',
-                    'users.workplace as user_workplace',
-                    'users.solapin_name as user_solapin_name',
-                    'accompanists.accompanist_name as accompanist_name',
-                    'accompanists.accompanist_typedocument as accompanist_typedocument',
-                    'accompanists.accompanist_numdocument as accompanist_numdocument',
-                    'accompanists.accompanist_solapin as accompanist_solapin')
-            ->where('inscriptions.id', $id)
-            ->first();
 
-            $category_inscriptions = CategoryInscription::orderBy('order', 'asc')->get();
-
-            $paymentcard = Payment::where('inscription_id', $id)->first();
-            $accompanist = Accompanist::find($inscription->accompanist_id);
-
-            //notes status
-            $statusnotes = StatusNote::where('inscription_id', $id)->orderBy('id', 'desc')->get();
-
-            return view('pages.inscriptions.edit')->with($data)->with('inscription', $inscription)->with('accompanist', $accompanist)->with('paymentcard', $paymentcard)->with('statusnotes', $statusnotes)->with('category_inscriptions', $category_inscriptions);
-
-        }else{
-            return redirect()->route('inscriptions.index')->with('error', 'No tiene permisos para editar esta inscripción');
-        }
     }
 
     /**
@@ -559,62 +509,7 @@ class InscriptionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        //solo mostrar al rol de Administrador y Secretaria
-        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')) {
-            
-            // Obtener la inscripción actual
-            $inscription = Inscription::findOrFail($id);
-
-            // Validación de datos (ajusta estas reglas según tus necesidades)
-            $validatedData = $request->validate([
-                'category_inscription_id' => 'required|numeric',
-                'price_category' => 'required|numeric',
-                'price_accompanist' => 'required|numeric',
-                'total' => 'required|numeric',
-                'special_code' => 'nullable|string',
-            ]);
-
-            // Actualizar la inscripción
-            $inscription->update($validatedData);
-
-            // actualizar acompañante si existe si no insertar
-            if($request->accompanist != ''){
-                $accompanist = new Accompanist();
-                $accompanist->accompanist_name = $request->accompanist_name;
-                $accompanist->accompanist_typedocument = $request->accompanist_typedocument;
-                $accompanist->accompanist_numdocument = $request->accompanist_numdocument;
-                $accompanist->accompanist_solapin = $request->accompanist_solapin;
-                $accompanist->save();
-                $inscription->accompanist_id = $accompanist->id;
-                $inscription->save();
-            }else{
-                //buscar si existe acompañante y actualizar
-                $accompanist = Accompanist::find($inscription->accompanist_id);
-                if($accompanist){
-                    //update
-                    $accompanist->accompanist_name = $request->accompanist_name;
-                    $accompanist->accompanist_typedocument = $request->accompanist_typedocument;
-                    $accompanist->accompanist_numdocument = $request->accompanist_numdocument;
-                    $accompanist->accompanist_solapin = $request->accompanist_solapin;
-                    $accompanist->save();
-                }
-            }
-
-            //subir archivo a la carpeta uploads/document_file
-            if($request->document_file){
-                $file = $request->file('document_file');
-                $fileName = str_replace(' ', '-', $file->getClientOriginalName());
-                $fileNameWithTimestamp = pathinfo($fileName, PATHINFO_FILENAME) . '_' . Carbon::now()->format('YmdHis') . '.' . $file->getClientOriginalExtension();
-                $file->storeAs('public/uploads/document_file', $fileNameWithTimestamp);
-                $inscription->document_file = $fileNameWithTimestamp;
-                $inscription->save();
-            }
-
-
-            return redirect()->route('inscriptions.show', ['inscription' => $id])->with('success', 'Inscripción actualizada con éxito');
-        }else{
-            return redirect()->route('inscriptions.index')->with('error', 'No tiene permisos para editar esta inscripción');
-        }
+        
     }
 
     /**
@@ -1000,65 +895,6 @@ class InscriptionController extends Controller
     }
 
 
-    public function repeatPayment($id){
-        //Validate if inscription exist and status is pending
-        $inscription = Inscription::findOrFail($id);
-        if ($inscription->status == 'Pending') {
-
-               $user = User::find($inscription->user_id);
-
-                $tipo_comprobante = '';
-                $direcion_comprobante = '';
-                if($inscription->invoice == 'yes'){
-                    $direcion_comprobante = $inscription->invoice_address;
-                } else {
-                    $direcion_comprobante = $user->address;
-                }
-
-                if($inscription->invoice_type == 'Factura'){
-                    $tipo_comprobante = 'F';
-                } else {
-                    $tipo_comprobante = 'B';
-                }
-
-                $params = [
-                    'forma_de_pago'        => '001',
-                    'dato_transferencia'   => '',
-                    'codigo_comercio'      => config('services.upch.commercial_code'),
-                    'codigo_tarifario'     => '',
-                    'moneda'               => 'USD',
-                    'monto'                => $inscription->total,
-                    'correo'               => $user->email,
-                    'nombre_completo'      => trim($user->name . ' ' . ($user->lastname ?? '')),
-                    'apellido_paterno'     => $user->second_lastname ?? '',
-                    'apellido_materno'     => '.',
-                    'codigo_pais'          => $user->phone_code,
-                    'numero_celular'       => $user->phone_number ?? '',
-                    'pais_origen'          => $user->residenceCountry->name ?? '',
-                    'tipo_documento'       => $user->document_type ?? '',
-                    'numero_documento'     => $user->document_number ?? '',
-                    'tipo_comprobante'     => $tipo_comprobante ?? '',
-                    'tipo_doc_comp'        => $inscription->invoice_type_document ?? '',
-                    'numero_doc_comp'      => $inscription->invoice_ruc ?? '',
-                    'razon_social'         => $inscription->invoice_social_reason ?? '',
-                    'direccion_fiscal'     => $inscription->invoice_address ?? '',
-                    'numero_inscripcion'   => $inscription->id,
-                    'ciudad'               => $user->city ?? '',
-                    'url_respuesta'        => config('services.upch.url_response_payment_data'),
-                ]; 
-
-                $url = config('services.upch.url_send_data').'/?' . http_build_query($params);
-
-                return redirect($url);
-            
-        } else {
-            return redirect()->route('inscriptions.index')->with('error', 'You can only repeat the payment for pending registrations.');
-        }
-
-
-    }
-
-
     public function paymentResult(Request $request)
     {
         $numeroInscripcion = $request->get('numero_inscripcion');
@@ -1081,8 +917,6 @@ class InscriptionController extends Controller
             'mensaje'        => $mensaje,
         ]);
     }
-
-
 
     public function updateStatus(Request $request, $id)
     {

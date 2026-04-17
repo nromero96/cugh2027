@@ -47,7 +47,7 @@
                                             {{ $inscription->created_at }}
                                             </div>
                                         </div>
-                                        <div class="col-md-8">
+                                        <div class="col-md-7">
                                             <h5>{{$inscription->user_name.' '.$inscription->user_lastname.' '.$inscription->user_second_lastname}}</h5>
                                             <p>{{$inscription->user_country}}</p>
                                             <p>{{$inscription->category_inscription_name}}</p>
@@ -77,13 +77,20 @@
 
                                         </div>
 
-                                        <div  class="col-md-2 text-end">
+                                        <div  class="col-md-3 text-end">
+                                            @if($inscription->status == 'Paid')
+                                                <a href="{{ route('inscriptions.show', $inscription->id)}}" class="btn btn-primary">
+                                                    VIEW <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                                            <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
+                                                        </svg></a>
+                                            @else
                                             <a href="{{ route('inscriptions.myinscription')}}" class="btn btn-primary ">
-                                                VIEW
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
+                                                CONTINUE <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                                                     <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
                                                 </svg>
                                             </a>
+                                            @endif
+
                                         </div>
                                     </div>
                                 </div>
@@ -170,6 +177,10 @@
                                                         </td>
                                                         <td>
                                                             {{$inscription->user_name.' '.$inscription->user_lastname.' '.$inscription->user_second_lastname}}
+                                                            @if($inscription->user_name == '' && $inscription->user_lastname == '' && $inscription->user_second_lastname == '')
+                                                                Unnamed
+                                                                <br><small class="text-info" style="font-size: 10px;">{{ $inscription->user_email }}</small>
+                                                            @endif
                                                         </td>
                                                         <td>
                                                             {{$inscription->user_country}}

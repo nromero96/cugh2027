@@ -44,6 +44,11 @@
             <script src="{{asset('plugins/src/table/datatable/button-ext/dataTables.buttons.min.js')}}"></script> --}}
             <script src="{{asset('assets/js/apps/users/list.js')}}"></script>
             @break
+
+        @case('usersedit')
+            {{-- Users --}}
+            <script src="{{ asset('assets/js/apps/users/edit.js') }}?v={{ config('app.version') }}"></script>
+            @break
         
         @case('works')
             {{-- Works --}}

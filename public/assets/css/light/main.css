@@ -212,6 +212,45 @@ html {
   border-radius: 3px;
 }
 
+.disabled-style .form-check-label {
+  opacity: 1 !important;
+}
+.disabled-style input {
+  opacity: 1 !important;
+}
+.disabled-style input:disabled, .disabled-style input[readonly] {
+  color: #000000 !important;
+}
+.disabled-style input::-moz-placeholder {
+  color: #e2e2e2;
+  opacity: 1;
+}
+.disabled-style input::placeholder {
+  color: #e2e2e2;
+  opacity: 1;
+}
+.disabled-style input:disabled::-moz-placeholder {
+  color: #e2e2e2;
+  opacity: 1;
+}
+.disabled-style input:disabled::placeholder {
+  color: #e2e2e2;
+  opacity: 1;
+}
+.disabled-style input::-webkit-input-placeholder {
+  color: #e2e2e2;
+}
+.disabled-style input::-moz-placeholder {
+  color: #e2e2e2;
+  opacity: 1;
+}
+.disabled-style input:-ms-input-placeholder {
+  color: #e2e2e2;
+}
+.disabled-style input::-ms-input-placeholder {
+  color: #e2e2e2;
+}
+
 body {
   color: #888ea8;
   height: 100%;

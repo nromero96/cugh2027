@@ -198,6 +198,52 @@ html {
   border-radius: 3px;
 }
 
+
+.disabled-style {
+  .form-check-label {
+    opacity: 1 !important;
+  }
+
+  input {
+    opacity: 1 !important;
+
+    &:disabled,
+    &[readonly] {
+      color: #000000 !important;
+    }
+
+    // 🔥 Placeholder normal
+    &::placeholder {
+      color: #e2e2e2;
+      opacity: 1;
+    }
+
+    // 🔥 Placeholder cuando está disabled
+    &:disabled::placeholder {
+      color: #e2e2e2;
+      opacity: 1;
+    }
+
+    // 🔧 Compatibilidad
+    &::-webkit-input-placeholder {
+      color: #e2e2e2;
+    }
+
+    &::-moz-placeholder {
+      color: #e2e2e2;
+      opacity: 1;
+    }
+
+    &:-ms-input-placeholder {
+      color: #e2e2e2;
+    }
+
+    &::-ms-input-placeholder {
+      color: #e2e2e2;
+    }
+  }
+}
+
 body {
   color: #888ea8;
   height: 100%;
