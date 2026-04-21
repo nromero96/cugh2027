@@ -17,6 +17,7 @@ class CreateMemberInstitutionsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('country')->nullable();
+            $table->boolean('is_active')->default(true);
         });
     }
 

@@ -14,6 +14,7 @@ class MemberInstitution extends Model
     protected $fillable = [
         'name',
         'country',
+        'is_active',
     ];
 
 }

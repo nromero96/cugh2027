@@ -311,6 +311,14 @@
             <link href="{{ asset('assets/css/dark/apps/notes.css') }}" rel="stylesheet" type="text/css" />
             @break
 
+
+        @case('member_institutions')
+            {{-- Users Create --}}
+            <link href="{{ asset('assets/css/light/forms/switches.css') }}" rel="stylesheet" type="text/css" />
+            <link href="{{ asset('assets/css/dark/forms/switches.css') }}" rel="stylesheet" type="text/css" />
+
+            @break
+
     
         @default
             <script>console.log('No custom Styles available.')</script>

@@ -31,6 +31,7 @@ use App\Http\Controllers\GafeteController;
 use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\CategoryInscriptionController;
 use App\Http\Controllers\CountryController;
+use App\Http\Controllers\MemberInstitutionController;
 
 
 use Illuminate\Support\Facades\Artisan;
@@ -208,6 +209,10 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Invitations
     Route::resource('invitations', InvitationController::class)->names('invitations');
+
+    //Member Institution
+    Route::resource('member-institutions', MemberInstitutionController::class)->names('member_institutions');
+    Route::post('member-institutions-update-status', [MemberInstitutionController::class, 'updateStatus'])->name('member_institutions_update_status');
 
 
     //::::Administracio::::://
