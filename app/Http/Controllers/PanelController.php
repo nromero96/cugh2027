@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Panel;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Country;
 
 class PanelController extends Controller
 {
@@ -15,7 +16,14 @@ class PanelController extends Controller
      */
     public function index()
     {
-        //
+        $data = [
+            'category_name' => 'panels',
+            'page_name' => 'panels',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+        ];
+
+        return view('pages.panels.index', $data);
     }
 
     /**
@@ -25,7 +33,16 @@ class PanelController extends Controller
      */
     public function create()
     {
-        //
+        $data = [
+            'category_name' => 'panels',
+            'page_name' => 'panels_create',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+        ];
+
+        $countries = Country::all();
+
+        return view('pages.panels.create', $data)->with('countries', $countries);
     }
 
     /**
