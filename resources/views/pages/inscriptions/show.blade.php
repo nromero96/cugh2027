@@ -411,6 +411,48 @@
 
                             </div>
 
+                            <div class="col-md-5">
+                                <div class="card px-2 py-2 @if($inscription->compr_pdf) @else d-none @endif" id="info_invoice">
+                                    <h6>Invoice</h6>
+                                    <div class="d-flex justify-content-center">
+                                        <a href="#" class="me-1 fw-bold">{{ $inscription->compr_pdf }}</a>
+                                        <a href="{{ asset('storage/uploads/invoices/'.$inscription->compr_pdf) }}" target="_blank" class="btn btn-light-primary">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>    
+                                        </a>
+                                        @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                            <form action="{{ route('inscriptions.deleteinvoice', ['id' => $inscription->id]) }}" method="POST">
+                                                @csrf
+                                                @method('PUT')
+                                                <button type="submit" class="btn btn-light-danger ms-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                    </div>
+                                </div>
+                                
+                                @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                <div class="card px-2 py-2 @if($inscription->compr_pdf) d-none @endif" id="form_upload_invoice">
+                                    <h6>Upload Invoice</h6>
+                                    <form action="{{ route('inscriptions.uploadinvoice', $inscription->id) }}" method="POST" enctype="multipart/form-data">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="file" class="form-control" name="compr_pdf" id="compr_pdf" accept="application/pdf" required>
+                                        <button type="submit" class="btn btn-primary w-100 mt-2">Upload Invoice</button>
+                                        @error('compr_pdf')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </form>
+                                </div>
+                                @endif
+
+
+                                
+                            </div>
+
                             <div class="col-md-12 mt-4">
                                 <div class="card">
                                     <div class="card-body disabled-style">

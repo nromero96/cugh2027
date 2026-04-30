@@ -157,6 +157,10 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::post('/inscriptions-request-comprobante/{id}', [InscriptionController::class, 'requestComprobante'])->name('inscriptions.requestcomprobante');
     Route::get('/exportar-excel-inscriptions', [InscriptionController::class, 'exportExcelInscriptions'])->name('inscriptions.exportexcel');
 
+    Route::put('upload-invoice-inscription/{id}', [InscriptionController::class, 'uploadInvoice'])->name('inscriptions.uploadinvoice');
+    Route::put('delete-invoice-inscription/{id}', [InscriptionController::class, 'deleteInvoice'])->name('inscriptions.deleteinvoice');
+
+
     Route::get('/countries-by-institution/{id?}', [CountryController::class, 'getByInstitution'])->name('countries.byInstitution');
 
 

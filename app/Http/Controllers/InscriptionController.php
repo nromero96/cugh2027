@@ -22,6 +22,8 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Mail;
 
+use Illuminate\Support\Str;
+
 ///DB
 use DB;
 
@@ -950,6 +952,62 @@ class InscriptionController extends Controller
             return redirect()->back()->with('error', 'Error updating status: ' . $e->getMessage());
         }
     }
+
+
+    public function uploadInvoice(Request $request, $id){
+
+        $request->validate([
+            'compr_pdf' => 'required|mimes:pdf|max:2048',
+        ]);
+
+        $inscription = Inscription::findOrFail($id);
+
+        $file = $request->file('compr_pdf');
+
+        // Nombre original
+        $originalName = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+        $extension = $file->getClientOriginalExtension();
+
+        // Limpiar nombre (opcional pero recomendado)
+        $fileName = Str::slug($originalName);
+
+        $finalName = $fileName . '.' . $extension;
+        $path = 'public/uploads/invoices';
+
+        // Evitar duplicados
+        $counter = 1;
+        while (Storage::exists($path . '/' . $finalName)) {
+            $finalName = $fileName . '-' . $counter . '.' . $extension;
+            $counter++;
+        }
+
+        // Guardar archivo
+        $file->storeAs($path, $finalName);
+
+        // Guardar SOLO el nombre en BD
+        $inscription->compr_pdf = $finalName;
+        $inscription->save();
+
+        return redirect()
+            ->route('inscriptions.show', ['inscription' => $id])
+            ->with('success', 'Invoice uploaded successfully.');
+    }
+
+    public function deleteInvoice(Request $request, $id){
+
+        $inscription = Inscription::findOrFail($id);
+
+        if ($inscription->compr_pdf) {
+            Storage::delete('public/uploads/invoices/' . $inscription->compr_pdf);
+            $inscription->compr_pdf = null;
+            $inscription->save();
+        }
+
+        return redirect()
+            ->route('inscriptions.show', ['inscription' => $id])
+            ->with('success', 'Invoice deleted successfully.');
+    }
+
 
     public function requestComprobante(Request $request, $id)
     {
