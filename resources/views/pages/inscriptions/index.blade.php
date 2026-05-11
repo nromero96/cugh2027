@@ -218,6 +218,10 @@
                                                             @elseif ($inscription->status == 'Refused')
                                                                 <span class="badge badge-light-danger">{{ $inscription->status .' ('.$textmp.')' }}</span>
                                                             @endif
+
+                                                            @if($inscription->compr_pdf)
+                                                                <a href="{{ asset('storage/uploads/invoices/' . $inscription->compr_pdf) }}" class="btn btn-success me-1 btn-sm px-2 py-1">INV.</a>
+                                                            @endif
                                                         </td>
                                                         <td>
                                                             {{ $inscription->created_at }}

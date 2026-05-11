@@ -46,6 +46,7 @@
                                         <th scope="col">{{__("ID")}}</th>
                                         <th scope="col">{{__("Nombre")}}</th>
                                         <th scope="col">{{__("Rol")}}</th>
+                                        <th class="text-center" scope="col">{{__("Fecha")}}</th>
                                         <th class="text-center" scope="col">{{__("Estado")}}</th>
                                         <th class="text-center" scope="col"></th>
                                     </tr>
@@ -71,6 +72,9 @@
                                                     <p class="mb-0 fw-bold">{{ $v }}</p>
                                                     @endforeach
                                                 @endif
+                                            </td>
+                                            <td class="text-center">
+                                                <small class="text-muted d-block">{{$item->created_at}}</small>
                                             </td>
                                             <td class="text-center">
                                                 <span class="badge {{$item->status == 'active' ? 'badge-light-success' : 'badge-light-danger'}} text-capitalize">{{$item->status}}</span>
