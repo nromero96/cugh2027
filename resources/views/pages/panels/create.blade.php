@@ -39,38 +39,62 @@
                             </div>
 
                             <!-- SUB THEMES -->
-                            <div class="mb-2">
-                                <label class="form-label text-muted mb-2">Sub Themes</label><br>
+                            <div class="mb-3">
+                                <label class="form-label text-muted mb-2">
+                                    Sub Themes <small>(Max 3 options)</small>
+                                </label><br>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes1" value="option1">
-                                    <label class="form-check-label" for="subthemes1">Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes1" value="option1">
+                                    <label class="form-check-label" for="subthemes1">
+                                        Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes2" value="option2">
-                                    <label class="form-check-label" for="subthemes2">Social Determinants of Health</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes2" value="option2">
+                                    <label class="form-check-label" for="subthemes2">
+                                        Social Determinants of Health
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes3" value="option3">
-                                    <label class="form-check-label" for="subthemes3">Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes3" value="option3">
+                                    <label class="form-check-label" for="subthemes3">
+                                        Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes4" value="option4">
-                                    <label class="form-check-label" for="subthemes4">Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes4" value="option4">
+                                    <label class="form-check-label" for="subthemes4">
+                                        Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes5" value="option5">
-                                    <label class="form-check-label" for="subthemes5">Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes5" value="option5">
+                                    <label class="form-check-label" for="subthemes5">
+                                        Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes6" value="option6">
-                                    <label class="form-check-label" for="subthemes6">Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes6" value="option6">
+                                    <label class="form-check-label" for="subthemes6">
+                                        Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions
+                                    </label>
                                 </div>
+
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input" type="Checkbox" name="subthemes" id="subthemes7" value="option7">
-                                    <label class="form-check-label" for="subthemes7">Other</label>
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes7" value="other">
+                                    <label class="form-check-label" for="subthemes7">
+                                        Other
+                                    </label>
                                 </div>
-                                <div class="form-check form-check-block d-none" id="subthemesother">
-                                    <input type="text" class="form-control" placeholder="Please specify">
+
+                                <div class="mt-0 d-none" id="subthemesother">
+                                    <input type="text" class="form-control" name="subthemes_other" placeholder="Please specify">
                                 </div>
                             </div>
 
@@ -250,6 +274,38 @@ function addSpeaker() {
 
   document.getElementById('speakers').appendChild(div);
 }
+</script>
+
+<script>
+    const checkboxes = document.querySelectorAll('.subtheme-checkbox');
+    const otherCheckbox = document.getElementById('subthemes7');
+    const otherInput = document.getElementById('subthemesother');
+    const otherInputValue = otherInput.querySelector('input');
+
+
+    checkboxes.forEach((checkbox) => {
+        checkbox.addEventListener('change', function () {
+
+            // Limitar máximo 3 opciones
+            const checked = document.querySelectorAll('.subtheme-checkbox:checked');
+
+            if (checked.length > 3) {
+                this.checked = false;
+                alert('You can only select up to 3 options.');
+                return;
+            }
+
+            // Mostrar/Ocultar input de Other
+            if (otherCheckbox.checked) {
+                otherInput.classList.remove('d-none');
+                //clear inputs
+                
+            } else {
+                otherInput.classList.add('d-none');
+                otherInputValue.value = '';
+            }
+        });
+    });
 </script>
 
 @endsection
