@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Registration Created</title>
+    <title>Registration Confirmation</title>
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
     <br><br>

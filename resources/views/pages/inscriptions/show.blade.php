@@ -395,7 +395,13 @@
                                             </div>
                                         </form>
                                     </div>
-
+                                    {{-- <form class="row" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="col-md-12">
+                                            <button type="submit" class="btn btn-success w-100 mb-2" name="action" value="Confirmed">{{ __('Confirmed') }}</button>
+                                        </div>
+                                    </form> --}}
                                 @endif
 
                                 <div class="card p-2">

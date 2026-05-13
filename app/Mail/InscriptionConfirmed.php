@@ -8,7 +8,7 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 use App\Models\Country;
 
-class InscriptionCreated extends Mailable
+class InscriptionConfirmed extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -17,7 +17,6 @@ class InscriptionCreated extends Mailable
      *
      * @return void
      */
-
 
     public $userinfo;
     public $datainscription;
@@ -39,8 +38,7 @@ class InscriptionCreated extends Mailable
      */
     public function build()
     {
-
-        return $this->view('emails.inscription_created')
-        ->subject('PRE REGISTRATION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country_name.')');
+        return $this->view('emails.inscription_confirmed')
+        ->subject('CONFIRMED REGISTRATION # '.$this->datainscription->id.': '.$this->userinfo->name.' '.$this->userinfo->lastname.' ('.$this->userinfo->country_name.')');
     }
 }
