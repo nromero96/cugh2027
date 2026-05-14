@@ -13,7 +13,7 @@
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 mb-2 col-12">
                                 <h4>
-                                    Panel Information
+                                    Panel Submission
                                 </h4>
                             </div>
                         </div>
@@ -24,24 +24,25 @@
 
                             <!-- LANGUAGES -->
                             <div class="mb-2">
-                                <label class="form-label text-muted mb-2">Languages <small>(Please indicate the language in which you will present the panel.)</small></label><br>
+                                <label class="form-label text-muted mb-2">Language <small>(Please indicate the language in which you will present the panel.)</small></label><br>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio1" value="option1">
-                                    <label class="form-check-label" for="inlineRadio1">English</label>
+                                    <input class="form-check-input" type="radio" name="language" id="languageRadio1" value="English">
+                                    <label class="form-check-label" for="languageRadio1">English</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio2" value="option2">
-                                    <label class="form-check-label" for="inlineRadio2">Spanish</label>
+                                    <input class="form-check-input" type="radio" name="language" id="languageRadio2" value="Spanish">
+                                    <label class="form-check-label" for="languageRadio2">Spanish</label>
                                 </div>
                                 <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="inlineRadioOptions" id="inlineRadio3" value="option3">
-                                    <label class="form-check-label" for="inlineRadio3">PPT Slides in English and Oral Presentation in Spanish</label>
+                                    <input class="form-check-input" type="radio" name="language" id="languageRadio3" value="PPT Slides in English and Oral Presentation in Spanish">
+                                    <label class="form-check-label" for="languageRadio3">PPT Slides in English and Oral Presentation in Spanish</label>
+                                </div>
                             </div>
 
                             <!-- SUB THEMES -->
                             <div class="mb-3">
                                 <label class="form-label text-muted mb-2">
-                                    Sub Themes <small>(Max 3 options)</small>
+                                    Sub-Themes <small>(Max 3 options)</small>
                                 </label><br>
 
                                 <div class="form-check form-check-block">
@@ -100,35 +101,35 @@
 
                             <!-- TITLE -->
                             <div class="mb-3">
-                                <label class="form-label text-muted mb-0">Title (max 15 words)</label>
-                                <input type="text" class="form-control" maxlength="150">
+                                <label class="form-label text-muted mb-0"><b>TITLE</b> (max 15 words)</label>
+                                <input type="text" class="form-control" name="title" maxlength="150">
                             </div>
 
                             <!-- POINT OF CONTACT -->
                             <h6>Contact person</h6>
                             <div class="row">
                                 <div class="col-md-2 mb-3">
-                                    <label class="form-label text-muted mb-0">Title</label>
-                                    <select class="form-select">
-                                    <option>Mr.</option>
-                                    <option>Mrs.</option>
-                                    <option>Ms.</option>
-                                    <option>Dr.</option>
-                                    <option>Prof.</option>
+                                    <label class="form-label text-muted mb-0">Salutation</label>
+                                    <select class="form-select" name="contact_salutation">
+                                        <option>Mr.</option>
+                                        <option>Mrs.</option>
+                                        <option>Ms.</option>
+                                        <option>Dr.</option>
+                                        <option>Prof.</option>
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label text-muted mb-0">Name</label>
+                                    <label class="form-label text-muted mb-0" name="contact_name">Name</label>
                                     <input type="text" class="form-control">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted mb-0">Institution</label>
+                                    <label class="form-label text-muted mb-0" name="contact_institution">Institution</label>
                                     <input type="text" class="form-control">
                                 </div>
                                 <div class="col-md-2 mb-3">
                                     <label class="form-label text-muted mb-0">Country</label>
-                                    <select class="form-select" name="country" id="country">
+                                    <select class="form-select" name="contact_country" id="country">
                                         <option value="">Select...</option>
                                         @foreach($countries as $country)
                                             <option value="{{ $country->id }}">{{ $country->name }}</option>
@@ -136,7 +137,7 @@
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
-                                    <label class="form-label text-muted mb-0">Phone <small>(Country code & number)</small></label>
+                                    <label class="form-label text-muted mb-0">Cell Phone <small>(Country code & number)</small></label>
                                     <input type="text" class="form-control">
                                 </div>
                                 <div class="col-md-6 mb-3">
@@ -252,7 +253,7 @@ function addSpeaker() {
   div.innerHTML = `
     <div class="d-flex justify-content-between align-items-center mb-2">
       <h6 class="mb-0">Speaker ${speakerCount}</h6>
-      <button type="button" class="btn btn-sm btn-danger" onclick="removeSpeaker(this)">Eliminar</button>
+      <button type="button" class="btn btn-sm btn-danger" onclick="removeSpeaker(this)">Delete</button>
     </div>
     <div class="row">
       <div class="col-md-3 mb-2">
