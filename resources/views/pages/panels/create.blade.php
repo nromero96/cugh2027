@@ -19,180 +19,7 @@
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
-                        <form>
-                            @csrf
-
-                            <!-- LANGUAGES -->
-                            <div class="mb-2">
-                                <label class="form-label text-muted mb-2">Language <small>(Please indicate the language in which you will present the panel.)</small></label><br>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="language" id="languageRadio1" value="English">
-                                    <label class="form-check-label" for="languageRadio1">English</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="language" id="languageRadio2" value="Spanish">
-                                    <label class="form-check-label" for="languageRadio2">Spanish</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input" type="radio" name="language" id="languageRadio3" value="PPT Slides in English and Oral Presentation in Spanish">
-                                    <label class="form-check-label" for="languageRadio3">PPT Slides in English and Oral Presentation in Spanish</label>
-                                </div>
-                            </div>
-
-                            <!-- SUB THEMES -->
-                            <div class="mb-3">
-                                <label class="form-label text-muted mb-2">
-                                    Sub-Themes <small>(Max 3 options)</small>
-                                </label><br>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes1" value="option1">
-                                    <label class="form-check-label" for="subthemes1">
-                                        Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes2" value="option2">
-                                    <label class="form-check-label" for="subthemes2">
-                                        Social Determinants of Health
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes3" value="option3">
-                                    <label class="form-check-label" for="subthemes3">
-                                        Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes4" value="option4">
-                                    <label class="form-check-label" for="subthemes4">
-                                        Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes5" value="option5">
-                                    <label class="form-check-label" for="subthemes5">
-                                        Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes6" value="option6">
-                                    <label class="form-check-label" for="subthemes6">
-                                        Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions
-                                    </label>
-                                </div>
-
-                                <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes7" value="other">
-                                    <label class="form-check-label" for="subthemes7">
-                                        Other
-                                    </label>
-                                </div>
-
-                                <div class="mt-0 d-none" id="subthemesother">
-                                    <input type="text" class="form-control" name="subthemes_other" placeholder="Please specify">
-                                </div>
-                            </div>
-
-                            <!-- TITLE -->
-                            <div class="mb-3">
-                                <label class="form-label text-muted mb-0"><b>TITLE</b> (max 15 words)</label>
-                                <input type="text" class="form-control" name="title" maxlength="150">
-                            </div>
-
-                            <!-- POINT OF CONTACT -->
-                            <h6>Contact person</h6>
-                            <div class="row">
-                                <div class="col-md-2 mb-3">
-                                    <label class="form-label text-muted mb-0">Salutation</label>
-                                    <select class="form-select" name="contact_salutation">
-                                        <option>Mr.</option>
-                                        <option>Mrs.</option>
-                                        <option>Ms.</option>
-                                        <option>Dr.</option>
-                                        <option>Prof.</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label text-muted mb-0" name="contact_name">Name</label>
-                                    <input type="text" class="form-control">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted mb-0" name="contact_institution">Institution</label>
-                                    <input type="text" class="form-control">
-                                </div>
-                                <div class="col-md-2 mb-3">
-                                    <label class="form-label text-muted mb-0">Country</label>
-                                    <select class="form-select" name="contact_country" id="country">
-                                        <option value="">Select...</option>
-                                        @foreach($countries as $country)
-                                            <option value="{{ $country->id }}">{{ $country->name }}</option>
-                                        @endforeach
-                                    </select>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label class="form-label text-muted mb-0">Cell Phone <small>(Country code & number)</small></label>
-                                    <input type="text" class="form-control">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label class="form-label text-muted mb-0">Email</label>
-                                    <input type="email" class="form-control">
-                                </div>
-                            </div>
-
-                            <!-- MODERATOR -->
-                            <h6>Moderator</h6>
-                            <div class="row">
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label text-muted mb-0">Name</label>
-                                <input type="text" class="form-control">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label text-muted mb-0">Position</label>
-                                <input type="text" class="form-control">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label text-muted mb-0">Institution</label>
-                                <input type="text" class="form-control">
-                            </div>
-                            <div class="col-md-3 mb-3">
-                                <label class="form-label text-muted mb-0">Country</label>
-                                <select class="form-select" name="country" id="country">
-                                    <option value="">Select...</option>
-                                    @foreach($countries as $country)
-                                        <option value="{{ $country->id }}">{{ $country->name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            </div>
-
-                            <!-- SPEAKERS -->
-                            <h6>Speakers</h6>
-                            <div id="speakers"></div>
-
-                            <button type="button" class="btn btn-secondary mb-3" onclick="addSpeaker()">Add Speaker</button>
-
-                            <!-- DESCRIPTION -->
-                            <div class="mb-3">
-                            <label class="form-label text-muted mb-0">Panel Description (max 2000 chars)</label>
-                            <textarea class="form-control" maxlength="2000" rows="5"></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                            <label class="form-label text-muted mb-0">Learning Objectives (max 2000 chars)</label>
-                            <textarea class="form-control" maxlength="2000" rows="5"></textarea>
-                            </div>
-
-                            <div class="col-12 text-end">
-                                <button type="submit" name="action" class="btn btn-primary" value="submitted" disabled>Send for Review</button>
-                            </div>
-                        </form>
+                        
                     </div>
                 </div>
             </div>
@@ -257,13 +84,13 @@ function addSpeaker() {
     </div>
     <div class="row">
       <div class="col-md-3 mb-2">
-        <input type="text" class="form-control" placeholder="Name">
+        <input type="text" class="form-control" name="speakers[${speakerCount}][name]" placeholder="Full Name">
       </div>
       <div class="col-md-3 mb-2">
-        <input type="text" class="form-control" placeholder="Position">
+        <input type="text" class="form-control" name="speakers[${speakerCount}][position]" placeholder="Position">
       </div>
       <div class="col-md-3 mb-2">
-        <input type="text" class="form-control" placeholder="Institution">
+        <input type="text" class="form-control" name="speakers[${speakerCount}][institution]" placeholder="Institution">
       </div>
       <div class="col-md-3 mb-2">
         <select class="form-select" name="speakers[${speakerCount}][country]">

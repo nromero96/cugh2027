@@ -97,6 +97,10 @@ Route::get('/password-recovery', function () {
 //Workshops online
 Route::get('workshops-register', [WorkshopController::class, 'registerWorkshop'])->name('workshops.registerworkshop');
 
+//Panel
+Route::get('panel-submission', [PanelController::class, 'formOnline'])->name('panels.formonline');
+Route::post('panel-store', [PanelController::class, 'storeOnline'])->name('panels.storeonline');
+
 //Programs
 Route::get('programa-preliminar', [ProgramController::class, 'showOnlinePrograms'])->name('onlineprograms.preliminary');
 Route::get('programa-general', [ProgramController::class, 'showOnlinePrograms'])->name('onlineprograms');
