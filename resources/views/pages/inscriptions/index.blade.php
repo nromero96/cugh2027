@@ -62,13 +62,15 @@
                                                 @endphp
 
                                                 @if($inscription->status == 'Paid')
+                                                    <span class="badge badge-light-secondary">{{ $inscription->status .' ('.$payment_method.')' }}</span>
+                                                @elseif ($inscription->status == 'Confirmed')
                                                     <span class="badge badge-light-success">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Processing')
                                                     <span class="badge badge-light-info">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Pending')
                                                     <span class="badge badge-light-warning">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                     @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0) )
-                                                        <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pagar")}}</a>
+                                                        <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pay")}}</a>
                                                     @endif
                                                 @elseif ($inscription->status == 'Refused')
                                                     <span class="badge badge-light-danger">{{ $inscription->status .' ('.$payment_method.')' }}</span>
@@ -78,7 +80,7 @@
                                         </div>
 
                                         <div  class="col-md-3 text-end">
-                                            @if($inscription->status == 'Paid')
+                                            @if($inscription->status == 'Paid' || $inscription->status == 'Processing' || $inscription->status == 'Confirmed')
                                                 <a href="{{ route('inscriptions.show', $inscription->id)}}" class="btn btn-primary">
                                                     VIEW <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-right" viewBox="0 0 16 16">
                                                             <path fill-rule="evenodd" d="M4.646 1.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 0 .708l-6 6a.5.5 0 0 1-.708-.708L10.293 8 4.646 2.354a.5.5 0 0 1 0-.708"/>
@@ -204,6 +206,8 @@
                                                             @endphp
 
                                                             @if($inscription->status == 'Paid')
+                                                                <span class="badge badge-light-secondary">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                            @elseif ($inscription->status == 'Confirmed')
                                                                 <span class="badge badge-light-success">{{ $inscription->status .' ('.$textmp.')' }}</span>
                                                             @elseif ($inscription->status == 'Processing')
                                                                 <span class="badge badge-light-info">{{ $inscription->status .' ('.$textmp.')' }}</span>

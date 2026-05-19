@@ -6,10 +6,6 @@
 </head>
 <body style="margin:0; padding:0; background-color:#f4f6f8; font-family: Arial, sans-serif;">
     <br><br>
-    <p style="text-align: center;">
-        <img src="{{ asset('assets/img/logo2-mail.png') }}" alt="Logo CUGH" style="width: 130px; max-width: 130px; height: auto; display: block;">
-    </p>
-    
     <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f4f6f8; padding:30px 0;">
         <tr>
             <td align="center">
@@ -25,6 +21,12 @@
                             <p style="color:#F2A413; margin:8px 0 0 0; font-size:15px; font-weight:bold;">
                                 IN PROCESS
                             </p>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td style="padding:25px; text-align:center;">
+                            <img src="https://my.cughlima2027.org/assets/img/logo2-mail.png" alt="Logo CUGH" style="width: 120px; max-width: 120px; height: auto; display: block; margin: 0 auto;">
                         </td>
                     </tr>
 

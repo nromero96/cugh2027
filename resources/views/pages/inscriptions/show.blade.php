@@ -373,7 +373,7 @@
 
                             <div class="col-md-7">
 
-                                @if ($inscription->status_compr != 'Informado' && (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')))
+                                @if ($inscription->status != 'Confirmed' && (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')))
                                     <div class="card px-3 py-3 bg-primary mb-2 actionstatus">
                                         <label class="form-label mb-1 text-white"><span class="fw-bold">{{ __('Estado de la inscripción') }}</span>: <span>({{ $inscription->status }})</span></label>
                                         <form class="row" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
@@ -395,13 +395,19 @@
                                             </div>
                                         </form>
                                     </div>
-                                    {{-- <form class="row" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
+
+                                    @if($inscription->status == 'Paid')
+                                    <form class="row confirm-form" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
                                         @csrf
                                         @method('PUT')
                                         <div class="col-md-12">
-                                            <button type="submit" class="btn btn-success w-100 mb-2" name="action" value="Confirmed">{{ __('Confirmed') }}</button>
+                                            <input type="hidden" name="note" value="Confirmed">
+                                            <input type="hidden" name="action" value="Confirmed">
+                                            <button type="submit" class="btn btn-success w-100 mb-2 submit-btn" value="Confirmed">{{ __('Confirmed') }}</button>
                                         </div>
-                                    </form> --}}
+                                    </form>
+                                    @endif
+
                                 @endif
 
                                 <div class="card p-2">
@@ -1068,5 +1074,34 @@
     </div>
 
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    document.querySelectorAll('.confirm-form').forEach(function(form) {
+
+        form.addEventListener('submit', function(e) {
+
+            // Mostrar alerta de confirmación
+            const confirmAction = confirm('Are you sure you want to confirm this inscription?');
+
+            // Si cancela
+            if (!confirmAction) {
+                e.preventDefault();
+                return;
+            }
+
+            // Bloquear botón para evitar doble click
+            const button = form.querySelector('.submit-btn');
+
+            button.disabled = true;
+            button.innerHTML = 'Processing...';
+
+        });
+
+    });
+
+});
+</script>
 
 @endsection

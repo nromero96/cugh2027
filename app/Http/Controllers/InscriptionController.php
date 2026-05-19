@@ -61,7 +61,7 @@ class InscriptionController extends Controller
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
                 ->leftJoin('countries', 'users.country', '=', 'countries.id')
                 ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country', 'users.email as user_email')
-                ->where('inscriptions.status', '!=', 'Rechazado')
+                ->where('inscriptions.status', '!=', 'Refused')
                 ->where(function ($query) use ($search) {
                     if(strcasecmp($search, 'pendiente pagar') === 0){
                         $query->where('inscriptions.status', 'Pending')
@@ -167,7 +167,7 @@ class InscriptionController extends Controller
             $inscriptions = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
                 ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'users.country as user_country')
-                ->where('inscriptions.status', 'Rechazado')
+                ->where('inscriptions.status', 'Refused')
                 ->orderBy('inscriptions.id', 'desc')
                 ->get();
         } else {
@@ -175,7 +175,7 @@ class InscriptionController extends Controller
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
                 ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'users.country as user_country')
                 ->where('inscriptions.user_id', $iduser)
-                ->where('inscriptions.status', 'Rechazado')
+                ->where('inscriptions.status', 'Refused')
                 ->orderBy('inscriptions.id', 'desc')
                 ->get();
         }
@@ -926,6 +926,8 @@ class InscriptionController extends Controller
             // Obtener la inscripción actual
             $inscription = Inscription::findOrFail($id);
 
+            Log::info($request->all());
+
             // Validación de datos (ajusta estas reglas según tus necesidades)
             $validatedData = $request->validate([
                 'action' => 'required',
@@ -945,6 +947,26 @@ class InscriptionController extends Controller
                 'status' => $validatedData['action'],
                 'updated_at' => now(),
             ]);
+
+
+            if($inscription->status == 'Confirmed'){
+
+                // Enviar correo
+                $user = User::find($inscription->user_id);
+                $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
+                    ->where('inscriptions.id', $inscription->id)
+                    ->first();
+                $data = [
+                    'user' => $user,
+                    'datainscription' => $datainscription,
+                ];
+
+                Mail::to($user->email)
+                ->cc(config('services.correonotificacion.inscripcion'))
+                ->send(new \App\Mail\InscriptionConfirmed($data));
+            }
+
 
             return redirect()->route('inscriptions.show', ['inscription' => $id])->with('success', 'Updated status successfully.');
         } catch (\Exception $e) {

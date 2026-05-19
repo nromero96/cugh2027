@@ -20,10 +20,10 @@ var inscriplist = $('#inscrip-list').DataTable({
 function getDatatableButtons() {
     var buttons = [
         {
-            text: 'Nuevo',
+            text: 'Regresar',
             className: 'btn btn-secondary',
             action: function(e, dt, node, config) {
-                window.open(baseurl + '/inscriptions/create', '_self');
+                window.open(baseurl + '/inscriptions/', '_self');
             }
         }
     ];
