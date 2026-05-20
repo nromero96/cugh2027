@@ -58,8 +58,15 @@
                                     <td><strong>US$ {{ $datainscription->total }}</strong></td>
                                 </tr>
                                 <tr>
+                                    @php 
+                                        $card_number = '';
+                                        if (isset($datainscription->payment_card_number)) {
+                                            $card_number = ' - <small style="color:#5e5e5e;">(' . $datainscription->payment_card_number . ')</small>';
+                                        }
+                                    @endphp
+
                                     <td><strong>Payment Method</strong></td>
-                                    <td>{{ $datainscription->payment_method }} {{ $datainscription->payment_card_number }}</td>
+                                    <td>{!! $datainscription->payment_method . $card_number !!}</td>
                                 </tr>
                                 <tr style="background-color:#f9f9f9;">
                                     <td><strong>Status</strong></td>
