@@ -926,8 +926,6 @@ class InscriptionController extends Controller
             // Obtener la inscripción actual
             $inscription = Inscription::findOrFail($id);
 
-            Log::info($request->all());
-
             // Validación de datos (ajusta estas reglas según tus necesidades)
             $validatedData = $request->validate([
                 'action' => 'required',
@@ -954,7 +952,8 @@ class InscriptionController extends Controller
                 // Enviar correo
                 $user = User::find($inscription->user_id);
                 $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
+                    ->leftJoin('payments', 'inscriptions.id', '=', 'payments.inscription_id')
+                    ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'payments.card_number as payment_card_number')
                     ->where('inscriptions.id', $inscription->id)
                     ->first();
                 $data = [

@@ -59,7 +59,7 @@
                                 </tr>
                                 <tr>
                                     <td><strong>Payment Method</strong></td>
-                                    <td>{{ $datainscription->payment_method }}</td>
+                                    <td>{{ $datainscription->payment_method }} {{ $datainscription->payment_card_number }}</td>
                                 </tr>
                                 <tr style="background-color:#f9f9f9;">
                                     <td><strong>Status</strong></td>
@@ -106,7 +106,7 @@
                             <p style="text-align: center;"><strong>Conference Venue:</strong></p>
                             <p style="text-align: center;"><strong>Swissôtel Lima</strong><br>Av. Santo Toribio 173 – Vía Central 150<br>Centro Empresarial Real<br>San Isidro, Lima, Peru</p>
                             <br>
-                            <p style="text-align: center;"><strong style="color:blue;">Registration opens Friday, February 24th, 2027</strong></p>
+                            <p style="text-align: center;"><strong style="color:blue;">Registration opens Friday, February 24th, 2027, 3:00 pm</strong></p>
                         </td>
                     </tr>
                 </table>
