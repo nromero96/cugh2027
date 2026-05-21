@@ -60,8 +60,12 @@
                                 <tr>
                                     @php 
                                         $card_number = '';
-                                        if (isset($datainscription->payment_card_number)) {
-                                            $card_number = ' - <small style="color:#5e5e5e;">(' . $datainscription->payment_card_number . ')</small>';
+
+                                        if (!empty($datainscription->payment_card_number)) {
+
+                                            $last4 = substr($datainscription->payment_card_number, -4);
+
+                                            $card_number = ' <small style="color:#5e5e5e;">(****' . $last4 . ')</small>';
                                         }
                                     @endphp
 
