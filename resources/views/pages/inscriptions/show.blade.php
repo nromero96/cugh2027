@@ -381,6 +381,7 @@
                                             @method('PUT')
                                             <div class="col-md-4">
                                                 <select name="action" id="action" class="form-control">
+                                                    <option value="Draft" @if ($inscription->status == 'Draft') selected @endif >{{ __('Draft') }}</option>
                                                     <option value="Pending" @if ($inscription->status == 'Pending') selected @endif >{{ __('Pending') }}</option>
                                                     <option value="Processing" @if ($inscription->status == 'Processing') selected @endif>{{ __('Processing') }}</option>
                                                     <option value="Paid" @if ($inscription->status == 'Paid') selected @endif>{{ __('Paid') }}</option>
