@@ -153,6 +153,11 @@
                                         <div class="text-center">
                                             <p class="mb-0"><a href="/password-recovery" class="text-info">Forgot your password?</a></p>
                                         </div>
+
+                                        <small class="position-fixed bottom-0 end-0 p-2 text-muted">
+                                            V. {{ config('app.version') }}
+                                        </small>
+                                        
                                     </div>
 
                                     @if (session('status'))

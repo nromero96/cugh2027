@@ -146,6 +146,11 @@
                                         <div class="text-center">
                                             <p class="mb-0">Don't have an account? <a href="{{ route('register') }}" class="text-warning">Register here</a></p>
                                         </div>
+
+                                        <small class="position-fixed bottom-0 end-0 p-2 text-muted">
+                                            V. {{ config('app.version') }}
+                                        </small>
+
                                     </div>
 
                                     @if (session('status'))
@@ -159,8 +164,6 @@
                                             }, 5000); // 10000 milisegundos = 10 segundos
                                         </script>
                                     @endif
-
-
 
                                 </div>
                             </div>
