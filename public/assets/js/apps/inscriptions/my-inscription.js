@@ -265,6 +265,8 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById('invoice_type_boleta').checked = true;
             document.getElementById('invoice_type_factura').checked = false;
         }
+
+        handleInvoiceTypeChange(document.querySelector('input[name="invoice_type"]:checked'));
     }
 
     document.querySelectorAll('.inputNumber').forEach(input => {
@@ -325,45 +327,62 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
-    //Change action invoice_type
-    document.querySelectorAll('input[name="invoice_type"]').forEach(function (radio) {
+    // Eventos
+    document.querySelectorAll('input[name="invoice_type"]').forEach(radio => {
+
         radio.addEventListener('change', function () {
-            const label_social_reason = document.getElementById('lbl_invoice_social_reason');
-            const label_invoice_address = document.getElementById('lbl_invoice_address');
-            const selectInvoiceDocument = document.getElementById('invoice_type_document');
-
-            if (this.value === 'Factura') {
-                label_social_reason.textContent = 'Entity Name';
-                label_invoice_address.textContent = 'Business Address';
-                    
-                Array.from(selectInvoiceDocument.options).forEach(option => {
-
-                    // Solo RUC habilitado
-                    option.disabled = option.value !== 'RUC';
-
-                    // Seleccionar RUC automáticamente
-                    if (option.value === 'RUC') {
-                        option.selected = true;
-                    }
-                });
-
-            } else {
-                label_social_reason.textContent = 'Name/Entity';
-                label_invoice_address.textContent = 'Address';
-
-                // Habilitar todas las opciones menus RUC
-                Array.from(selectInvoiceDocument.options).forEach(option => {
-                    option.disabled = option.value === 'RUC';
-                });
-
-                // Si estaba RUC seleccionado, volver a "Select..."
-                if (selectInvoiceDocument.value === 'RUC') {
-                    selectInvoiceDocument.selectedIndex = 0;
-                }
-
-            }
+            handleInvoiceTypeChange(this);
         });
+
+        // Ejecutar automáticamente si ya viene seleccionado
+        if (radio.checked) {
+            handleInvoiceTypeChange(radio);
+        }
     });
+
+    function handleInvoiceTypeChange(radio){
+        const labelSocialReason = document.getElementById('lbl_invoice_social_reason');
+        const labelInvoiceAddress = document.getElementById('lbl_invoice_address');
+        const selectInvoiceDocument = document.getElementById('invoice_type_document');
+
+        if (radio.value === 'Factura') {
+
+            labelSocialReason.textContent = 'Entity Name';
+            labelInvoiceAddress.textContent = 'Business Address';
+
+            Array.from(selectInvoiceDocument.options).forEach(option => {
+
+                // Solo RUC habilitado
+                option.disabled = option.value !== 'RUC';
+
+                // Seleccionar RUC automáticamente
+                if (option.value === 'RUC') {
+                    option.selected = true;
+                }
+            });
+
+        } else {
+
+            labelSocialReason.textContent = 'Name/Entity';
+            labelInvoiceAddress.textContent = 'Address';
+
+            // Habilitar todas menos RUC
+            Array.from(selectInvoiceDocument.options).forEach(option => {
+                option.disabled = option.value === 'RUC';
+            });
+
+            // Si estaba RUC seleccionado, volver a "Select..."
+            if (selectInvoiceDocument.value === 'RUC') {
+                selectInvoiceDocument.selectedIndex = 0;
+            }
+        }
+
+    }
+
+
+    document.getElementById('invoice_type_document').addEventListener('change', function () {
+        document.getElementById('invoice_ruc').value = '';
+    })
 
 
     function toggleOtherCheckbox(checkboxSelector, inputId) {
@@ -562,6 +581,15 @@ const inputInvoice = document.querySelectorAll('input[type="radio"][name="invoic
 const inputInvoiceRuc = document.getElementById('invoice_ruc');
 const inputInvoiceSocialReason = document.getElementById('invoice_social_reason');
 const inputInvoiceAddress = document.getElementById('invoice_address');
+
+//al escribir en inputInvoiceRuc si es RUC o DNI acepted numbers
+inputInvoiceRuc.addEventListener('input', function() {
+    const invoice_type_document = document.getElementById('invoice_type_document').value;
+    if (invoice_type_document === 'RUC' || invoice_type_document === 'DNI') {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    }
+});
+
 
 inputInvoice.forEach(radio => {
     radio.addEventListener('change', handleInvoice);
