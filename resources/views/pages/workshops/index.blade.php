@@ -28,7 +28,6 @@
                                         <th scope="col">Institution</th>
                                         <th scope="col">E-mail</th>
                                         <th scope="col">Phone</th>
-                                        <th scope="col">{{__("")}}</th>
                                         <th scope="col">Date</th>
                                     </tr>
                                 </thead>
@@ -36,32 +35,23 @@
                                     @foreach ($workshops as $workshop)
                                         <tr>
                                             <td>
+                                                <a href="{{route('workshops.show', $workshop->id)}}" class="text-primary">
                                                 {{$workshop->id}}
+                                                </a>
                                             </td>
                                             <td>
-                                                {{$workshop->full_name}}
+                                                {{$workshop->lead_name}}
                                             </td>
                                             <td>
-                                                {{$workshop->country}}
+                                                {{$workshop->lead_institution}}
                                             </td>
                                             <td>
-                                                {{$workshop->email}}
+                                                {{$workshop->lead_email}}
                                             </td>
                                             <td>
-                                                +{{$workshop->phone_code}} {{$workshop->phone}}
+                                                +{{$workshop->lead_phone}}
                                             </td>
                                             
-                                            <td class="text-center">
-                                                <div class="btn-group">
-                                                    <a href="{{ asset('storage/uploads/invitation_letters').'/'. $workshop->file_name}}" target="_blank" class="badge badge-light-primary text-start me-2 action-edit bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Editar") }}">
-                                                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-                                                            <path d="M13 2v7h7"></path>
-                                                        </svg>
-                                                    </a>
-                                                </div>
-                                            </td>
-
                                             <td class="text-center">
                                                 {{$workshop->created_at}}
                                             </td>

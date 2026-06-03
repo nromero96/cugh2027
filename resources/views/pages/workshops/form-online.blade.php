@@ -74,11 +74,36 @@
     <img src="https://cughlima2027.org/wp-content/uploads/2026/04/LogoCayetanoFullColor.png" alt="CUGH Logo" class="hlg-3">
   </div>
 
+  {{-- Mensaje éxito --}}
+  @if(session('success'))
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ session('success') }}
+
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+  @endif
+
+  {{-- Errores --}}
+  @if ($errors->any())
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+
+          <strong>Please correct the following errors:</strong>
+
+          <ul class="mb-0 mt-2">
+              @foreach ($errors->all() as $error)
+                  <li>{{ $error }}</li>
+              @endforeach
+          </ul>
+
+          <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
+  @endif
+
   <h2 class="mb-0 text-center fw-bold">Pre-Conference Workshop Application</h2>
   <p class="text-center text-muted mb-4">Apply now to organize a workshop on Thursday, February 25ᵗʰ, 2027, at the Swissôtel, Lima, Peru.</p>
 
-  <form id="workshopForm">
-
+  <form id="workshopForm" action="{{ route('workshops.storeworkshop') }}" method="POST" enctype="multipart/form-data">
+    @csrf
     <!-- 1. Lead Contact Person -->
     <div class="card section-card">
       <h6 class="card-header bg-primary text-white fw-bold py-3">Lead Contact Person</h6>
@@ -201,11 +226,11 @@
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Will the applying party be the lead contact person for payment?</label><br>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_lead_same" value="yes" checked>
+            <input class="form-check-input" type="radio" name="payment_lead_same" value="Yes" checked>
             <label class="form-check-label">Yes</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_lead_same" value="no">
+            <input class="form-check-input" type="radio" name="payment_lead_same" value="No">
             <label class="form-check-label">No</label>
           </div>
         </div>
@@ -291,6 +316,7 @@
                 <div class="mb-3">
                     <label class="form-label text-muted mb-0 d-block text-center">Signature<small class="text-danger">⁽*⁾</small></label>
                     <canvas id="signatureCanvas" class="signature-box"></canvas>
+                    <input type="hidden" name="signature" id="signatureInput">
                     <div class="mt-0 text-end">
                         <button type="button" class="btn btn-secondary btn-sm" id="clearSig">
                             Clear
@@ -318,7 +344,7 @@
   // Mostrar campos de Payment Lead si es distinto del lead
   document.querySelectorAll('input[name="payment_lead_same"]').forEach(el => {
     el.addEventListener('change', function() {
-      document.getElementById('paymentLeadFields').style.display = this.value === 'no' ? 'block' : 'none';
+      document.getElementById('paymentLeadFields').style.display = this.value === 'No' ? 'block' : 'none';
     });
   });
 
@@ -360,6 +386,9 @@
       const dataURL = signaturePad.toDataURL(); // PNG de la firma
       console.log("Firma en base64:", dataURL);
       // Aquí puedes guardarla en un input hidden si quieres enviarla al servidor
+
+      // guardar firma en hidden input
+      document.getElementById('signatureInput').value = signaturePad.toDataURL('image/png');
     }
   });
 </script>

@@ -38,7 +38,7 @@ class CreateWorkshopsTable extends Migration
             $table->text('notes')->nullable();
 
             // Payment Lead
-            $table->boolean('payment_lead_same')->default(true);
+            $table->boolean('payment_lead_same')->nullable();
             $table->string('payment_name')->nullable();
             $table->string('payment_institution')->nullable();
             $table->string('payment_title')->nullable();
