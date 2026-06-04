@@ -62,7 +62,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     row.classList.remove('d-none');
 
                     // ✅ habilitar
-                    radio.disabled = false;
+                    //radio.disabled = false;
 
                     // guardar primera opción válida
                     if (!firstVisibleRadio) {
@@ -78,7 +78,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     radio.checked = false;
 
                     // ❌ deshabilitar (clave)
-                    radio.disabled = true;
+                    //radio.disabled = true;
                 }
 
             });
