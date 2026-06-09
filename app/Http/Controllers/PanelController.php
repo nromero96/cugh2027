@@ -69,7 +69,16 @@ class PanelController extends Controller
      */
     public function show(Panel $panel)
     {
-        //
+        $data = [
+            'category_name' => 'panels',
+            'page_name' => 'panels_show',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+        ];
+
+        $panel = Panel::find($panel->id);
+
+        return view('pages.panels.show', $data)->with('panel', $panel);
     }
 
     /**
