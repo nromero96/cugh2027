@@ -94,6 +94,16 @@ class RoleSeeder extends Seeder
         Permission::create(['name' => 'workshops.destroy',
                             'description' => 'Eliminar Workshop'])->syncRoles([$role1, $role2]);
 
+        //Panels
+        Permission::create(['name' => 'panels.index',
+                            'description' => 'Listar Panels'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'panels.create',
+                            'description' => 'Crear Panel'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'panels.edit',
+                            'description' => 'Editar Panel'])->syncRoles([$role1, $role2]);
+        Permission::create(['name' => 'panels.destroy',
+                            'description' => 'Eliminar Panel'])->syncRoles([$role1, $role2]);
+
         //Works
         Permission::create(['name' => 'works.index',
                             'description' => 'Listar Trabajos'])->syncRoles([$role1, $role2, $role3, $role6]);

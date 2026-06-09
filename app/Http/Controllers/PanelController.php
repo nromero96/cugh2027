@@ -26,7 +26,9 @@ class PanelController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        return view('pages.panels.index', $data);
+        $panels = Panel::all();
+
+        return view('pages.panels.index', $data)->with('panels', $panels);
     }
 
     /**
