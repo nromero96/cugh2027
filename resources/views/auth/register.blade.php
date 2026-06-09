@@ -292,6 +292,49 @@
         }
     </script>
 
+    <script>
+document.addEventListener('DOMContentLoaded', function () {
+    const documentType = document.getElementById('document_type');
+    const documentNumber = document.getElementById('document_number');
+
+    function applyDocumentRules() {
+        const type = documentType.value;
+
+        documentNumber.value = '';
+        documentNumber.removeAttribute('maxlength');
+        documentNumber.removeAttribute('pattern');
+
+        if (type === 'DNI') {
+            documentNumber.setAttribute('maxlength', '8');
+            documentNumber.setAttribute('inputmode', 'numeric');
+            documentNumber.setAttribute('placeholder', 'Enter 8 digits');
+        }
+
+        if (type === 'Passport') {
+            documentNumber.setAttribute('maxlength', '20');
+            documentNumber.setAttribute('inputmode', 'text');
+            documentNumber.setAttribute('placeholder', 'Enter passport number');
+        }
+    }
+
+    documentType.addEventListener('change', applyDocumentRules);
+
+    documentNumber.addEventListener('input', function () {
+        const type = documentType.value;
+
+        if (type === 'DNI') {
+            // Solo números y máximo 8 dígitos
+            this.value = this.value.replace(/\D/g, '').slice(0, 8);
+        }
+
+        if (type === 'Passport') {
+            // Letras y números, sin espacios ni símbolos
+            this.value = this.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 20);
+        }
+    });
+});
+</script>
+
 
 </body>
 </html>
