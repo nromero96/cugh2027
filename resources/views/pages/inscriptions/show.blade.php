@@ -305,26 +305,32 @@
                             <div class="col-md-12">
                                 <div class="card px-3 py-3">
                                     <label for="" class="form-label fw-bold mb-0">Payment Method:</label>
+                                    @php 
+                                        if($inscription->payment_method == 'none'){
+                                            $payment_method = 'No payment required';
+                                        }else{
+                                            $payment_method = $inscription->payment_method;
+                                        }
+                                    @endphp
+
+                                    @if($inscription->payment_method != null)
                                     <div class="">
-
-                                        @php 
-                                            if($inscription->payment_method == 'none'){
-                                                $payment_method = 'No payment required';
-                                            }else{
-                                                $payment_method = $inscription->payment_method;
-                                            }
-                                        @endphp
-
-                                        {{ $payment_method }}
+                                        <span class="bx-text">{{ $payment_method }}</span>
                                     </div>
+                                    @endif
+
                                     @if ($inscription->payment_method == 'Bank Transfer/Wire')
                                         <div class="row mt-1">
                                             <div class="col-md-12">
                                                 <div class="mt-1">
+                                                    @if($inscription->voucher_file != null)
                                                     <a href="{{ asset('storage/uploads/voucher_file').'/'.$inscription->voucher_file}}" class="badge badge-light-primary text-start me-2 bs-tooltip" data-toggle="tooltip" data-placement="top" title="" data-bs-original-title="Descargar" target="_blank">
                                                         {{ $inscription->voucher_file }}
                                                         <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>
                                                     </a>
+                                                    @else
+                                                        <span class="bx-text">No voucher uploaded</span>
+                                                    @endif
                                                 </div>
                                             </div>
                                         </div>
@@ -365,6 +371,14 @@
                                                 </div>
                                             </div>
                                         @endforeach
+                                    @endif
+
+                                    @if($inscription->payment_method == null)
+                                        <div class="row mt-1">
+                                            <div class="col-12">
+                                                <span class="bx-text">No payment method selected</span>
+                                            </div>
+                                        </div>
                                     @endif
 
                                 </div>
