@@ -542,8 +542,9 @@ class InscriptionController extends Controller
         $category_inscriptions = CategoryInscription::orderBy('order', 'asc')->get();
         //List Country
         $countries = Country::orderByRaw("CASE WHEN name = 'Perú' THEN 0 ELSE 1 END, name ASC")->get();
+        
         //List Member Institution
-        $memberinstitutions = MemberInstitution::all();
+        $memberinstitutions = MemberInstitution::where('is_active', 1)->get();
 
         $user = User::find($id);
 
