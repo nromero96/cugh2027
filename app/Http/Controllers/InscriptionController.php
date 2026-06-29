@@ -16,6 +16,7 @@ use App\Models\SpecialCode;
 use App\Models\BeneficiarioBeca;
 use App\Models\Country;
 use App\Models\MemberInstitution;
+use App\Models\MemberIndividual;
 
 
 use Illuminate\Support\Facades\Storage;
@@ -545,7 +546,7 @@ class InscriptionController extends Controller
         
         //List Member Institution
         $memberinstitutions = MemberInstitution::where('is_active', 1)->get();
-
+        
         $user = User::find($id);
 
         //Obtener la inscripción del usuario
@@ -554,8 +555,21 @@ class InscriptionController extends Controller
         //List of payment cards
         $paymentcards = Payment::where('inscription_id', $myinscription->id)->orderBy('id', 'desc')->get();
 
+        //Individual Member Individual by user mail
+        $ismemberindividual = MemberIndividual::where('email', $user->email)
+            ->where('is_active', 1)
+            ->exists();
+
         //solo los roles de Administrador y Secretaria pueden ver esta vista
-        return view('pages.inscriptions.my-inscription')->with($data)->with('category_inscriptions', $category_inscriptions)->with('countries', $countries)->with('user', $user)->with('memberinstitutions', $memberinstitutions)->with('myinscription', $myinscription)->with('paymentcards', $paymentcards);
+        return view('pages.inscriptions.my-inscription')
+            ->with($data)
+            ->with('category_inscriptions', $category_inscriptions)
+            ->with('countries', $countries)
+            ->with('user', $user)
+            ->with('memberinstitutions', $memberinstitutions)
+            ->with('myinscription', $myinscription)
+            ->with('paymentcards', $paymentcards)
+            ->with('ismemberindividual', $ismemberindividual);
     }
 
     public function storeMyInscription(Request $request){
@@ -580,6 +594,7 @@ class InscriptionController extends Controller
                 'degrees' => 'required|string',
                 'other_degrees' => 'nullable|string',
                 'is_cugh_member' => 'required|string',
+                'cugh_membership_type' => 'nullable|string',
                 'cugh_member_institution' => 'nullable|string',
                 'job_title' => 'required|string',
                 'email' => 'required|email',
@@ -656,6 +671,7 @@ class InscriptionController extends Controller
                 'degrees' => 'nullable|string',
                 'other_degrees' => 'nullable|string',
                 'is_cugh_member' => 'required|string',
+                'cugh_membership_type' => 'nullable|string',
                 'cugh_member_institution' => 'nullable|string',
                 'job_title' => 'nullable|string',
                 'email' => 'required|email',
@@ -738,6 +754,7 @@ class InscriptionController extends Controller
             $user->degrees = $request->degrees;
             $user->other_degrees = $request->other_degrees;
             $user->is_cugh_member = $request->is_cugh_member;
+            $user->cugh_membership_type = $request->cugh_membership_type;
             $user->cugh_member_institution = $request->cugh_member_institution;
             $user->job_title = $request->job_title;
             $user->email = $request->email;

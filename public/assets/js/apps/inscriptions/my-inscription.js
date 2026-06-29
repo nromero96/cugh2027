@@ -29,89 +29,82 @@ document.addEventListener("DOMContentLoaded", function () {
         },
 
         bindEvents: function () {
-
             document.addEventListener('change', (e) => {
+                if (
+                    e.target.matches('input[name="is_cugh_member"]') ||
+                    e.target.matches('#cugh_membership_type') ||
+                    e.target.matches('#cugh_member_institution')
+                ) {
+                    this.runInitialState();
+                }
+            });
+        },
 
-                if (e.target.matches('input[name="is_cugh_member"]')) {
+        getMembershipType: function () {
+            const isCughMember = document.querySelector('input[name="is_cugh_member"]:checked');
+            const membershipType = document.getElementById('cugh_membership_type');
+            const institution = document.getElementById('cugh_member_institution');
 
-                    const type = e.target.value == '1'
-                        ? 'member'
-                        : 'non-member';
+            if (!isCughMember || isCughMember.value == '0') {
+                return 'non-member';
+            }
 
-                    this.updateCategories(type);
+            if (membershipType.value === 'Institutional Member') {
+                if (institution.value !== '') {
+                    return 'member';
                 }
 
-            });
+                return 'non-member';
+            }
 
+            if (membershipType.value === 'Individual Member') {
+                if (isMemberIndividualVerified) {
+                    return 'member';
+                }
+
+                return 'non-member';
+            }
+
+            return 'non-member';
         },
 
         updateCategories: function (type) {
-
             let firstVisibleRadio = null;
 
             document.querySelectorAll('.category-row').forEach(row => {
-
                 const membership = row.dataset.membership;
                 const radio = row.querySelector('input[type="radio"]');
 
                 if (!radio) return;
 
                 if (membership === 'all' || membership === type) {
-
-                    // ✅ mostrar
                     row.classList.remove('d-none');
 
-                    // ✅ habilitar
-                    //radio.disabled = false;
-
-                    // guardar primera opción válida
-                    if (!firstVisibleRadio) {
+                    if (!firstVisibleRadio && !radio.disabled) {
                         firstVisibleRadio = radio;
                     }
 
                 } else {
-
-                    // ❌ ocultar
                     row.classList.add('d-none');
-
-                    // ❌ limpiar selección
                     radio.checked = false;
-
-                    // ❌ deshabilitar (clave)
-                    //radio.disabled = true;
                 }
-
             });
 
-            // 🔥 auto seleccionar si no hay uno elegido
             const selected = document.querySelector('input[name="category_inscription_id"]:checked');
 
             if (!selected && firstVisibleRadio) {
-
                 firstVisibleRadio.checked = true;
-
-                // dispara tu lógica existente (NO la tocamos)
                 firstVisibleRadio.dispatchEvent(new Event('change'));
             }
 
-            // 🔥 recalcular total SIN romper tu código
             if (typeof calculateTotalPrice === "function") {
                 calculateTotalPrice();
             }
         },
 
         runInitialState: function () {
-
-            const selected = document.querySelector('input[name="is_cugh_member"]:checked');
-
-            if (selected) {
-
-                const type = selected.value == '1'
-                    ? 'member'
-                    : 'non-member';
-
-                this.updateCategories(type);
-            }
+            const type = this.getMembershipType();
+            this.updateCategories(type);
         }
 
     };
@@ -190,18 +183,59 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    //is_cugh_member
+    // is_cugh_member
     document.addEventListener('change', function (e) {
         if (e.target.matches('input[name="is_cugh_member"]')) {
-            const selectedValue = e.target.value;
-            const otherDiv = document.getElementById('cugh_member_institution_div');
-            const selectOther = document.getElementById('cugh_member_institution');
-            if (selectedValue === '1') {
-                otherDiv.classList.remove('d-none');
+
+            const isMember = e.target.value === '1';
+
+            const membershipTypeDiv = document.getElementById('cugh_membership_type_div');
+            const membershipTypeSelect = document.getElementById('cugh_membership_type');
+
+            const institutionDiv = document.getElementById('cugh_member_institution_div');
+            const institutionSelect = document.getElementById('cugh_member_institution');
+
+            const individualInfoDiv = document.getElementById('cugh_member_individual_info_div');
+
+            if (isMember) {
+                membershipTypeDiv.classList.remove('d-none');
             } else {
-                otherDiv.classList.add('d-none');
-                selectOther.selectedIndex = 0;
+
+                // Ocultar secciones
+                membershipTypeDiv.classList.add('d-none');
+                institutionDiv.classList.add('d-none');
+                individualInfoDiv.classList.add('d-none');
+
+                // Reiniciar selects
+                membershipTypeSelect.selectedIndex = 0;
+                institutionSelect.selectedIndex = 0;
             }
+        }
+    });
+
+    //cugh_membership_type
+    document.getElementById('cugh_membership_type').addEventListener('change', function () {
+
+        const type = this.value;
+
+        const institutionDiv = document.getElementById('cugh_member_institution_div');
+        const individualInfoDiv = document.getElementById('cugh_member_individual_info_div');
+        const institutionSelect = document.getElementById('cugh_member_institution');
+
+        // Ocultar ambos por defecto
+        institutionDiv.classList.add('d-none');
+        individualInfoDiv.classList.add('d-none');
+
+        // Reiniciar institución si no es institucional
+        if (type !== 'Institutional Member') {
+            institutionSelect.selectedIndex = 0;
+        }
+
+        // Mostrar según tipo
+        if (type === 'Institutional Member') {
+            institutionDiv.classList.remove('d-none');
+        } else if (type === 'Individual Member') {
+            individualInfoDiv.classList.remove('d-none');
         }
     });
 

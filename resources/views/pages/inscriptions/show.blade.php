@@ -93,7 +93,12 @@
                                 <span class="bx-text">{{ $user->is_cugh_member == 1 ? 'Yes' : 'No' }}</span>
                             </div>
 
-                            <div class="col-md-4 @if($user->is_cugh_member != 1) d-none @else @endif" id="cugh_member_institution">
+                            <div class="col-md-4 @if($user->is_cugh_member != 1) d-none @else @endif" id="cugh_membership_type">
+                                <label class="form-label fw-bold mb-0">CUGH Membership Type:</label><br>
+                                <span class="bx-text">{{ $user->cugh_membership_type}}</span>
+                            </div>
+
+                            <div class="col-md-4 @if($user->cugh_membership_type != 'Institutional Member') d-none @else @endif" id="cugh_member_institution">
                                 <label class="form-label fw-bold mb-0">CUGH Member Institution:</label><br>
                                 <span class="bx-text">{{ $user->cugh_member_institution_name }}</span>
                             </div>

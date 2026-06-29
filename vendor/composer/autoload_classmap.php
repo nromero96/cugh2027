@@ -38,6 +38,7 @@ return array(
     'App\\Http\\Controllers\\InscriptionController' => $baseDir . '/app/Http/Controllers/InscriptionController.php',
     'App\\Http\\Controllers\\InvitationController' => $baseDir . '/app/Http/Controllers/InvitationController.php',
     'App\\Http\\Controllers\\LocalizationController' => $baseDir . '/app/Http/Controllers/LocalizationController.php',
+    'App\\Http\\Controllers\\MemberIndividualController' => $baseDir . '/app/Http/Controllers/MemberIndividualController.php',
     'App\\Http\\Controllers\\MemberInstitutionController' => $baseDir . '/app/Http/Controllers/MemberInstitutionController.php',
     'App\\Http\\Controllers\\NoteController' => $baseDir . '/app/Http/Controllers/NoteController.php',
     'App\\Http\\Controllers\\PanelController' => $baseDir . '/app/Http/Controllers/PanelController.php',

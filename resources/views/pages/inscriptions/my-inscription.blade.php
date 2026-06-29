@@ -126,16 +126,63 @@
                                 {!!$errors->first("is_cugh_member", "<span class='text-danger'>:message</span>")!!}
                             </div>
 
-                            
-                            <div class="col-md-4 @if(old('is_cugh_member', $user->is_cugh_member) == 1) d-block @else d-none @endif" id="cugh_member_institution_div">
-                                <label for="inputCUGHMemberInstitution" class="form-label text-muted mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
-                                <select name="cugh_member_institution" id="cugh_member_institution" class="form-select @error('cugh_member_institution') is-invalid @enderror">
-                                    <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
-                                    @foreach($memberinstitutions as $memberinstitution)
-                                        <option value="{{ $memberinstitution->id }}" {{ old('cugh_member_institution', $user->cugh_member_institution) == $memberinstitution->id ? 'selected' : '' }}>{{ $memberinstitution->name }}</option>
-                                    @endforeach
+                            <div class="col-md-4 @if(old('is_cugh_member', $user->is_cugh_member) == 1) d-block @else d-none @endif" id="cugh_membership_type_div">
+                                <label for="cugh_membership_type" class="form-label text-muted mb-0">CUGH Membership Type <span class="text-danger">*</span></label>
+                                <select name="cugh_membership_type" id="cugh_membership_type" class="form-select @error('cugh_membership_type') is-invalid @enderror">
+                                    <option value="" {{ old('cugh_membership_type', $user->cugh_membership_type) == '' ? 'selected' : '' }}>Select...</option>
+                                    <option value="Institutional Member" {{ old('cugh_membership_type', $user->cugh_membership_type) == 'Institutional Member' ? 'selected' : '' }}>Institutional Member</option>
+                                    <option value="Individual Member" {{ old('cugh_membership_type', $user->cugh_membership_type) == 'Individual Member' ? 'selected' : '' }}>Individual Member</option>
                                 </select>
-                                {!!$errors->first("cugh_member_institution", "<span class='text-danger'>:message</span>")!!}
+                                {!!$errors->first("cugh_membership_type", "<span class='text-danger'>:message</span>")!!}
+                            </div>
+
+                            <div class="col-md-12 @if(old('cugh_membership_type', $user->cugh_membership_type) == 'Institutional Member') d-block @else d-none @endif" id="cugh_member_institution_div">
+                                <div class="info-member-institution">
+                                    <label for="inputCUGHMemberInstitution" class="form-label text-muted mb-0">CUGH Member Institution <span class="text-danger">*</span></label>
+                                    <select name="cugh_member_institution" id="cugh_member_institution" class="form-select @error('cugh_member_institution') is-invalid @enderror">
+                                        <option value="" {{ old('cugh_member_institution', $user->cugh_member_institution) == '' ? 'selected' : '' }}>Select...</option>
+                                        @foreach($memberinstitutions as $memberinstitution)
+                                            <option value="{{ $memberinstitution->id }}" {{ old('cugh_member_institution', $user->cugh_member_institution) == $memberinstitution->id ? 'selected' : '' }}>{{ $memberinstitution->name }}</option>
+                                        @endforeach
+                                    </select>
+                                    <label class="form-label text-muted mb-1 mt-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                        </svg> 
+                                        Select the institution where you are a member.
+                                    </label>
+                                    {!!$errors->first("cugh_member_institution", "<span class='text-danger'>:message</span>")!!}
+
+                                </div>
+                            </div>
+
+
+                            <div class="col-md-12 @if(old('cugh_membership_type', $user->cugh_membership_type) == 'Individual Member') d-block @else d-none @endif" id="cugh_member_individual_info_div">
+                                
+
+                                @if($ismemberindividual)
+                                    <div class="info-member-individual-verified">
+                                        <b class="imi-title d-block mb-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-check-circle-fill" viewBox="0 0 16 16">
+                                            <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0m-3.97-3.03a.75.75 0 0 0-1.08.022L7.477 9.417 5.384 7.323a.75.75 0 0 0-1.06 1.06L6.97 11.03a.75.75 0 0 0 1.079-.02l3.992-4.99a.75.75 0 0 0-.01-1.05z"/>
+                                            </svg> Membership verified
+                                        </b>
+                                        <span class="d-block mb-2">Your CUGH individual membership has been verified using your registered email: <br><b>{{ $user->email }}</b></span>
+                                        <span>You can continue with your registration.</span>
+                                    </div>
+                                @else
+                                    <div class="info-member-individual-notfound">
+                                        <b class="imi-title d-block mb-2">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle-fill" viewBox="0 0 16 16">
+                                            <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2"/>
+                                            </svg> Membership not found
+                                        </b>
+                                        <span class="d-block mb-2">We could not verify your CUGH individual membership using this email: <br><b>{{ $user->email }}</b></span>
+                                        <span class="d-block mb-3">Please check that the email is correct or contact CUGH to confirm your membership.</span>
+                                        <span class="d-block">If you believe this is an error, please contact us at: <a href="mailto:registration@cughlima2027.org" class="text-primary">registration@cughlima2027.org</a></span>
+                                    </div>
+                                @endif
                             </div>
 
                             {{-- job_title --}}
@@ -1248,12 +1295,8 @@
 
 
 <script>
+    const isMemberIndividualVerified = @json($ismemberindividual);
     const allCategories = @json($category_inscriptions);
-</script>
-
-<script>
-    
-
 </script>
 
 @endsection

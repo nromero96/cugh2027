@@ -17,6 +17,7 @@ class CreateMemberIndividualsTable extends Migration
             $table->id();
             $table->string('last_name')->nullable();
             $table->string('first_name')->nullable();
+            $table->string('email');
             $table->boolean('is_active')->default(true);
             $table->timestamps();
         });

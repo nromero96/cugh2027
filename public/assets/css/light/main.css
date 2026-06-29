@@ -251,6 +251,42 @@ html {
   color: #e2e2e2;
 }
 
+.info-member-institution {
+  background: #fff5e8;
+  border: 1px solid #ffc370;
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+.info-member-institution svg {
+  color: #ffc370;
+}
+
+.info-member-individual-verified {
+  background: #f7fbfa;
+  border: 1px solid #dceae3;
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+.info-member-individual-verified .imi-title {
+  color: #009e47;
+}
+.info-member-individual-verified span {
+  color: #333550;
+}
+
+.info-member-individual-notfound {
+  background: #fef3f6;
+  border: 1px solid #f7c1d4;
+  padding: 10px 15px;
+  border-radius: 5px;
+}
+.info-member-individual-notfound .imi-title {
+  color: #cc1f2f;
+}
+.info-member-individual-notfound span {
+  color: #333550;
+}
+
 body {
   color: #888ea8;
   height: 100%;

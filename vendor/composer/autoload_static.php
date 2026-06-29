@@ -625,6 +625,7 @@ class ComposerStaticInitfe89c9bc057a6be298f3bb7f44ad24dc
         'App\\Http\\Controllers\\InscriptionController' => __DIR__ . '/../..' . '/app/Http/Controllers/InscriptionController.php',
         'App\\Http\\Controllers\\InvitationController' => __DIR__ . '/../..' . '/app/Http/Controllers/InvitationController.php',
         'App\\Http\\Controllers\\LocalizationController' => __DIR__ . '/../..' . '/app/Http/Controllers/LocalizationController.php',
+        'App\\Http\\Controllers\\MemberIndividualController' => __DIR__ . '/../..' . '/app/Http/Controllers/MemberIndividualController.php',
         'App\\Http\\Controllers\\MemberInstitutionController' => __DIR__ . '/../..' . '/app/Http/Controllers/MemberInstitutionController.php',
         'App\\Http\\Controllers\\NoteController' => __DIR__ . '/../..' . '/app/Http/Controllers/NoteController.php',
         'App\\Http\\Controllers\\PanelController' => __DIR__ . '/../..' . '/app/Http/Controllers/PanelController.php',

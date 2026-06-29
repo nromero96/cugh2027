@@ -28,6 +28,7 @@ class User extends Authenticatable
         'degrees',
         'other_degrees',
         'is_cugh_member',
+        'cugh_membership_type',
         'cugh_member_institution',
         'job_title',
         'document_type',
