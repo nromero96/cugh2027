@@ -51,7 +51,7 @@ class RegisterController extends Controller
     {
         // Define las reglas de validación principales
         $validator = Validator::make($data, [
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
 
