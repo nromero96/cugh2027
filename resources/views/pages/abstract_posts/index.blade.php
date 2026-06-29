@@ -76,7 +76,7 @@
                                         @foreach ($abstract_posts as $abstrpost)
                                             <tr>
                                                 <td>
-                                                    {{$abstrpost->id}}
+                                                    <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" class="text-primary text-decoration-underline"> <b>{{$abstrpost->id}}</b> </a>
                                                 </td>
                                                 <td>
                                                     {{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}
@@ -86,7 +86,7 @@
                                                     {{$abstrpost->abstract_type}}
                                                 </td>
                                                 <td>
-                                                    {{$abstrpost->title}}
+                                                    {{ Str::limit($abstrpost->title, 20) }}
                                                 </td>
                                                 <td>
                                                     @if($abstrpost->status == 'draft')
