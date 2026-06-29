@@ -77,17 +77,6 @@
                                             <tr>
                                                 <td>
                                                     {{$abstrpost->id}}
-
-                                                    @if($user->id == 1 && $abstrpost->status == 'submitted')
-                                                        <form class="d-inline" action="{{ route('works.sendmailworkaccepted', $work->id) }}" method="POST">
-                                                            @csrf
-                                                            @method('PUT')
-                                                            <button type="submit" class="badge badge-light-info text-start action-update-status bs-tooltip" data-toggle="tooltip" data-placement="top" title="{{ __("Aceptar") }}">
-                                                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-send"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
-                                                            </button>
-                                                        </form>
-                                                    @endif
-
                                                 </td>
                                                 <td>
                                                     {{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}

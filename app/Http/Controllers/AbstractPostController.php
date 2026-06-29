@@ -25,12 +25,20 @@ class AbstractPostController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        $abstract_posts = AbstractPost::with('user')
+        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')){
+            $abstract_posts = AbstractPost::with('user')
+            ->where('status', '!=', 'rechazado')
+            ->orderBy('id', 'desc')
+            ->get();
+        }else{
+            $abstract_posts = AbstractPost::with('user')
             ->where('user_id', $userid)
             ->where('status', '!=', 'rechazado')
             ->orderBy('id', 'desc')
             ->get();
+        }
 
+        
         return view('pages.abstract_posts.index')->with($data)->with('abstract_posts', $abstract_posts);
     }
 
