@@ -120,7 +120,9 @@
                                     <label for="inputDescription" class="form-label text-muted d-block mb-0">
                                         Body text:
                                     </label>
-                                    <p class="text-black">{{ $abstract_post->body }}</p>
+                                    <p class="text-black">
+                                        {!! nl2br(e($abstract_post->body)) !!}
+                                    </p>
                                 </div>
 
                                 <div class="col-md-12">
