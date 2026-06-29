@@ -86,7 +86,7 @@
                                                     {{$abstrpost->abstract_type}}
                                                 </td>
                                                 <td>
-                                                    {{ Str::limit($abstrpost->title, 20) }}
+                                                    <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" title="{{$abstrpost->title}}">{{ Str::limit($abstrpost->title, 20) }}</span></a>
                                                 </td>
                                                 <td>
                                                     @if($abstrpost->status == 'draft')
