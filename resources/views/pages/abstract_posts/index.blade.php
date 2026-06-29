@@ -79,7 +79,8 @@
                                                     <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" class="text-primary text-decoration-underline"> <b>{{$abstrpost->id}}</b> </a>
                                                 </td>
                                                 <td>
-                                                    {{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}
+                                                    <span class="d-block">{{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}</span>
+                                                    <small class="text-muted">({{$abstrpost->user->email}})</small>
                                                 </td>
                                                 <td>
                                                     <span class="badge badge-light-secondary text-capitalize">{{ $abstrpost->presentation_type }}</span><br>
