@@ -6,6 +6,7 @@ use App\Models\AbstractPost;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Country;
 
 use TCPDF;
 
@@ -62,7 +63,12 @@ class AbstractPostController extends Controller
 
         $user = User::find($id);
 
-        return view('pages.abstract_posts.create')->with($data)->with('user', $user);
+        $countries = Country::orderByRaw("CASE WHEN name = 'Perú' THEN 0 ELSE 1 END, name ASC")->get();
+
+        return view('pages.abstract_posts.create')
+            ->with($data)
+            ->with('user', $user)
+            ->with('countries', $countries);
     }
 
     /**
@@ -81,6 +87,9 @@ class AbstractPostController extends Controller
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([
+                'name' => 'required',
+                'lastname' => 'nullable',
+                'second_lastname' => 'required',
                 'presentation_type' => 'required',
                 'abstract_type' => 'required',
                 'title' => 'required|max:250',
@@ -163,6 +172,15 @@ class AbstractPostController extends Controller
                 'coauthors' => $coauthorsIds
             ];
         }
+
+        // =========================
+        // 💾 UPDATE USER
+        // =========================
+        $user = User::find($id_user);
+        $user->name = $request->name;
+        $user->lastname = $request->lastname;
+        $user->second_lastname = $request->second_lastname;
+        $user->save();
 
         // =========================
         // 💾 GUARDAR

@@ -108,6 +108,42 @@
                                 </div>
 
                                 <div class="col-md-12">
+                                    <label for="inputName" class="form-label text-muted mb-0">Main author/presenter's name <span class="text-muted">(mandatory)</span></label>
+                                    <div id="container_author">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label for="inputName" class="form-label text-muted mb-0">First Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="name" class="form-control solo-mayusculas @error('first_name') is-invalid @enderror" id="inputName" value="{{ old('name', $user->name) }}" required>
+                                                @error('name')
+                                                    <br><small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="inputName" class="form-label text-muted mb-0">Middle Name</label>
+                                                <input type="text" name="lastname" class="form-control solo-mayusculas @error('lastname') is-invalid @enderror" id="inputLastName" value="{{ old('lastname', $user->lastname) }}">
+                                                @error('last_name')
+                                                    <br><small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="inputName" class="form-label text-muted mb-0">Last Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="second_lastname" class="form-control solo-mayusculas @error('second_lastname') is-invalid @enderror" id="inputSecondLastName" value="{{ old('second_lastname', $user->second_lastname) }}" required>
+                                                @error('second_lastname')
+                                                    <br><small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <span class="text-muted d-block mb-0 mt-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
+                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
+                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
+                                            </svg> 
+                                            <small>This information is shared between the Abstract Submission and Registration forms.</small>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
                                     <label class="form-label text-muted mb-0">Co-authors</label>
 
                                     <div id="container_coauthors" class=" @error('co_authors') border border-danger @enderror"></div>
@@ -659,6 +695,19 @@ window.addEventListener('DOMContentLoaded', () => {
     updateCoAuthorsOptions();
     
 });
+
+
+
+</script>
+
+<script>
+    document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('solo-mayusculas')) {
+            e.target.value = e.target.value
+                .toUpperCase() // Convertir a mayúsculas
+                .replace(/[^A-ZÁÉÍÓÚÑ\s]/g, ''); // Permitir solo letras y espacios
+        }
+    });
 </script>
 
 
