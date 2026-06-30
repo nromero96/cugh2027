@@ -189,6 +189,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Abstracts
     Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');
+    Route::get('/exportar-excel-abstracts', [AbstractPostController::class, 'exportExcelAbstracts'])->name('abstract_posts.exportexcel');
 
     //Workshops
     Route::resource('workshops', WorkshopController::class)->names('workshops');

@@ -8,6 +8,9 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Country;
 
+use App\Exports\AbstractPostExport;
+use Maatwebsite\Excel\Facades\Excel;
+
 use TCPDF;
 
 class AbstractPostController extends Controller
@@ -432,4 +435,19 @@ class AbstractPostController extends Controller
         return redirect()->route('abstract_posts.index')
             ->with('success', 'Deleted successfully');
     }
+
+    public function exportExcelAbstracts(){
+
+        if (!auth()->user()->hasRole('Administrador')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $filename = 'Abstracts_' . now()->format('Ymd_His') . '.xlsx';
+
+        return Excel::download(
+            new AbstractPostExport(),
+            $filename
+        );
+    }
+
 }
