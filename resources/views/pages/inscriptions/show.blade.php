@@ -283,8 +283,8 @@
                                             $txt_invoice_social_reason = 'Entity Name';
                                             $txt_invoice_address = 'Business Address';
                                         }else{
-                                            $txt_invoice_social_reason = 'Name/Entity';
-                                            $txt_invoice_address = 'Address';
+                                            $txt_invoice_social_reason = 'Full Name or entity';
+                                            $txt_invoice_address = 'Postal Address';
                                         }
                                     @endphp
 

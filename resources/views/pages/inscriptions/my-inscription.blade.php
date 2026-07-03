@@ -1130,7 +1130,7 @@
 
                                     <div class="row mt-2" id="dv_invoice_info">
                                         <div class="col-md-4">
-                                            <label for="invoice_social_reason" class="form-label text-muted mb-0"><span id="lbl_invoice_social_reason">Name/Entity</span> <span class="text-danger">*</span></label>
+                                            <label for="invoice_social_reason" class="form-label text-muted mb-0"><span id="lbl_invoice_social_reason">Full Name or entity</span> <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_social_reason" id="invoice_social_reason" class="form-control @error('invoice_social_reason') is-invalid @enderror" placeholder="" value="{{ old('invoice_social_reason', $myinscription->invoice_social_reason ?? '') }}">
                                             {!!$errors->first("invoice_social_reason", "<span class='text-danger'>:message</span>")!!}
                                         </div>
@@ -1155,7 +1155,7 @@
                                             {!!$errors->first("invoice_ruc", "<span class='text-danger'>:message</span>")!!}
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Address</span> <span class="text-danger">*</span></label>
+                                            <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Postal Address</span> <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_address" id="invoice_address" class="form-control @error('invoice_address') is-invalid @enderror" placeholder="" maxlength="50" autocomplete="new-address" value="{{ old('invoice_address', $myinscription->invoice_address ?? '') }}">
                                             {!!$errors->first("invoice_address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
