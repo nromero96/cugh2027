@@ -56,12 +56,20 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
                                     'inscriptions.total', 
                                     'inscriptions.payment_method', 
                                     'inscriptions.status', 
+                                    'inscriptions.invoice_type',
+                                    'inscriptions.voucher_file',
                                     'inscriptions.created_at',
-                                    'inscriptions.assistance',
-                                    'inscriptions.assistance_accomp')
+
+                                    'payments.card_number',
+                                    'payments.transaction_date',
+                                    'payments.currency',
+                                    'payments.amount',
+                                    'payments.amount',
+                                    'payments.status_payment')
                             ->leftjoin('category_inscriptions', 'category_inscriptions.id', '=', 'inscriptions.category_inscription_id')
                             ->leftjoin('countries as nationalities', 'nationalities.id', '=', 'users.nationality')
                             ->leftjoin('countries', 'countries.id', '=', 'users.country')
+                            ->leftjoin('payments', 'payments.inscription_id', '=', 'inscriptions.id')
                             ->where('inscriptions.status', '!=', 'Refused')
                             ->get();
     }
@@ -101,13 +109,24 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             'Special Code',
             'Total Payment',
             'Payment Method',
+            'Payment Information',
             'Status',
+            'Invoice Type',
             'Registration Date',
         ];
     }
 
     public function map($inscription): array
     {
+
+        //if credit card, show card number
+        if ($inscription->payment_method == 'Credit/Debit Card') {
+            $payment_info  = $inscription->card_number . ' (' . $inscription->transaction_date . '-' . $inscription->currency . ' ' . $inscription->amount . ' | ' . $inscription->status_payment . ')';
+        }else{
+            $payment_info = '';
+        }
+
+
         return [
             $inscription->id,
             $inscription->salutation,
@@ -115,7 +134,7 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             $inscription->lastname,
             $inscription->second_lastname,
             $inscription->degrees,
-            $inscription->is_cugh_member,
+            $inscription->is_cugh_member ? 'Yes' : 'No',
             $inscription->document_type,
             $inscription->document_number,
             $inscription->user_nationality,
@@ -142,14 +161,16 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             $inscription->special_code,
             $inscription->total,
             $inscription->payment_method,
+            $payment_info,
             $inscription->status,
+            $inscription->invoice_type,
             $inscription->created_at,
 
         ];
     }
 
     public function styles(Worksheet $sheet){
-        $sheet->getStyle('A1:AE1')->applyFromArray([
+        $sheet->getStyle('A1:AG1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFF'],
@@ -163,7 +184,7 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             ],
         ],);
         //aplicar anchos de columnas
-        $sheet->getColumnDimension('A')->setWidth(3);
+        $sheet->getColumnDimension('A')->setWidth(6);
         $sheet->getColumnDimension('B')->setWidth(11);
         $sheet->getColumnDimension('C')->setWidth(22);
         $sheet->getColumnDimension('D')->setWidth(22);
@@ -192,9 +213,10 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
         $sheet->getColumnDimension('AA')->setWidth(17);
         $sheet->getColumnDimension('AB')->setWidth(14);
         $sheet->getColumnDimension('AC')->setWidth(22);
-        $sheet->getColumnDimension('AD')->setWidth(22);
+        $sheet->getColumnDimension('AD')->setWidth(40);
         $sheet->getColumnDimension('AE')->setWidth(22);
-
+        $sheet->getColumnDimension('AF')->setWidth(22);
+        $sheet->getColumnDimension('AG')->setWidth(22);
     }
 
 }
