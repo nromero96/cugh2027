@@ -38,11 +38,21 @@
                         <div class="row">
                             <div class="col-xl-6 col-md-6 col-sm-6 mb-2 col-6">
                                 <h4>
-                                    Abstract N°: {{ $abstract_post->id }}
+                                    Abstract N°: {{ $abstract_post->id }} 
+
+                                    @if ($abstract_post->status == 'draft')
+                                        <span class="badge bg-light-warning mt-2">Draft</span>
+                                    @elseif ($abstract_post->status == 'submitted')
+                                        <span class="badge bg-light-info mt-2">Submitted</span>
+                                    @elseif ($abstract_post->status == 'rejected')
+                                        <span class="badge bg-light-danger mt-2">Rejected</span>
+                                    @endif
+
                                 </h4>
                             </div>
                             <div class="col-xl-6 col-md-6 col-sm-6 mb-2 col-6 text-end">
                                 <span class="badge bg-light-secondary mt-2">Last Update: {{ $abstract_post->updated_at }}</span>
+                                <span class="d-block mt-2">{{ optional($user->residenceCountry)->name }}</span>
                             </div>
                         </div>
                     </div>

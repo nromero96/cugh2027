@@ -233,7 +233,8 @@ class AbstractPostController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        $userId = auth()->id();
+        $user = User::find($abstractPost->user_id);
+
 
         // ✅ validar que sea del usuario
         if ($abstractPost->user_id !== auth()->id() && !auth()->user()->hasRole(['Administrador', 'Calificador'])) {
@@ -241,15 +242,10 @@ class AbstractPostController extends Controller
                 ->with('error', 'Permission denied, you do not have permission to view this abstract post.');
         }
 
-        // Bloquear acceso si el estado es draft
-        if ($abstractPost->status === 'draft') {
-            abort(403, 'You are not allowed to view this abstract.');
-        }
-
         // 🔥 cargar relación
         $abstractPost->load('user');
 
-        return view('pages.abstract_posts.show')->with($data)->with('abstract_post', $abstractPost);
+        return view('pages.abstract_posts.show')->with($data)->with('abstract_post', $abstractPost)->with('user', $user);
     }
 
     /**
