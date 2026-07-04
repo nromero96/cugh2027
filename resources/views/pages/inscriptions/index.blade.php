@@ -180,9 +180,10 @@
                                                         <td>
                                                             {{$inscription->user_name.' '.$inscription->user_lastname.' '.$inscription->user_second_lastname}}
                                                             @if($inscription->user_name == '' && $inscription->user_lastname == '' && $inscription->user_second_lastname == '')
-                                                                Unnamed
-                                                                <br><small class="text-info" style="font-size: 10px;">{{ $inscription->user_email }}</small>
+                                                                <span class="text-muted">Unnamed</span>
                                                             @endif
+                                                            <br>
+                                                            <small class="text-info" style="font-size: 10px;">{{ $inscription->user_email }}</small>
                                                         </td>
                                                         <td>
                                                             {{$inscription->user_country}}

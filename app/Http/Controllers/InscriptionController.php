@@ -86,12 +86,13 @@ class InscriptionController extends Controller
                         $search = str_replace(' ', '%', $search);
                         $query->orWhereRaw('CONCAT(COALESCE(users.name, ""), " ", COALESCE(users.lastname, ""), " ", COALESCE(users.second_lastname, "")) LIKE ?', ["%{$search}%"]);
 
-                        $query->orWhere('users.country', 'LIKE', "%{$search}%")
+                        $query->orWhere('countries.name', 'LIKE', "%{$search}%")
                             ->orWhere('category_inscriptions.name', 'LIKE', "%{$search}%")
                             ->orWhere('inscriptions.special_code', 'LIKE', "%{$search}%")
                             ->orWhere('inscriptions.status', 'LIKE', "%{$search}%")
                             ->orWhere('inscriptions.payment_method', 'LIKE', "%{$search}%")
-                            ->orWhere('inscriptions.created_at', 'LIKE', "%{$search}%");
+                            ->orWhere('inscriptions.created_at', 'LIKE', "%{$search}%")
+                            ->orWhere('users.email', 'LIKE', "%{$search}%");
                     }
                 })
                 ->orderBy('inscriptions.id', 'desc')
