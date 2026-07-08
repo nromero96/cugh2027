@@ -49,7 +49,7 @@ class AdminResetPasswordNotification extends Notification
         ], false));
 
         return (new MailMessage)
-            ->subject('Password Reset Request')
+            ->subject('Password Reset Request - ' . ($this->user->name ?: 'Unknown User') . ' (' . $this->user->email . ')')
             ->greeting('Hello Administrator,')
             ->line('A user has requested to reset their account password.')
             ->line('User Information:')
