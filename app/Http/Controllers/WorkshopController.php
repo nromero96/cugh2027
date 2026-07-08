@@ -314,12 +314,12 @@ class WorkshopController extends Controller
 
             hr {
                 border: 0.5px solid #dddddd;
-            }
+                margin-bottom: 0px;         }
         </style>
 
         <h2>Workshop N°: ' . e($workshop->id) . '</h2>
         <p><span class="label">Created:</span> ' . e($workshop->created_at) . '</p>
-
+        <hr>
         <h4>Lead Contact Person</h4>
 
         <div class="item"><span class="label">Name:</span><br><span class="value">' . e($workshop->lead_name) . '</span></div>
