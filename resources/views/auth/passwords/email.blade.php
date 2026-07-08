@@ -38,7 +38,7 @@
     <div class="auth-container d-flex">
 
         <div class="container mx-auto align-self-center">
-            <form method="POST" action="{{ route('password.email') }}">
+            <form method="POST" id="forgotPasswordForm" action="{{ route('password.email') }}">
                 @csrf
                 <div class="row">
                     <div class="col-6 d-lg-flex d-none h-100 my-auto top-0 start-0 text-center justify-content-center flex-column">
@@ -87,9 +87,15 @@
                                     <div class="col-12">
                                         <div class="mb-4">
 
-                                            <button type="submit" class="btn btn-secondary w-100">
+                                            <button type="submit" id="submitBtn" class="btn btn-secondary w-100">
                                                 Send password reset link
                                             </button>
+
+                                            <div id="loadingMessage" class="text-center mt-3 d-none">
+                                                <small class="text-muted">
+                                                    Please wait while we process your request...
+                                                </small>
+                                            </div>
 
                                         </div>
                                     </div>
@@ -112,6 +118,24 @@
     <!-- BEGIN GLOBAL MANDATORY SCRIPTS -->
     <script src="{{asset('bootstrap/js/bootstrap.bundle.min.js')}}"></script>
     <!-- END GLOBAL MANDATORY SCRIPTS -->
+
+    <script>
+        document.getElementById('forgotPasswordForm').addEventListener('submit', function () {
+
+            const btn = document.getElementById('submitBtn');
+            const message = document.getElementById('loadingMessage');
+
+            btn.disabled = true;
+            btn.classList.add('disabled');
+
+            btn.innerHTML = `
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Sending...
+            `;
+
+            message.classList.remove('d-none');
+        });
+    </script>
 
 
 </body>

@@ -9,6 +9,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use App\Models\Inscription;
 
+use App\Notifications\CustomResetPasswordNotification;
+use App\Notifications\AdminResetPasswordNotification;
+use Illuminate\Support\Facades\Notification;
+
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -128,6 +132,16 @@ class User extends Authenticatable
     public function residenceCountry()
     {
         return $this->belongsTo(Country::class, 'country');
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        // Send reset email to the user
+        $this->notify(new CustomResetPasswordNotification($token));
+
+        // Send copy to administrator
+        Notification::route('mail', config('services.correonotificacion.passwordreset'))
+            ->notify(new AdminResetPasswordNotification($this, $token));
     }
 
 }
