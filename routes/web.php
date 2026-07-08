@@ -98,6 +98,8 @@ Route::get('/password-recovery', function () {
 Route::get('workshops-register', [WorkshopController::class, 'registerWorkshop'])->name('workshops.registerworkshop');
 Route::post('workshops-store', [WorkshopController::class, 'storeWorkshop'])->name('workshops.storeworkshop');
 
+Route::get('/workshops/{workshop}/pdf', [WorkshopController::class, 'pdf'])->name('workshops.pdf');
+
 //Panel
 Route::get('panel-submission', [PanelController::class, 'formOnline'])->name('panels.formonline');
 Route::post('panel-store', [PanelController::class, 'storeOnline'])->name('panels.storeonline');

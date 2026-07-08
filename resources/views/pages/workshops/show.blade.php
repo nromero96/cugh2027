@@ -156,7 +156,7 @@
 
                                 <div class="col-12 text-end no-print">
                                     <a href="{{ route('workshops.index') }}" class="btn btn-outline-secondary">Back</a>
-                                    <a href="#" onclick="window.print()" class="btn btn-primary">Print</a>
+                                    <a href="{{ route('workshops.pdf', $workshop->id) }}" target="_blank" class="btn btn-primary">Print</a>
                                 </div>
                             </form>
                         
