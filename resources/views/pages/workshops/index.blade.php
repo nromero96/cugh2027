@@ -35,8 +35,8 @@
                                     @foreach ($workshops as $workshop)
                                         <tr>
                                             <td>
-                                                <a href="{{route('workshops.show', $workshop->id)}}" class="text-primary">
-                                                {{$workshop->id}}
+                                                <a href="{{route('workshops.show', $workshop->id)}}" class="text-primary text-decoration-underline">
+                                                <b>#{{$workshop->id}}</b>
                                                 </a>
                                             </td>
                                             <td>

@@ -62,7 +62,25 @@ class WorkshopController extends Controller
      */
     public function show(Workshop $workshop)
     {
-        //
+
+        //solo el administrador puede ver el workshop
+        if (!auth()->user()->hasRole('Administrador')) {
+            return redirect()->route('workshops.index')
+                ->with('error', 'You do not have permission to view this workshop.');
+        }
+
+        $data = [
+            'category_name' => 'workshops',
+            'page_name' => 'workshops_show',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+        ];
+
+        $workshop = Workshop::find($workshop->id);
+
+        return view('pages.workshops.show', $data, compact('workshop'));
+
+
     }
 
     /**
