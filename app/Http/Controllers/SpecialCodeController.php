@@ -171,7 +171,7 @@ class SpecialCodeController extends Controller
         if (!$specialcode) {
             return response()->json([
                 'success' => false,
-                'message' => 'Código especial no válido.',
+                'message' => 'Invalid special fee code.',
             ]);
         }
 
@@ -181,7 +181,7 @@ class SpecialCodeController extends Controller
         if ($expirationDate->lte($currentDate)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Código especial expirado.',
+                'message' => 'Special fee code has expired.',
             ]);
         }
 
@@ -189,7 +189,7 @@ class SpecialCodeController extends Controller
         if ($specialcode->status != 'Activo') {
             return response()->json([
                 'success' => false,
-                'message' => 'Código especial no está activo.',
+                'message' => 'Special fee code is not active.',
             ]);
         }
 
@@ -200,7 +200,7 @@ class SpecialCodeController extends Controller
         if ($usedCount >= $specialcode->quantity) {
             return response()->json([
                 'success' => false,
-                'message' => 'Código especial ya está agotado.',
+                'message' => 'Special fee code has reached its usage limit.',
             ]);
         }
 
@@ -208,13 +208,13 @@ class SpecialCodeController extends Controller
         $userId = \Auth::user()->id; // Obtener el ID del usuario logueado
         $userUsedCount = Inscription::where('special_code', $code)
             ->where('user_id', $userId)
-            ->where('status', '!=', 'Rechazado')
+            ->whereNotIn('status', ['Refused', 'Draft'])
             ->count();
 
         if ($userUsedCount > 0) {
             return response()->json([
                 'success' => false,
-                'message' => 'Ya utilizó el código en su inscripción',
+                'message' => 'Special fee code already used.',
             ]);
         }
 

@@ -1030,9 +1030,10 @@
                                                             </div>
 
                                                             @if ($category->id == '6')
-                                                                <div id="dv_specialcode" class="d-sm-inline-block d-none">
-                                                                    <div class="input-group mt-1 mb-0">
-                                                                        <input type="text" name="specialcode" id="specialcode" class="form-control convert_mayus" placeholder="Enter Code">
+
+                                                                <div class="d-sm-inline-block">
+                                                                    <div id="dv_specialcode" class="input-group mt-1 mb-0 d-none">
+                                                                        <input type="text" name="specialcode" id="specialcode" class="form-control convert_mayus" placeholder="Enter Code" value="{{ old('specialcode', $myinscription->special_code) }}" autocomplete="off">
                                                                         <button class="btn btn-secondary d-none" type="button" id="clear_specialcode" style="border-radius: 0px 6px 6px 0px;">Clear</button>
                                                                         <button class="btn btn-primary px-2 px-sm-3" type="button" id="validate_specialcode">Validate</button>
                                                                     </div>
@@ -1275,7 +1276,7 @@
                             
                             @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
                                 <div class="col-12 text-center">
-                                    <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save</button>
+                                    <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save Draft</button>
                                     <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
                                 </div>
                             @endif

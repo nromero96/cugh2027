@@ -16,6 +16,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (action === "save") {
             btnSaveInscription.textContent = "Saving draft...";
+            if (!validarCamposInscriptionDraft()) {
+                event.preventDefault();
+                btnSaveInscription.textContent = "Save Draft";
+            }
         }
 
     });
@@ -353,7 +357,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if(selectedRadioCategoryInscription.value === '6' && document.getElementById('specialcode_verify').value === ''){
-            alert('You must validate the special fee code.');
+            alert('Please enter and validate a valid special fee code.');
+            return false;
+        }
+    
+        return true; // La validación pasa
+    }
+
+    function validarCamposInscriptionDraft() {
+        const selectedRadioCategoryInscription = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
+    
+        if (selectedRadioCategoryInscription === null) {
+            alert("You must select a category.");
+            return false;
+        }
+
+        if(selectedRadioCategoryInscription.value === '6' && document.getElementById('specialcode_verify').value === ''){
+            alert('Please enter and validate a valid special fee code.');
+            const specialcode = document.getElementById('specialcode');
+            specialcode.focus();
             return false;
         }
     
