@@ -142,11 +142,11 @@
                                     <hr class="mt-1 mb-0">
                                     <div class="row">
                                         <div class="col-md-4 mt-3">
-                                            <label class="form-label fw-bold mb-0">Workplace:</label><br>
+                                            <label class="form-label fw-bold mb-0">Workplace Name:</label><br>
                                             <span class="bx-text">{{ $user->workplace }}</span>
                                         </div>
                                         <div class="col-md-8 mt-3">
-                                            <label class="form-label fw-bold mb-0">Workplace Address:</label><br>
+                                            <label class="form-label fw-bold mb-0">Workplace Postal Address:</label><br>
                                             <span class="bx-text">{{ $user->address }}</span>
                                         </div>
 

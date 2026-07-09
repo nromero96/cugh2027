@@ -254,13 +254,13 @@
                                     <hr class="mt-1 mb-1">
                                     <div class="row">
                                         <div class="col-md-4 mt-3">
-                                            <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace <span class="text-danger">*</span></label>
+                                            <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace Name <span class="text-danger">*</span></label>
                                             <input type="text" name="workplace" class="form-control @error('workplace') is-invalid @enderror" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}">
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
                                         </div>
 
                                         <div class="col-md-8 mt-3">
-                                            <label for="inputAddress" class="form-label text-muted mb-0">Work Address <span class="text-danger">*</span></label>
+                                            <label for="inputAddress" class="form-label text-muted mb-0">Workplace Postal Address <span class="text-danger">*</span></label>
                                             <input type="text" name="address" class="form-control @error('address') is-invalid @enderror" id="inputAddress" value="{{ old('address', $user->address) }}" maxlength="50" autocomplete="new-work-address">
                                             {!!$errors->first("address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
