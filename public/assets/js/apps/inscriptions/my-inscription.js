@@ -314,23 +314,23 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
+    // Función para validar campo de archivo de FilePond
+    function validarArchivoFilePond(inputId, mensajeError) {
+        const inputArchivo = document.getElementById(inputId);
+        const filePondInstance = FilePond.find(inputArchivo);
+    
+        if (filePondInstance.getFiles().length === 0) {
+            alert(mensajeError);
+            return false;
+        }
+    
+        return true;
+    }
+
 
     function validarCamposInscription() {
         const selectedRadioCategoryInscription = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
         const selectedRadioPaymentMethod = document.querySelector('input[type="radio"][name="payment_method"]:checked');
-    
-        // Función para validar campo de archivo de FilePond
-        function validarArchivoFilePond(inputId, mensajeError) {
-            const inputArchivo = document.getElementById(inputId);
-            const filePondInstance = FilePond.find(inputArchivo);
-    
-            if (filePondInstance.getFiles().length === 0) {
-                alert(mensajeError);
-                return false;
-            }
-    
-            return true;
-        }
     
         if (selectedRadioCategoryInscription === null) {
             alert("You must select a category.");
@@ -338,9 +338,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     
         const categoriasPermitidas = ['3', '4', '5','6'];
+
+        const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
-        if (categoriasPermitidas.includes(selectedRadioCategoryInscription.value)) {
-            if (!validarArchivoFilePond('document_file', "You must attach proof of category (Title, Certificate, Professional Card).")) {
+        if (categoriasPermitidas.includes(selectedRadioCategoryInscription.value) && !hasDocumentFile) {
+            if (!validarArchivoFilePond('document_file', 'You must attach proof of category (Title, Certificate, Professional Card).')) {
                 return false;
             }
         }
@@ -370,6 +372,16 @@ document.addEventListener("DOMContentLoaded", function () {
         if (selectedRadioCategoryInscription === null) {
             alert("You must select a category.");
             return false;
+        }
+
+        const categoriasPermitidas = ['3', '4'];
+
+        const hasDocumentFile = document.getElementById('has_document_file').value === '1';
+    
+        if (categoriasPermitidas.includes(selectedRadioCategoryInscription.value) && !hasDocumentFile) {
+            if (!validarArchivoFilePond('document_file', 'Please attach proof of student status.')) {
+                return false;
+            }
         }
 
         if(selectedRadioCategoryInscription.value === '6' && document.getElementById('specialcode_verify').value === ''){
@@ -817,5 +829,49 @@ FilePond.setOptions({
       },
   },
 });
+
+
+//Delete File Document btn_delete_document_file
+const btnDeleteDocumentFile = document.getElementById('btn_delete_document_file');
+if (btnDeleteDocumentFile) {
+    btnDeleteDocumentFile.addEventListener('click', function () {
+        
+        if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+            return;
+        }
+
+        //data-id get value
+        const id = this.getAttribute('data-id');
+
+        fetch(`/inscriptions/${id}/delete-document-file`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify({
+                id: id
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                pondDocument.removeFile();
+                const card_document_file = document.getElementById('card_document_file');
+                card_document_file.classList.add('d-none');
+                document.getElementById('has_document_file').value = '0';
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error(error);
+            alert('An error occurred while deleting the document.');
+        });
+
+
+
+    });
+}
 
 

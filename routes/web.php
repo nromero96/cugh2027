@@ -167,6 +167,9 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::put('upload-invoice-inscription/{id}', [InscriptionController::class, 'uploadInvoice'])->name('inscriptions.uploadinvoice');
     Route::put('delete-invoice-inscription/{id}', [InscriptionController::class, 'deleteInvoice'])->name('inscriptions.deleteinvoice');
 
+    Route::post('/inscriptions/{id}/delete-document-file', [InscriptionController::class, 'deleteDocumentFile'])
+    ->name('inscriptions.delete-document-file');
+
 
     Route::get('/countries-by-institution/{id?}', [CountryController::class, 'getByInstitution'])->name('countries.byInstitution');
 

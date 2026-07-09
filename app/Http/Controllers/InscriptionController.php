@@ -1048,6 +1048,39 @@ class InscriptionController extends Controller
             ->with('success', 'Invoice deleted successfully.');
     }
 
+    public function deleteDocumentFile($id)
+    {
+
+        $inscription = Inscription::find($id);
+
+        if (!$inscription) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Inscription not found.',
+            ], 404);
+        }
+
+        // Solo el administrador o el propietario de la inscripción
+        if (
+            !auth()->user()->hasRole('Administrador') &&
+            $inscription->user_id !== auth()->id()
+        ) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access.',
+            ], 403);
+        }
+
+        $inscription->update([
+            'document_file' => null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Document deleted successfully.',
+        ]);
+    }
+
 
     public function requestComprobante(Request $request, $id)
     {
