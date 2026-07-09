@@ -7,10 +7,15 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+
+use Maatwebsite\Excel\Events\AfterSheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use Maatwebsite\Excel\Concerns\WithEvents;
+
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use App\Models\Inscription;
 
-class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, WithStyles
+class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, WithStyles, WithEvents
 {
     /**
     * @return \Illuminate\Support\Collection
@@ -58,6 +63,7 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
                                     'inscriptions.status', 
                                     'inscriptions.invoice_type',
                                     'inscriptions.voucher_file',
+                                    'inscriptions.compr_pdf',
                                     'inscriptions.created_at',
 
                                     'payments.card_number',
@@ -71,6 +77,16 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
                             ->leftjoin('countries', 'countries.id', '=', 'users.country')
                             ->leftjoin('payments', 'payments.inscription_id', '=', 'inscriptions.id')
                             ->where('inscriptions.status', '!=', 'Refused')
+                            ->orderByRaw("
+                                FIELD(inscriptions.status,
+                                    'Confirmed',
+                                    'Paid',
+                                    'Processing',
+                                    'Pending',
+                                    'Draft'
+                                )
+                            ")
+                            ->orderBy('inscriptions.created_at', 'asc')
                             ->get();
     }
 
@@ -112,6 +128,7 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             'Payment Information',
             'Status',
             'Invoice Type',
+            'Invoice',
             'Registration Date',
         ];
     }
@@ -164,13 +181,14 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
             $payment_info,
             $inscription->status,
             $inscription->invoice_type,
+            $inscription->compr_pdf,
             $inscription->created_at,
 
         ];
     }
 
     public function styles(Worksheet $sheet){
-        $sheet->getStyle('A1:AG1')->applyFromArray([
+        $sheet->getStyle('A1:AH1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFF'],
@@ -191,7 +209,7 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
         $sheet->getColumnDimension('E')->setWidth(22);
         $sheet->getColumnDimension('F')->setWidth(10);
         $sheet->getColumnDimension('G')->setWidth(7);
-        $sheet->getColumnDimension('H')->setWidth(8);
+        $sheet->getColumnDimension('H')->setWidth(16);
         $sheet->getColumnDimension('I')->setWidth(22);
         $sheet->getColumnDimension('J')->setWidth(14);
         $sheet->getColumnDimension('K')->setWidth(7);
@@ -213,10 +231,88 @@ class ExporInscriptions implements FromCollection, WithHeadings, WithMapping, Wi
         $sheet->getColumnDimension('AA')->setWidth(17);
         $sheet->getColumnDimension('AB')->setWidth(14);
         $sheet->getColumnDimension('AC')->setWidth(22);
-        $sheet->getColumnDimension('AD')->setWidth(40);
-        $sheet->getColumnDimension('AE')->setWidth(22);
-        $sheet->getColumnDimension('AF')->setWidth(22);
-        $sheet->getColumnDimension('AG')->setWidth(22);
+        $sheet->getColumnDimension('AD')->setWidth(60);
+        $sheet->getColumnDimension('AE')->setWidth(11);
+        $sheet->getColumnDimension('AF')->setWidth(12);
+        $sheet->getColumnDimension('AG')->setWidth(35);
+        $sheet->getColumnDimension('AH')->setWidth(19);
+    }
+
+    public function registerEvents(): array
+    {
+        return [
+            AfterSheet::class => function (AfterSheet $event) {
+
+                $sheet = $event->sheet->getDelegate();
+                $lastRow = $sheet->getHighestRow();
+
+                for ($row = 2; $row <= $lastRow; $row++) {
+
+                    // Cambia AE por la columna donde está el Status
+                    $status = trim((string) $sheet->getCell("AE{$row}")->getValue());
+
+                    switch ($status) {
+                        case 'Confirmed':
+                            $color = 'ddf5f0';      // Fondo
+                            $fontColor = '00ab55';  // Texto
+                            break;
+
+                        case 'Paid':
+                            $color = 'f2eafa';      // Fondo
+                            $fontColor = 'F2A413';  // Texto
+                            break;
+
+                        case 'Processing':
+                            $color = 'e6f4ff';      // Fondo
+                            $fontColor = '2196f3';  // Texto
+                            break;
+
+                        case 'Pending':
+                            $color = 'fcf5e9';      // Fondo
+                            $fontColor = 'e2a03f';  // Texto
+                            break;
+
+                        case 'Draft':
+                            $color = 'eceffe';      // Fondo
+                            $fontColor = 'CC1F2F';  // Texto
+                            break;
+
+                        default:
+                            continue 2; // Saltar a la siguiente fila
+                    }
+
+                    $sheet->getStyle("A{$row}:AH{$row}")
+                    ->applyFromArray([
+                        'fill' => [
+                            'fillType' => Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => $color,
+                            ],
+                        ],
+                        'font' => [
+                            'bold' => true, // Opcional
+                            'color' => [
+                                'argb' => $fontColor,
+                            ],
+                        ],
+                    ]);
+                }
+
+                // Aplicar bordes a toda la tabla
+                $sheet->getStyle("A1:AH{$lastRow}")
+                    ->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => [
+                                    'argb' => 'D9D9D9',
+                                ],
+                            ],
+                        ],
+                    ]);
+
+            },
+        ];
     }
 
 }
