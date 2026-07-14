@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\AbstractPost;
+use App\Models\AbstractPostNote;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
@@ -243,7 +244,7 @@ class AbstractPostController extends Controller
         }
 
         // 🔥 cargar relación
-        $abstractPost->load('user');
+        $abstractPost->load(['user', 'notes.user']);
 
         return view('pages.abstract_posts.show')->with($data)->with('abstract_post', $abstractPost)->with('user', $user);
     }
@@ -430,6 +431,37 @@ class AbstractPostController extends Controller
 
         return redirect()->route('abstract_posts.index')
             ->with('success', 'Deleted successfully');
+    }
+
+    public function updateStatus(Request $request, AbstractPost $abstractPost)
+    {
+        //Validar que sea el administrador
+        if (!auth()->user()->hasRole('Administrador')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'comment' => 'nullable|string|max:1000',
+            'status' => 'required|in:draft,submitted,accepted,rejected',
+        ]);
+
+        $oldStatus = $abstractPost->status;
+
+        $abstractPost->status = $request->status;
+        $abstractPost->save();
+
+        //Registrar Nota
+        $abstractPostNote = new AbstractPostNote();
+        $abstractPostNote->abstract_post_id = $abstractPost->id;
+        $abstractPostNote->user_id = auth()->id();
+        $abstractPostNote->comment = $request->comment;
+        $abstractPostNote->status_change = "Changed status from {$oldStatus} to {$request->status}";
+
+
+        $abstractPostNote->save();
+
+        return redirect()->route('abstract_posts.show', $abstractPost->id)
+            ->with('success', 'Status changed successfully');
     }
 
     public function exportExcelAbstracts(){

@@ -28,4 +28,10 @@ class AbstractPost extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function notes()
+    {
+        return $this->hasMany(AbstractPostNote::class)
+            ->orderBy('created_at', 'desc');
+    }
+
 }
