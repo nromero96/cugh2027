@@ -22,6 +22,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
     public function collection()
     {
         return AbstractPost::join('users', 'users.id', '=', 'abstract_posts.user_id')
+                            ->leftJoin('countries', 'countries.id', '=', 'users.country')
                             ->select('abstract_posts.id', 
                                     'users.name',
                                     'users.lastname',
@@ -38,7 +39,8 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
                                     'abstract_posts.keywords',
                                     'abstract_posts.status',
                                     'abstract_posts.created_at',
-                                    'abstract_posts.updated_at')
+                                    'abstract_posts.updated_at',
+                                    'countries.name as country_name')
                             ->get();
 
     }
@@ -60,6 +62,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
             'Status',
             'Created At',
             'Updated At',
+            'Country',
         ];
     }
 
@@ -116,12 +119,13 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
             $keywords,
             $abstractPost->status,
             $abstractPost->created_at,
-            $abstractPost->updated_at
+            $abstractPost->updated_at,
+            $abstractPost->country_name
         ];
     }
 
     public function styles(Worksheet $sheet) {
-        $sheet->getStyle('A1:M1')->applyFromArray([
+        $sheet->getStyle('A1:O1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFF'],
@@ -149,12 +153,13 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
         $sheet->getColumnDimension('L')->setWidth(13);
         $sheet->getColumnDimension('M')->setWidth(13);
         $sheet->getColumnDimension('N')->setWidth(13);
+        $sheet->getColumnDimension('O')->setWidth(13);
 
         // Permitir saltos de línea en el abstract
         $sheet->getStyle('J:J')->getAlignment()->setWrapText(true);
 
         // Alinear el contenido arriba
-        $sheet->getStyle('A:N')->getAlignment()->setVertical(
+        $sheet->getStyle('A:O')->getAlignment()->setVertical(
             Alignment::VERTICAL_TOP
         );
 
