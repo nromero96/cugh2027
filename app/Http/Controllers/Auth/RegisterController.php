@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class RegisterController extends Controller
 {
@@ -51,21 +52,58 @@ class RegisterController extends Controller
     {
         // Define las reglas de validación principales
         $validator = Validator::make($data, [
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'email' => [
+                'required', 
+                'string', 
+                'email:rfc,dns', 
+                'max:255', 
+                'unique:users,email',
+            ],
+
+            'password' => [
+                'required', 
+                'string', 
+                'min:8', 
+                'confirmed',
+            ],
+
+            'document_type' => [
+                'required', 
+                'string',
+            ],
+
+            'document_number' => [
+                'required',
+                'string',
+                'max:30',
+            ],
         ]);
 
-        // Verifica si el número de documento ya existe
-        $user = User::where('document_number', $data['document_number'])->first();
 
-        if ($user) {
-            // Obtiene el correo del usuario y solo muestra las primeras 3 letras y las últimas 3
-            $useremail = $user->email;
-            $email = substr($useremail, 0, 3) . '....' . substr($useremail, -6);
-            // Agrega un mensaje de error y redirige de vuelta si el número de documento ya está registrado
-            $validator->after(function ($validator) use ($data, $email) {
-                $validator->errors()->add('document_number', 'El N° de documento ' . $data['document_number'] . ' ya está registrado. Si eres tú, inicia sesión con tu correo ' . $email);
-            });
+        if (!empty($data['document_number'])) {
+            $user = User::where(
+                'document_number',
+                $data['document_number']
+            )->first();
+
+            if ($user) {
+                $userEmail = $user->email;
+
+                $email = substr($userEmail, 0, 3)
+                    . '....'
+                    . substr($userEmail, -6);
+
+                $validator->after(function ($validator) use ($data, $email) {
+                    $validator->errors()->add(
+                        'document_number',
+                        'The document number '
+                        . $data['document_number']
+                        . ' is already registered. If this is your account, please sign in using your email '
+                        . $email
+                        . '.'
+                    );
+                });
+            }
         }
 
         return $validator;
@@ -80,28 +118,25 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        return DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => '',
+                'email' => $data['email'],
+                'document_type' => $data['document_type'],
+                'document_number' => $data['document_number'],
+                'password' => Hash::make($data['password']),
+                'status' => 'active',
+                'photo' => 'default-profile.jpg',
+            ]);
 
-        $user = User::create([
-            'name' => '',
-            'email' => $data['email'],
-            'document_type' => $data['document_type'],
-            'document_number' => $data['document_number'],
-            'password' => Hash::make($data['password']),
-            'status' => 'active',
-            'photo' => 'default-profile.jpg',
-        ]);
+            $user->assignRole('Participante');
 
-        // Asignar rol
-        $user->assignRole('Participante');
+            $user->inscription()->create([
+                'invoice_type' => 'Boleta',
+                'status' => 'Draft',
+            ]);
 
-        // Crear inscripción automáticamente (draft)
-        $user->inscription()->firstOrCreate(
-            ['user_id' => $user->id],
-            ['invoice_type' => 'Boleta'],
-            ['status' => 'Draft']
-        );
-
-        return $user;
-
+            return $user;
+        });
     }
 }

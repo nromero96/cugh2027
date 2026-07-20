@@ -126,6 +126,10 @@ Route::post(
     [CategoryInscriptionController::class, 'pricesByCountry']
 )->name('category_inscriptions.prices');
 
+Route::get('/admin/repair-inscriptions',
+        [InscriptionController::class, 'repairInscriptions']
+    );
+
 
 //routes for user login
 Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive']], function () {
@@ -187,6 +191,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     Route::get('payment-niubiz/{inscription}', [InscriptionController::class, 'paymentNiubiz'])->name('inscriptions.paymentniubiz');
     Route::post('confirm-payment-niubiz', [InscriptionController::class, 'confirmPaymentNiubiz'])->name('inscriptions.confirmpaymentniubiz');
+
+
 
     //HotelReservations
     Route::resource('hotelreservations', HotelReservationController::class)->names('hotelreservations');
