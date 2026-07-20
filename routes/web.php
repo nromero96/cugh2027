@@ -126,10 +126,6 @@ Route::post(
     [CategoryInscriptionController::class, 'pricesByCountry']
 )->name('category_inscriptions.prices');
 
-Route::get('/admin/repair-inscriptions',
-        [InscriptionController::class, 'repairInscriptions']
-    );
-
 
 //routes for user login
 Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive']], function () {

@@ -53,7 +53,7 @@
                     <div class="widget-header">
                         <div class="row">
                             <div class="col-xl-6 col-md-6 col-sm-6 mb-2 col-6">
-                                <h4>
+                                <h4 class="display-inline-block">
                                     Abstract N°: {{ $abstract_post->id }} 
                                     @if ($abstract_post->status == 'draft')
                                         <span class="badge bg-light-warning mt-2">Draft</span>
@@ -62,7 +62,15 @@
                                     @elseif ($abstract_post->status == 'rejected')
                                         <span class="badge bg-light-danger mt-2">Rejected</span>
                                     @endif
+
+                                    @if(\Auth::user()->hasRole('Participante') && $abstract_post->status == 'draft')
+                                        <a href="{{ route('abstract_posts.edit', $abstract_post->id) }}" class="btn btn-outline-info btn-link px-2 py-0">Edit Abstract</a>
+                                    @endif
+
                                 </h4>
+
+                                
+
                             </div>
                             <div class="col-xl-6 col-md-6 col-sm-6 mb-2 col-6 text-end">
                                 <span class="badge bg-light-secondary mt-2">Last Update: {{ $abstract_post->updated_at }}</span>
@@ -164,8 +172,13 @@
                                 </div>
 
                                 <div class="col-12 text-end no-print">
+                                    @if(\Auth::user()->hasRole('Participante') && $abstract_post->status == 'draft')
+                                        <a href="{{ route('abstract_posts.edit', $abstract_post->id) }}" class="btn btn-info">Edit Abstract</a>
+                                    @endif
+
                                     <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary">Back</a>
                                     <a href="#" onclick="window.print()" class="btn btn-primary">Print</a>
+
                                 </div>
                             </div>
                     </div>

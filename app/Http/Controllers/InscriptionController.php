@@ -1120,27 +1120,4 @@ class InscriptionController extends Controller
         
     }
 
-    public function repairInscriptions()
-    {
-        $count = 0;
-
-        User::role('Participante')
-            ->doesntHave('inscription')
-            ->chunkById(100, function ($users) use (&$count) {
-
-                foreach ($users as $user) {
-
-                    $user->inscription()->create([
-                        'invoice_type' => 'Boleta',
-                        'status' => 'Draft',
-                    ]);
-
-                    $count++;
-                }
-
-            });
-
-        return "Created {$count} missing inscriptions.";
-    }
-
 }
