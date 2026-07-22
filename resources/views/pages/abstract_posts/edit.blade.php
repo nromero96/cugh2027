@@ -55,7 +55,7 @@
 
                                 <div class="col-md-12">
                                     <label for="selectSubtopic" class="form-label text-muted mb-0">Sub theme</label>
-                                    <select name="subtopic" class="form-select" id="selectSubtopic">
+                                    <select name="subtopic" class="form-select" id="selectSubtopic" @if(old('abstract_type', $abstract_post->abstract_type) == 'Global Health Education Abstract') disabled @endif> 
                                         <option value="" {{ old('subtopic', $abstract_post->subtopic) == '' ? 'selected' : '' }}>Select...</option>
                                         <option value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care"{{ old('subtopic', $abstract_post->subtopic) == 'Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care' ? 'selected' : '' }}>Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care</option>
                                         <option value="Social Determinants of Health" {{ old('subtopic', $abstract_post->subtopic) == 'Social Determinants of Health' ? 'selected' : '' }}>Social Determinants of Health</option>
@@ -80,68 +80,69 @@
                                         Main author / presenter's name
                                         <span class="text-muted">(mandatory)</span>
                                     </label>
+                                    <div id="container_author">
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <label class="form-label text-muted mb-0">
+                                                    Name <span class="text-danger">*</span>
+                                                </label>
 
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <label class="form-label text-muted mb-0">
-                                                Name <span class="text-danger">*</span>
-                                            </label>
+                                                <input
+                                                    type="text"
+                                                    name="main_author[name]" 
+                                                    id="mainAuthorName"
+                                                    class="form-control @error('main_author.name') is-invalid @enderror"
+                                                    value="{{ old('main_author.name', $abstract_post->main_author['name'] ?? '') }}"
+                                                >
 
-                                            <input
-                                                type="text"
-                                                name="main_author[name]" 
-                                                id="mainAuthorName"
-                                                class="form-control @error('main_author.name') is-invalid @enderror"
-                                                value="{{ old('main_author.name', $abstract_post->main_author['name'] ?? '') }}"
-                                            >
+                                                @error('main_author.name')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                            @error('main_author.name')
-                                                <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label text-muted mb-0">
+                                                    Last Name <span class="text-danger">*</span>
+                                                </label>
 
-                                        <div class="col-md-4">
-                                            <label class="form-label text-muted mb-0">
-                                                Last Name <span class="text-danger">*</span>
-                                            </label>
+                                                <input
+                                                    type="text"
+                                                    name="main_author[lastname]" 
+                                                    id="mainAuthorLastname"
+                                                    class="form-control @error('main_author.lastname') is-invalid @enderror"
+                                                    value="{{ old('main_author.lastname', $abstract_post->main_author['lastname'] ?? '') }}"
+                                                >
 
-                                            <input
-                                                type="text"
-                                                name="main_author[lastname]" 
-                                                id="mainAuthorLastname"
-                                                class="form-control @error('main_author.lastname') is-invalid @enderror"
-                                                value="{{ old('main_author.lastname', $abstract_post->main_author['lastname'] ?? '') }}"
-                                            >
+                                                @error('main_author.lastname')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
 
-                                            @error('main_author.lastname')
-                                                <small class="text-danger">{{ $message }}</small>
-                                            @enderror
-                                        </div>
+                                            <div class="col-md-4">
+                                                <label class="form-label text-muted mb-0">
+                                                    Country <span class="text-danger">*</span>
+                                                </label>
 
-                                        <div class="col-md-4">
-                                            <label class="form-label text-muted mb-0">
-                                                Country <span class="text-danger">*</span>
-                                            </label>
+                                                <select
+                                                    name="main_author_country_id"
+                                                    class="form-select @error('main_author_country_id') is-invalid @enderror"
+                                                >
+                                                    <option value="">Select country</option>
 
-                                            <select
-                                                name="main_author_country_id"
-                                                class="form-select @error('main_author_country_id') is-invalid @enderror"
-                                            >
-                                                <option value="">Select country</option>
+                                                    @foreach($countries as $country)
+                                                        <option
+                                                            value="{{ $country->id }}"
+                                                            {{ old('main_author_country_id', $abstract_post->main_author_country_id) == $country->id ? 'selected' : '' }}
+                                                        >
+                                                            {{ $country->name }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
 
-                                                @foreach($countries as $country)
-                                                    <option
-                                                        value="{{ $country->id }}"
-                                                        {{ old('main_author_country_id', $abstract_post->main_author_country_id) == $country->id ? 'selected' : '' }}
-                                                    >
-                                                        {{ $country->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-
-                                            @error('main_author_country_id')
-                                                <small class="text-danger">{{ $message }}</small>
-                                            @enderror
+                                                @error('main_author_country_id')
+                                                    <small class="text-danger">{{ $message }}</small>
+                                                @enderror
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
