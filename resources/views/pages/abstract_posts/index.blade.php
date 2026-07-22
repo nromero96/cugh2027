@@ -57,7 +57,7 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("#") }}</th>
-                                        <th scope="col">{{__("Author")}}</th>
+                                        <th scope="col">{{__("Main Author")}}</th>
                                         <th scope="col">{{__("Type")}}</th>
                                         <th scope="col">{{__("Title")}}</th>
                                         <th scope="col">{{__("Status")}}</th>
@@ -89,7 +89,10 @@
                                                     <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" class="text-primary text-decoration-underline"> <b>{{$abstrpost->id}}</b> </a>
                                                 </td>
                                                 <td>
-                                                    <span class="d-block">{{$abstrpost->user->name.' '.$abstrpost->user->lastname.' '.$abstrpost->user->second_lastname}}</span>
+                                                    <span class="d-block">
+                                                        {{ $abstrpost->main_author['name'] ?? '' }}
+                                                        {{ $abstrpost->main_author['lastname'] ?? '' }}
+                                                    </span>
                                                     <small class="text-muted">({{$abstrpost->user->email}})</small>
                                                 </td>
                                                 <td>
