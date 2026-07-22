@@ -91,9 +91,10 @@ class AbstractPostController extends Controller
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([
-                'name' => 'required',
-                'lastname' => 'nullable',
-                'second_lastname' => 'required',
+                'main_author' => ['required', 'array'],
+                'main_author.name' => ['required', 'string', 'max:100'],
+                'main_author.lastname' => ['required', 'string', 'max:150'],
+                'main_author_country_id' => ['required','integer','exists:countries,id'],
                 'presentation_type' => 'required',
                 'abstract_type' => 'required',
                 'title' => 'required|max:250',
@@ -144,14 +145,25 @@ class AbstractPostController extends Controller
         }
 
         // =========================
+        // MAIN AUTHOR
+        // =========================
+        $mainAuthor = [
+            'name' => trim($request->input('main_author.name', '')),
+            'lastname' => trim($request->input('main_author.lastname', '')),
+        ];
+
+        // =========================
         // 🔥 CO-AUTHORS (CON ID REAL)
         // =========================
         $coAuthors = [];
-        foreach ($request->co_authors_name as $i => $name) {
-            $lastname = $request->co_authors_lastname[$i] ?? '';
-            if (!$name && !$lastname) continue;
+        foreach (($request->co_authors_name ?? []) as $i => $name) {
+            $name = trim($name);
+            $lastname = trim($request->co_authors_lastname[$i] ?? '');
 
-            // Tomar el ID generado en el frontend
+            if ($name === '' && $lastname === '') {
+                continue;
+            }
+
             $id = $request->co_authors_id[$i] ?? 'ca_' . $i;
 
             $coAuthors[] = [
@@ -165,26 +177,27 @@ class AbstractPostController extends Controller
         // 🔥 INSTITUTIONS (usar IDs reales del frontend)
         // =========================
         $institutions = [];
-        foreach ($request->institutions as $i => $instName) {
-            if (!$instName) continue;
+        foreach (($request->institutions ?? []) as $i => $instName) {
+            $instName = trim($instName);
 
-            // Tomar los IDs directamente del input hidden
-            $coauthorsIds = json_decode($request->institution_coauthors[$i] ?? '[]', true);
+            if ($instName === '') {
+                continue;
+            }
+
+            $coauthorsIds = json_decode(
+                $request->institution_coauthors[$i] ?? '[]',
+                true
+            );
+
+            if (!is_array($coauthorsIds)) {
+                $coauthorsIds = [];
+            }
 
             $institutions[] = [
                 'name' => $instName,
-                'coauthors' => $coauthorsIds
+                'coauthors' => $coauthorsIds,
             ];
         }
-
-        // =========================
-        // 💾 UPDATE USER
-        // =========================
-        $user = User::find($id_user);
-        $user->name = $request->name;
-        $user->lastname = $request->lastname;
-        $user->second_lastname = $request->second_lastname;
-        $user->save();
 
         // =========================
         // 💾 GUARDAR
@@ -200,10 +213,11 @@ class AbstractPostController extends Controller
 
         $abstractpost->status = $action;
         
-
-        $abstractpost->co_authors = json_encode($coAuthors);
-        $abstractpost->institutions = json_encode($institutions);
-        $abstractpost->keywords = json_encode($keywords);
+        $abstractpost->main_author = $mainAuthor;
+        $abstractpost->main_author_country_id = $request->main_author_country_id;
+        $abstractpost->co_authors = $coAuthors;
+        $abstractpost->institutions = $institutions;
+        $abstractpost->keywords = $keywords;
 
         $abstractpost->save();
 
@@ -244,7 +258,7 @@ class AbstractPostController extends Controller
         }
 
         // 🔥 cargar relación
-        $abstractPost->load(['user', 'notes.user']);
+        $abstractPost->load(['user', 'mainAuthorCountry', 'notes.user']);
 
         return view('pages.abstract_posts.show')->with($data)->with('abstract_post', $abstractPost)->with('user', $user);
     }
@@ -281,7 +295,9 @@ class AbstractPostController extends Controller
         // 🔥 cargar relación
         $abstractPost->load('user');
 
-        return view('pages.abstract_posts.edit')->with($data)->with('abstract_post', $abstractPost);
+        $countries = Country::orderByRaw("CASE WHEN name = 'Perú' THEN 0 ELSE 1 END, name ASC")->get();
+
+        return view('pages.abstract_posts.edit')->with($data)->with('abstract_post', $abstractPost)->with('countries', $countries);
     }
 
     /**
@@ -305,6 +321,14 @@ class AbstractPostController extends Controller
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([
+                'main_author' => ['required', 'array'],
+                'main_author.name' => ['required', 'string', 'max:100'],
+                'main_author.lastname' => ['required', 'string', 'max:150'],
+                'main_author_country_id' => [
+                    'required',
+                    'integer',
+                    'exists:countries,id',
+                ],
                 'presentation_type' => 'required',
                 'abstract_type' => 'required',
                 'title' => 'required|max:250',
@@ -352,6 +376,19 @@ class AbstractPostController extends Controller
                 ])->withInput();
             }
         }
+
+        // =========================
+        // MAIN AUTHOR
+        // =========================
+        $mainAuthor = [
+            'name' => trim(
+                $request->input('main_author.name', '')
+            ),
+
+            'lastname' => trim(
+                $request->input('main_author.lastname', '')
+            ),
+        ];
 
         // =========================
         // 🔥 CO-AUTHORS
@@ -396,9 +433,12 @@ class AbstractPostController extends Controller
 
         $abstractPost->status = $action;
 
-        $abstractPost->co_authors = json_encode($coAuthors);
-        $abstractPost->institutions = json_encode($institutions);
-        $abstractPost->keywords = json_encode($keywords);
+        $abstractPost->main_author = $mainAuthor;
+        $abstractPost->main_author_country_id = $request->main_author_country_id;
+
+        $abstractPost->co_authors = $coAuthors;
+        $abstractPost->institutions = $institutions;
+        $abstractPost->keywords = $keywords;
 
         $abstractPost->save();
 

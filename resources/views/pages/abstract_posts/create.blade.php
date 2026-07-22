@@ -112,34 +112,32 @@
                                     <div id="container_author">
                                         <div class="row">
                                             <div class="col-md-4">
-                                                <label for="inputName" class="form-label text-muted mb-0">First Name <span class="text-danger">*</span></label>
-                                                <input type="text" name="name" class="form-control solo-mayusculas @error('first_name') is-invalid @enderror" id="inputName" value="{{ old('name', $user->name) }}" required>
-                                                @error('name')
+                                                <label for="mainAuthorName" class="form-label text-muted mb-0">Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="main_author[name]" class="form-control @error('main_author.name') is-invalid @enderror" id="mainAuthorName" value="{{ old('main_author.name') }}" required>
+                                                @error('main_author.name')
                                                     <br><small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="inputName" class="form-label text-muted mb-0">Middle Name</label>
-                                                <input type="text" name="lastname" class="form-control solo-mayusculas @error('lastname') is-invalid @enderror" id="inputLastName" value="{{ old('lastname', $user->lastname) }}">
-                                                @error('last_name')
+                                                <label for="mainAuthorLastname" class="form-label text-muted mb-0">Last Name <span class="text-danger">*</span></label>
+                                                <input type="text" name="main_author[lastname]" class="form-control @error('main_author.lastname') is-invalid @enderror" id="mainAuthorLastname" value="{{ old('main_author.lastname') }}" required>
+                                                @error('main_author.lastname')
                                                     <br><small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
                                             <div class="col-md-4">
-                                                <label for="inputName" class="form-label text-muted mb-0">Last Name <span class="text-danger">*</span></label>
-                                                <input type="text" name="second_lastname" class="form-control solo-mayusculas @error('second_lastname') is-invalid @enderror" id="inputSecondLastName" value="{{ old('second_lastname', $user->second_lastname) }}" required>
-                                                @error('second_lastname')
+                                                <label for="inputName" class="form-label text-muted mb-0">Country <span class="text-danger">*</span></label>
+                                                <select name="main_author_country_id" class="form-select @error('main_author_country_id') is-invalid @enderror" required>
+                                                    <option value="">Select country</option>
+                                                    @foreach ($countries as $country)
+                                                        <option value="{{ $country->id }}" {{ old('main_author_country_id', $user->country_id) == $country->id ? 'selected' : '' }}>{{ $country->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('main_author_country_id')
                                                     <br><small class="text-danger">{{ $message }}</small>
                                                 @enderror
                                             </div>
                                         </div>
-                                        <span class="text-muted d-block mb-0 mt-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-info-circle" viewBox="0 0 16 16">
-                                            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14m0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16"/>
-                                            <path d="m8.93 6.588-2.29.287-.082.38.45.083c.294.07.352.176.288.469l-.738 3.468c-.194.897.105 1.319.808 1.319.545 0 1.178-.252 1.465-.598l.088-.416c-.2.176-.492.246-.686.246-.275 0-.375-.193-.304-.533zM9 4.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0"/>
-                                            </svg> 
-                                            <small>This information is shared between the Abstract Submission and Registration forms.</small>
-                                        </span>
                                     </div>
                                 </div>
 
@@ -439,20 +437,58 @@ function updateNumbersCoAuthors() {
 // =============================
 // GET CO-AUTHORS (SIN VACÍOS)
 // =============================
-function getCoAuthorsList() {
-    const rows = document.querySelectorAll('#container_coauthors .row-coauthors');
-    let list = [];
+function getAuthorsList() {
+    const list = [];
+
+    // =============================
+    // MAIN AUTHOR
+    // =============================
+    const mainAuthorName = document
+        .getElementById('mainAuthorName')
+        ?.value
+        .trim() || '';
+
+    const mainAuthorLastname = document
+        .getElementById('mainAuthorLastname')
+        ?.value
+        .trim() || '';
+
+    if (mainAuthorName || mainAuthorLastname) {
+        list.push({
+            id: 'main_author',
+            text: `${mainAuthorName} ${mainAuthorLastname}`.trim(),
+            isMainAuthor: true
+        });
+    }
+
+    // =============================
+    // CO-AUTHORS
+    // =============================
+    const rows = document.querySelectorAll(
+        '#container_coauthors .row-coauthors'
+    );
 
     rows.forEach(row => {
         const id = row.dataset.id;
-        const name = row.querySelector('[name="co_authors_name[]"]').value.trim();
-        const lastname = row.querySelector('[name="co_authors_lastname[]"]').value.trim();
 
-        if (!name && !lastname) return;
+        const name = row
+            .querySelector('[name="co_authors_name[]"]')
+            .value
+            .trim();
+
+        const lastname = row
+            .querySelector('[name="co_authors_lastname[]"]')
+            .value
+            .trim();
+
+        if (!name && !lastname) {
+            return;
+        }
 
         list.push({
             id: id,
-            text: `${name || ''} ${lastname || ''}`.trim()
+            text: `${name} ${lastname}`.trim(),
+            isMainAuthor: false
         });
     });
 
@@ -496,7 +532,7 @@ function addRowInstitution(value = '') {
                     <div class="tags institution-tags"></div>
 
                     <select class="coauthor-select form-control form-control-sm">
-                        <option value="">Please select co-authors that work at the same institution...</option>
+                        <option value="">Main author / presenter's name must be associated to an institution...</option>
                     </select>
                 </div>
                 <input type="hidden" name="institution_coauthors[]" class="institution-input">
@@ -528,25 +564,42 @@ function updateNumbersInstitution() {
 // =============================
 function updateCoAuthorsOptions() {
     const selects = document.querySelectorAll('.coauthor-select');
-    const coauthors = getCoAuthorsList();
-    const used = getUsedCoAuthors();
+    const authors = getAuthorsList();
 
     selects.forEach(select => {
         const container = select.closest('.row-institution');
         const input = container.querySelector('.institution-input');
-        const selectedValues = input.value ? JSON.parse(input.value) : [];
 
-        select.innerHTML = `<option value="">Please select co-authors that work at the same institution...</option>`;
+        let selectedValues = [];
 
-        coauthors.forEach(ca => {
+        try {
+            selectedValues = input.value
+                ? JSON.parse(input.value)
+                : [];
+        } catch (error) {
+            selectedValues = [];
+        }
+
+        select.innerHTML = `
+            <option value="">
+                Please select authors that work at the same institution...
+            </option>
+        `;
+
+        authors.forEach(author => {
             const option = document.createElement('option');
-            option.value = ca.id;
-            option.textContent = ca.text;
+
+            option.value = author.id;
+
+            option.textContent = author.isMainAuthor
+                ? `${author.text} (Main author)`
+                : author.text;
+
             select.appendChild(option);
         });
-    });
 
-    refreshAllInstitutionTags(); // 🔥 FIX TIEMPO REAL
+        renderInstitutionTags(container, selectedValues);
+    });
 }
 
 // =============================
@@ -583,24 +636,46 @@ document.addEventListener('change', function(e) {
 // =============================
 function renderInstitutionTags(container, selected) {
     const tagsContainer = container.querySelector('.institution-tags');
-    const coauthors = getCoAuthorsList();
+    const authors = getAuthorsList();
 
     tagsContainer.innerHTML = '';
 
     selected.forEach((id, index) => {
-        const ca = coauthors.find(c => c.id == id);
-        if (!ca) return;
+        const author = authors.find(item => item.id === id);
+
+        if (!author) {
+            return;
+        }
+
+        const label = author.isMainAuthor
+            ? `${author.text} (Main author)`
+            : author.text;
 
         const tag = document.createElement('div');
         tag.className = 'tag';
+
         tag.innerHTML = `
-            ${ca.text} 
-            <span class="remove-tag" onclick="removeInstitutionTag(this, ${index})">×</span>
+            ${label}
+            <span
+                class="remove-tag"
+                onclick="removeInstitutionTag(this, ${index})"
+            >
+                ×
+            </span>
         `;
 
         tagsContainer.appendChild(tag);
     });
 }
+
+document.addEventListener('input', function (event) {
+    if (
+        event.target.id === 'mainAuthorName' ||
+        event.target.id === 'mainAuthorLastname'
+    ) {
+        updateCoAuthorsOptions();
+    }
+});
 
 // =============================
 // REMOVE TAG
@@ -680,7 +755,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     <div class="tags institution-tags"></div>
 
                     <select class="coauthor-select form-control form-control-sm">
-                        <option value="">Please select co-authors that work at the same institution...</option>
+                        <option value="">Main author / presenter's name must be associated to an institution...</option>
                     </select>
                 </div>
 

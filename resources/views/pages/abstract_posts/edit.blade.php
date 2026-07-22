@@ -57,7 +57,7 @@
                                     <label for="selectSubtopic" class="form-label text-muted mb-0">Sub theme</label>
                                     <select name="subtopic" class="form-select" id="selectSubtopic">
                                         <option value="" {{ old('subtopic', $abstract_post->subtopic) == '' ? 'selected' : '' }}>Select...</option>
-                                        <option value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care" {{ old('subtopic', $abstract_post->subtopic) == '' ? 'selected' : '' }}>Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care</option>
+                                        <option value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care"{{ old('subtopic', $abstract_post->subtopic) == 'Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care' ? 'selected' : '' }}>Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care</option>
                                         <option value="Social Determinants of Health" {{ old('subtopic', $abstract_post->subtopic) == 'Social Determinants of Health' ? 'selected' : '' }}>Social Determinants of Health</option>
                                         <option value="Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution" {{ old('subtopic', $abstract_post->subtopic) == 'Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution' ? 'selected' : '' }}>Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution</option>
                                         <option value="Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases" {{ old('subtopic', $abstract_post->subtopic) == 'Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases' ? 'selected' : '' }}>Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases</option>
@@ -76,6 +76,77 @@
                                 </div>
 
                                 <div class="col-md-12">
+                                    <label class="form-label text-muted mb-0">
+                                        Main author / presenter's name
+                                        <span class="text-muted">(mandatory)</span>
+                                    </label>
+
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted mb-0">
+                                                Name <span class="text-danger">*</span>
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="main_author[name]" 
+                                                id="mainAuthorName"
+                                                class="form-control @error('main_author.name') is-invalid @enderror"
+                                                value="{{ old('main_author.name', $abstract_post->main_author['name'] ?? '') }}"
+                                            >
+
+                                            @error('main_author.name')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted mb-0">
+                                                Last Name <span class="text-danger">*</span>
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="main_author[lastname]" 
+                                                id="mainAuthorLastname"
+                                                class="form-control @error('main_author.lastname') is-invalid @enderror"
+                                                value="{{ old('main_author.lastname', $abstract_post->main_author['lastname'] ?? '') }}"
+                                            >
+
+                                            @error('main_author.lastname')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+
+                                        <div class="col-md-4">
+                                            <label class="form-label text-muted mb-0">
+                                                Country <span class="text-danger">*</span>
+                                            </label>
+
+                                            <select
+                                                name="main_author_country_id"
+                                                class="form-select @error('main_author_country_id') is-invalid @enderror"
+                                            >
+                                                <option value="">Select country</option>
+
+                                                @foreach($countries as $country)
+                                                    <option
+                                                        value="{{ $country->id }}"
+                                                        {{ old('main_author_country_id', $abstract_post->main_author_country_id) == $country->id ? 'selected' : '' }}
+                                                    >
+                                                        {{ $country->name }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
+
+                                            @error('main_author_country_id')
+                                                <small class="text-danger">{{ $message }}</small>
+                                            @enderror
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
                                     <label class="form-label text-muted mb-0">Co-authors</label>
 
                                     <div id="container_coauthors" class="@error('co_authors') border border-danger @enderror"></div>
@@ -90,8 +161,8 @@
                                 <div class="col-md-12">
                                     <label class="form-label text-muted mb-0">Institution</label>
 
-                                    <div id="container_institution" class="@error('institution') border border-danger @enderror"></div>
-                                    @error('institution')
+                                    <div id="container_institution" class="@error('institutions') border border-danger @enderror"></div>
+                                    @error('institutions')
                                         <small class="text-danger">{{ $message }}</small><br>
                                     @enderror
                                     <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRowInstitution()">
@@ -212,15 +283,38 @@
 </div>
 
 @php
-    $coAuthors = collect(json_decode($abstract_post->co_authors, true))->map(function($c){
+    $coAuthors = $abstract_post->co_authors ?? [];
+    $institutions = $abstract_post->institutions ?? [];
+    $keywords = $abstract_post->keywords ?? [];
+
+    // Compatibilidad con registros guardados anteriormente con json_encode()
+    if (is_string($coAuthors)) {
+        $coAuthors = json_decode($coAuthors, true) ?? [];
+    }
+
+    if (is_string($institutions)) {
+        $institutions = json_decode($institutions, true) ?? [];
+    }
+
+    if (is_string($keywords)) {
+        $keywords = json_decode($keywords, true) ?? [];
+    }
+
+    $coAuthors = collect($coAuthors)->map(function ($coauthor) {
         return [
-            'id' => $c['id'] ?? 'id_'.uniqid(),
-            'name' => $c['name'],
-            'lastname' => $c['lastname']
+            'id' => $coauthor['id'] ?? 'id_' . uniqid(),
+            'name' => $coauthor['name'] ?? '',
+            'lastname' => $coauthor['lastname'] ?? '',
         ];
-    })->toArray();
-    $institutions = json_decode($abstract_post->institutions, true);
-    $keywords = json_decode($abstract_post->keywords, true);
+    })->values()->toArray();
+
+    $institutions = is_array($institutions)
+        ? array_values($institutions)
+        : [];
+
+    $keywords = is_array($keywords)
+        ? array_values($keywords)
+        : [];
 @endphp
 
 <script>
@@ -374,14 +468,60 @@
         document.querySelectorAll('#container_coauthors .number-coauthors').forEach((el, i) => el.innerText = (i + 1) + '.');
     }
 
-    function getCoAuthorsList() {
-        return Array.from(document.querySelectorAll('#container_coauthors .row-coauthors')).map(row => {
-            const id = row.dataset.id;
-            const name = row.querySelector('[name="co_authors_name[]"]').value.trim();
-            const lastname = row.querySelector('[name="co_authors_lastname[]"]').value.trim();
-            if(!name && !lastname) return null;
-            return { id, text: `${name} ${lastname}`.trim() };
-        }).filter(Boolean);
+    function getAuthorsList() {
+        const authors = [];
+
+        // =============================
+        // MAIN AUTHOR
+        // =============================
+        const mainAuthorName = document
+            .getElementById('mainAuthorName')
+            ?.value
+            .trim() || '';
+
+        const mainAuthorLastname = document
+            .getElementById('mainAuthorLastname')
+            ?.value
+            .trim() || '';
+
+        if (mainAuthorName || mainAuthorLastname) {
+            authors.push({
+                id: 'main_author',
+                text: `${mainAuthorName} ${mainAuthorLastname}`.trim(),
+                isMainAuthor: true
+            });
+        }
+
+        // =============================
+        // CO-AUTHORS
+        // =============================
+        document
+            .querySelectorAll('#container_coauthors .row-coauthors')
+            .forEach(row => {
+                const id = row.dataset.id;
+
+                const name = row
+                    .querySelector('[name="co_authors_name[]"]')
+                    .value
+                    .trim();
+
+                const lastname = row
+                    .querySelector('[name="co_authors_lastname[]"]')
+                    .value
+                    .trim();
+
+                if (!name && !lastname) {
+                    return;
+                }
+
+                authors.push({
+                    id: id,
+                    text: `${name} ${lastname}`.trim(),
+                    isMainAuthor: false
+                });
+            });
+
+        return authors;
     }
 </script>
 
@@ -402,7 +542,7 @@
                     <div class="multi-select-container">
                         <div class="tags institution-tags"></div>
                         <select class="coauthor-select form-control form-control-sm">
-                            <option value="">Select co-authors...</option>
+                            <option value="">Select authors...</option>
                         </select>
                     </div>
                     <input type="hidden" name="institution_coauthors[]" class="institution-input" value='${JSON.stringify(coauthorsIds)}'>
@@ -433,20 +573,35 @@
 
     function updateCoAuthorsOptions() {
         const selects = document.querySelectorAll('.coauthor-select');
-        const coauthors = getCoAuthorsList();
-        const used = getUsedCoAuthors();
+        const authors = getAuthorsList();
 
         selects.forEach(select => {
             const container = select.closest('.row-institution');
             const inputHidden = container.querySelector('.institution-input');
-            const selectedValues = JSON.parse(inputHidden.value || '[]');
 
-            select.innerHTML = `<option value="">Select co-authors...</option>`;
+            let selectedValues = [];
 
-            coauthors.forEach(ca => {
+            try {
+                selectedValues = JSON.parse(inputHidden.value || '[]');
+            } catch (error) {
+                selectedValues = [];
+            }
+
+            select.innerHTML = `
+                <option value="">
+                    Select authors...
+                </option>
+            `;
+
+            authors.forEach(author => {
                 const option = document.createElement('option');
-                option.value = ca.id;
-                option.textContent = ca.text;
+
+                option.value = author.id;
+
+                option.textContent = author.isMainAuthor
+                    ? `${author.text} (Main author)`
+                    : author.text;
+
                 select.appendChild(option);
             });
 
@@ -472,17 +627,37 @@
         select.value = '';
     });
 
+    
     function renderInstitutionTags(container, selected) {
         const tagsContainer = container.querySelector('.institution-tags');
-        const coauthors = getCoAuthorsList();
+        const authors = getAuthorsList();
+
         tagsContainer.innerHTML = '';
 
         selected.forEach(id => {
-            const ca = coauthors.find(c => c.id === id);
-            if(!ca) return;
+            const author = authors.find(item => item.id === id);
+
+            if (!author) {
+                return;
+            }
+
+            const label = author.isMainAuthor
+                ? `${author.text} (Main author)`
+                : author.text;
+
             const tag = document.createElement('div');
             tag.className = 'tag';
-            tag.innerHTML = `${ca.text} <span class="remove-tag" onclick="removeInstitutionTag(this, '${ca.id}')">×</span>`;
+
+            tag.innerHTML = `
+                ${label}
+                <span
+                    class="remove-tag"
+                    onclick="removeInstitutionTag(this, '${author.id}')"
+                >
+                    ×
+                </span>
+            `;
+
             tagsContainer.appendChild(tag);
         });
     }
@@ -506,6 +681,15 @@
             addRowInstitution(inst.name ?? '', Array.isArray(inst.coauthors) ? inst.coauthors : []);
         });
     }
+
+    document.addEventListener('input', function (event) {
+        if (
+            event.target.id === 'mainAuthorName' ||
+            event.target.id === 'mainAuthorLastname'
+        ) {
+            updateCoAuthorsOptions();
+        }
+    });
 
     // =============================
     // INICIALIZACIÓN AL CARGAR

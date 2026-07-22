@@ -74,7 +74,13 @@
                             </div>
                             <div class="col-xl-6 col-md-6 col-sm-6 mb-2 col-6 text-end">
                                 <span class="badge bg-light-secondary mt-2">Last Update: {{ $abstract_post->updated_at }}</span>
-                                <span class="d-block mt-2">{{ optional($user->residenceCountry)->name }}</span>
+
+                                @if($abstract_post->mainAuthorCountry)
+                                    <span class="d-block mt-2">
+                                        {{ $abstract_post->mainAuthorCountry->name }}
+                                    </span>
+                                @endif
+
                             </div>
                         </div>
                     </div>
@@ -91,7 +97,7 @@
 
                                 <div class="col-md-12">
                                     <label for="selectSubtopic" class="form-label text-muted mb-0 d-block">Sub theme:</label>
-                                    <p class="text-black"">{{ $abstract_post->subtopic }}</p>
+                                    <p class="text-black">{{ $abstract_post->subtopic }}</p>
                                 </div>
                                 
                                 <div class="col-md-12">
@@ -99,54 +105,138 @@
                                     <p class="text-black fw-bold">{{ $abstract_post->title }}</p>
                                 </div>
 
+                                
+
+                                @php
+                                    $coAuthorsData = $abstract_post->co_authors ?? [];
+                                    $institutionsData = $abstract_post->institutions ?? [];
+
+                                    // Compatibilidad con registros antiguos
+                                    if (is_string($coAuthorsData)) {
+                                        $coAuthorsData = json_decode($coAuthorsData, true) ?? [];
+                                    }
+
+                                    if (is_string($institutionsData)) {
+                                        $institutionsData = json_decode($institutionsData, true) ?? [];
+                                    }
+
+                                    $coAuthors = collect(
+                                        is_array($coAuthorsData) ? $coAuthorsData : []
+                                    );
+
+                                    // Numerar las instituciones
+                                    $institutions = collect(
+                                        is_array($institutionsData) ? $institutionsData : []
+                                    )->values()->map(function ($institution, $index) {
+                                        $institution['number'] = $index + 1;
+
+                                        return $institution;
+                                    });
+
+                                    // Instituciones asociadas al autor principal
+                                    $mainAuthorInstitutions = [];
+
+                                    foreach ($institutions as $institution) {
+                                        $institutionAuthors = $institution['coauthors'] ?? [];
+
+                                        if (
+                                            is_array($institutionAuthors) &&
+                                            in_array('main_author', $institutionAuthors, true)
+                                        ) {
+                                            $mainAuthorInstitutions[] = $institution['number'];
+                                        }
+                                    }
+
+                                    // Instituciones asociadas a cada coautor
+                                    $coAuthorsMapped = $coAuthors->map(function ($coauthor) use ($institutions) {
+                                        $institutionNumbers = [];
+
+                                        foreach ($institutions as $institution) {
+                                            $institutionAuthors = $institution['coauthors'] ?? [];
+
+                                            if (
+                                                isset($coauthor['id']) &&
+                                                is_array($institutionAuthors) &&
+                                                in_array($coauthor['id'], $institutionAuthors, true)
+                                            ) {
+                                                $institutionNumbers[] = $institution['number'];
+                                            }
+                                        }
+
+                                        $coauthor['institutions'] = $institutionNumbers;
+
+                                        return $coauthor;
+                                    });
+                                @endphp
 
                                 <div class="col-md-12">
-                                    @php
-                                        $coAuthors = collect(json_decode($abstract_post->co_authors, true));
-                                        $institutions = collect(json_decode($abstract_post->institutions, true));
+                                    <label class="form-label text-muted mb-0 d-block">
+                                        Main author:
+                                    </label>
 
-                                        // Asignar número a cada institución
-                                        $institutions = $institutions->values()->map(function($inst, $index){
-                                            $inst['number'] = $index + 1;
-                                            return $inst;
-                                        });
+                                    <p class="text-black mb-0">
+                                        {{ $abstract_post->main_author['name'] ?? '' }}
+                                        {{ $abstract_post->main_author['lastname'] ?? '' }}
 
-                                        // Mapear coautor => números de instituciones
-                                        $coAuthorsMapped = $coAuthors->map(function($ca) use ($institutions) {
-                                            $numbers = [];
-
-                                            foreach ($institutions as $inst) {
-                                                if (in_array($ca['id'], $inst['coauthors'] ?? [])) {
-                                                    $numbers[] = $inst['number'];
-                                                }
-                                            }
-
-                                            $ca['institutions'] = $numbers;
-                                            return $ca;
-                                        });
-                                    @endphp
-
-                                    <p class="text-black mb-4">
-                                        @foreach($coAuthorsMapped as $ca)
-                                            <span>
-                                                {{ $ca['name'] }} {{ $ca['lastname'] }}
-                                                @if(count($ca['institutions']))
-                                                    <sup>{{ implode(',', $ca['institutions']) }}</sup>
-                                                @endif
-                                            </span><br>
-                                        @endforeach
+                                        @if(!empty($mainAuthorInstitutions))
+                                            <sup>
+                                                {{ implode(',', $mainAuthorInstitutions) }}
+                                            </sup>
+                                        @endif
                                     </p>
-
-                                    <p class="text-black fst-italic">
-                                        @foreach($institutions as $inst)
-                                            <span>
-                                                <sup>{{ $inst['number'] }}</sup> {{ $inst['name'] }}
-                                            </span>
-                                            @if(!$loop->last), @endif
-                                        @endforeach
-                                    </p>
-
                                 </div>
+
+                                <div class="col-md-12">
+                                    <label class="form-label text-muted mb-0 d-block">
+                                        Co-authors:
+                                    </label>
+
+                                    @if($coAuthorsMapped->isNotEmpty())
+                                        <p class="text-black mb-4">
+                                            @foreach($coAuthorsMapped as $coauthor)
+                                                <span>
+                                                    {{ $coauthor['name'] ?? '' }}
+                                                    {{ $coauthor['lastname'] ?? '' }}
+
+                                                    @if(!empty($coauthor['institutions']))
+                                                        <sup>
+                                                            {{ implode(',', $coauthor['institutions']) }}
+                                                        </sup>
+                                                    @endif
+                                                </span>
+
+                                                @if(!$loop->last)
+                                                    <br>
+                                                @endif
+                                            @endforeach
+                                        </p>
+                                    @else
+                                        <p class="text-muted">
+                                            No co-authors registered.
+                                        </p>
+                                    @endif
+
+                                    @if($institutions->isNotEmpty())
+                                        <p class="text-black fst-italic">
+                                            @foreach($institutions as $institution)
+                                                <span>
+                                                    <sup>{{ $institution['number'] }}</sup>
+                                                    {{ $institution['name'] ?? '' }}
+                                                </span>
+
+                                                @if(!$loop->last)
+                                                    <br>
+                                                @endif
+                                            @endforeach
+                                        </p>
+                                    @else
+                                        <p class="text-muted">
+                                            No institutions registered.
+                                        </p>
+                                    @endif
+                                </div>
+
+                                
 
                                 <div class="col-md-12">
                                     <label for="inputDescription" class="form-label text-muted d-block mb-0">
@@ -158,16 +248,31 @@
                                 </div>
 
                                 <div class="col-md-12">
-                                    <label for="inputKeywords" class="form-label text-muted mb-2 d-block">Keywords:</label>
+                                    <label class="form-label text-muted mb-2 d-block">
+                                        Keywords:
+                                    </label>
+
+                                    @php
+                                        $keywords = $abstract_post->keywords ?? [];
+
+                                        // Compatibilidad con registros antiguos
+                                        if (is_string($keywords)) {
+                                            $keywords = json_decode($keywords, true) ?? [];
+                                        }
+                                    @endphp
+
                                     <p class="text-black">
-                                            @php
-                                            $keywords = json_decode($abstract_post->keywords, true);
-                                            @endphp
-                                            @if(is_array($keywords))
-                                                @foreach($keywords as $keyword)
-                                                    <span class="tag">{{ $keyword }}</span>@if(!$loop->last), @endif
-                                                @endforeach
-                                            @endif
+                                        @if(is_array($keywords) && count($keywords))
+                                            @foreach($keywords as $keyword)
+                                                <span class="tag">{{ $keyword }}</span>
+
+                                                @if(!$loop->last)
+                                                    ,
+                                                @endif
+                                            @endforeach
+                                        @else
+                                            <span class="text-muted">No keywords registered.</span>
+                                        @endif
                                     </p>
                                 </div>
 
@@ -222,7 +327,7 @@
                             </div>
                         @endif
 
-                        <h6 class="fw-bold text-primary">Comments</h6>
+                        <h6 class="fw-bold text-primary">Comments (for internal use only)</h6>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
                         @foreach($abstract_post->notes as $note)
