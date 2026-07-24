@@ -374,6 +374,17 @@ class AbstractPostController extends Controller
 
         $keywords = json_decode($request->keywords ?? '[]', true);
 
+        // Normalizar los saltos de línea del textarea
+        $body = str_replace(
+            ["\r\n", "\r"],
+            "\n",
+            $request->input('body', '')
+        );
+
+        $request->merge([
+            'body' => $body,
+        ]);
+
         // ✅ VALIDACIÓN
         if ($action === 'submitted') {
             $request->validate([

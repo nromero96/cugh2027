@@ -8,6 +8,20 @@
 
         <div class="row layout-spacing">
             <div class="col-lg-12 layout-top-spacing mt-4">
+
+
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        <strong>Please review the following errors:</strong>
+
+                        <ul class="mb-0 mt-2">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header">
                         <div class="row">
