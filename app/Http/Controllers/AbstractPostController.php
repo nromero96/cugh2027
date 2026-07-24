@@ -21,7 +21,7 @@ class AbstractPostController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $userid = auth()->id();
 
@@ -32,21 +32,77 @@ class AbstractPostController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')){
-            $abstract_posts = AbstractPost::with('user')
-            ->where('status', '!=', 'rechazado')
-            ->orderBy('id', 'desc')
-            ->get();
-        }else{
-            $abstract_posts = AbstractPost::with('user')
-            ->where('user_id', $userid)
-            ->where('status', '!=', 'rechazado')
-            ->orderBy('id', 'desc')
-            ->get();
+        $search = trim($request->input('search', ''));
+        $status = $request->input('status');
+
+        $query = AbstractPost::with('user')
+        ->where('status', '!=', 'rechazado');
+
+        /*
+        |--------------------------------------------------------------------------
+        | Restricción por rol
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !auth()->user()->hasRole('Administrador') &&
+            !auth()->user()->hasRole('Secretaria')
+        ) {
+            $query->where('user_id', $userid);
         }
 
+        /*
+        |--------------------------------------------------------------------------
+        | Buscador
+        |--------------------------------------------------------------------------
+        */
+
+        if ($search !== '') {
+            $query->where(function ($subQuery) use ($search) {
+                $subQuery
+                    // ID del abstract
+                    ->where('abstract_posts.id', $search)
+
+                    // Autor principal guardado como JSON
+                    ->orWhere('abstract_posts.main_author->name', 'LIKE', "%{$search}%")
+                    ->orWhere('abstract_posts.main_author->lastname', 'LIKE', "%{$search}%")
+
+                    // Título
+                    ->orWhere('abstract_posts.title', 'LIKE', "%{$search}%")
+
+                    // Tipos
+                    ->orWhere('abstract_posts.presentation_type', 'LIKE', "%{$search}%")
+                    ->orWhere('abstract_posts.abstract_type', 'LIKE', "%{$search}%")
+
+                    // Usuario que registró el abstract
+                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                        $userQuery->where('email', 'LIKE', "%{$search}%");
+                    });
+            });
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | Filtro de estado
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($status)) {
+            $query->where('status', $status);
+        }
+
+        $abstract_posts = $query
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('pages.abstract_posts.index')
+            ->with($data)
+            ->with('abstract_posts', $abstract_posts)
+            ->with('search', $search)
+            ->with('status', $status);
+
         
-        return view('pages.abstract_posts.index')->with($data)->with('abstract_posts', $abstract_posts);
     }
 
     /**

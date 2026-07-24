@@ -34,18 +34,96 @@
                     
                     <div class="widget-header pt-4">
                         <div class="row">
-                            <div class="col-6">
+                            <div class="col-8">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
-                                    {{-- Export --}}
-                                    <a href="{{ route('abstract_posts.exportexcel') }}" class="btn btn-success mb-4 ms-3 me-3">
+                                    
+                                    <form
+                                        action="{{ route('abstract_posts.index') }}"
+                                        method="GET"
+                                        class="row g-2 mb-3"
+                                        >
+                                        <div class="col-md-6">
+                                            <input
+                                                type="text"
+                                                name="search"
+                                                id="search"
+                                                class="form-control"
+                                                value="{{ request('search') }}"
+                                                placeholder="ID, main author, email or title"
+                                            >
+                                        </div>
+
+                                        <div class="col-md-3">
+                                            <select
+                                                name="status"
+                                                id="status"
+                                                class="form-select"
+                                            >
+                                                <option value="">All statuses</option>
+
+                                                <option
+                                                    value="draft"
+                                                    {{ request('status') === 'draft' ? 'selected' : '' }}
+                                                >
+                                                    In progress
+                                                </option>
+
+                                                <option
+                                                    value="submitted"
+                                                    {{ request('status') === 'submitted' ? 'selected' : '' }}
+                                                >
+                                                    Submitted
+                                                </option>
+
+                                                <option
+                                                    value="accepted"
+                                                    {{ request('status') === 'accepted' ? 'selected' : '' }}
+                                                >
+                                                    Accepted
+                                                </option>
+
+                                                <option
+                                                    value="refused"
+                                                    {{ request('status') === 'refused' ? 'selected' : '' }}
+                                                >
+                                                    Refused
+                                                </option>
+                                            </select>
+                                        </div>
+
+                                        <div class="col-md-3 d-flex align-items-end gap-2">
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary flex-grow-1"
+                                            >
+                                                Search
+                                            </button>
+
+                                            @if(request()->filled('search') || request()->filled('status'))
+                                                <a
+                                                    href="{{ route('abstract_posts.index') }}"
+                                                    class="btn btn-outline-secondary p-1"
+                                                    title="Clear filters"
+                                                >
+                                                    ×
+                                                </a>
+                                            @endif
+                                        </div>
+                                    </form>
+
+                                @endif
+                            </div>
+                            <div class="col-4 text-end">
+                                @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                {{-- Export --}}
+                                    <a href="{{ route('abstract_posts.exportexcel') }}" class="btn btn-success">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
                                         <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z"/>
                                         </svg> 
                                         Export List</a>
-                                @endif
-                            </div>
-                            <div class="col-6 text-end">
-                                <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-4 ms-3 me-3">New Abstract</a>
+                                 @endif
+
+                                <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary">New Abstract</a>
                             </div>
                         </div>
                     </div>
@@ -144,6 +222,13 @@
                                 </tbody>
                             </table>
                         </div>
+
+                        @if($abstract_posts->hasPages())
+                            <div class="mt-3">
+                                {{ $abstract_posts->links() }}
+                            </div>
+                        @endif
+
                     </div>
                 </div>
             </div>
