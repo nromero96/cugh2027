@@ -21,28 +21,41 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
     */
     public function collection()
     {
-        return AbstractPost::join('users', 'users.id', '=', 'abstract_posts.user_id')
-                            ->leftJoin('countries', 'countries.id', '=', 'users.country')
-                            ->select('abstract_posts.id', 
-                                    'users.name',
-                                    'users.lastname',
-                                    'users.second_lastname',
-                                    'users.email',
-                                    //AbstractPost
-                                    'abstract_posts.presentation_type',
-                                    'abstract_posts.title',
-                                    'abstract_posts.co_authors',
-                                    'abstract_posts.institutions',
-                                    'abstract_posts.abstract_type',
-                                    'abstract_posts.subtopic',
-                                    'abstract_posts.body',
-                                    'abstract_posts.keywords',
-                                    'abstract_posts.status',
-                                    'abstract_posts.created_at',
-                                    'abstract_posts.updated_at',
-                                    'countries.name as country_name')
-                            ->get();
+        return AbstractPost::join(
+                'users',
+                'users.id',
+                '=',
+                'abstract_posts.user_id'
+            )
+            ->leftJoin(
+                'countries',
+                'countries.id',
+                '=',
+                'abstract_posts.main_author_country_id'
+            )
+            ->select(
+                'abstract_posts.id',
 
+                // Usuario que registró el abstract
+                'users.email',
+
+                // Abstract
+                'abstract_posts.main_author',
+                'abstract_posts.presentation_type',
+                'abstract_posts.title',
+                'abstract_posts.co_authors',
+                'abstract_posts.institutions',
+                'abstract_posts.abstract_type',
+                'abstract_posts.subtopic',
+                'abstract_posts.body',
+                'abstract_posts.keywords',
+                'abstract_posts.status',
+                'abstract_posts.created_at',
+                'abstract_posts.updated_at',
+
+                'countries.name as country_name'
+            )
+            ->get();
     }
 
     public function headings(): array
@@ -68,46 +81,117 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function map($abstractPost): array
     {
+        /*
+        |--------------------------------------------------------------------------
+        | Main author
+        |--------------------------------------------------------------------------
+        */
 
-        // Co-authors
-        $coAuthorsArray = json_decode($abstractPost->co_authors, true) ?? [];
+        $mainAuthorArray = $this->decodeJsonField(
+            $abstractPost->main_author
+        );
+
+        $mainAuthorName = trim(
+            ($mainAuthorArray['name'] ?? '') . ' ' .
+            ($mainAuthorArray['lastname'] ?? '')
+        );
+
+        /*
+        |--------------------------------------------------------------------------
+        | Co-authors
+        |--------------------------------------------------------------------------
+        */
+
+        $coAuthorsArray = $this->decodeJsonField(
+            $abstractPost->co_authors
+        );
 
         $coAuthorsList = collect($coAuthorsArray)->keyBy('id');
 
         $coAuthors = collect($coAuthorsArray)
             ->map(function ($author) {
-                return trim(($author['name'] ?? '') . ' ' . ($author['lastname'] ?? ''));
+                return trim(
+                    ($author['name'] ?? '') . ' ' .
+                    ($author['lastname'] ?? '')
+                );
             })
+            ->filter()
             ->implode(', ');
 
-        $institutionsArray = json_decode($abstractPost->institutions, true) ?? [];
+        /*
+        |--------------------------------------------------------------------------
+        | Institutions
+        |--------------------------------------------------------------------------
+        */
+
+        $institutionsArray = $this->decodeJsonField(
+            $abstractPost->institutions
+        );
 
         $institutions = collect($institutionsArray)
-            ->map(function ($institution) use ($coAuthorsList) {
-                $authors = collect($institution['coauthors'] ?? [])
-                    ->map(function ($authorId) use ($coAuthorsList) {
+            ->map(function ($institution) use (
+                $coAuthorsList,
+                $mainAuthorName
+            ) {
+                $authors = collect(
+                    $institution['coauthors'] ?? []
+                )
+                    ->map(function ($authorId) use (
+                        $coAuthorsList,
+                        $mainAuthorName
+                    ) {
+                        // Autor principal
+                        if ($authorId === 'main_author') {
+                            return $mainAuthorName;
+                        }
+
+                        // Coautor
                         $author = $coAuthorsList->get($authorId);
 
-                        return $author
-                            ? trim(($author['name'] ?? '') . ' ' . ($author['lastname'] ?? ''))
-                            : '';
+                        if (!$author) {
+                            return null;
+                        }
+
+                        return trim(
+                            ($author['name'] ?? '') . ' ' .
+                            ($author['lastname'] ?? '')
+                        );
                     })
                     ->filter()
                     ->implode(', ');
 
+                $institutionName = trim(
+                    $institution['name'] ?? ''
+                );
+
+                if (!$institutionName) {
+                    return null;
+                }
+
                 return $authors
-                    ? ($institution['name'] ?? '') . ' (' . $authors . ')'
-                    : ($institution['name'] ?? '');
+                    ? $institutionName . ' (' . $authors . ')'
+                    : $institutionName;
             })
             ->filter()
             ->implode(' | ');
 
-        $keywords = collect(json_decode($abstractPost->keywords, true) ?? [])
-        ->implode(', ');
+        /*
+        |--------------------------------------------------------------------------
+        | Keywords
+        |--------------------------------------------------------------------------
+        */
+
+        $keywordsArray = $this->decodeJsonField(
+            $abstractPost->keywords
+        );
+
+        $keywords = collect($keywordsArray)
+            ->filter()
+            ->implode(', ');
 
         return [
             $abstractPost->id,
-            $abstractPost->name.' '.$abstractPost->lastname.' '.$abstractPost->second_lastname,
+            $mainAuthorName,
             $abstractPost->email,
             $abstractPost->presentation_type,
             $abstractPost->title,
@@ -120,8 +204,33 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
             $abstractPost->status,
             $abstractPost->created_at,
             $abstractPost->updated_at,
-            $abstractPost->country_name
+            $abstractPost->country_name,
         ];
+    }
+
+    /**
+     * Convierte un campo JSON en array.
+     * También permite compatibilidad con registros antiguos
+     * que hayan sido codificados dos veces.
+     */
+    private function decodeJsonField($value): array
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        if (!$value || !is_string($value)) {
+            return [];
+        }
+
+        $decoded = json_decode($value, true);
+
+        // Compatibilidad con JSON doblemente codificado
+        if (is_string($decoded)) {
+            $decoded = json_decode($decoded, true);
+        }
+
+        return is_array($decoded) ? $decoded : [];
     }
 
     public function styles(Worksheet $sheet) {
@@ -151,8 +260,8 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
         $sheet->getColumnDimension('J')->setWidth(65);
         $sheet->getColumnDimension('K')->setWidth(40);
         $sheet->getColumnDimension('L')->setWidth(13);
-        $sheet->getColumnDimension('M')->setWidth(13);
-        $sheet->getColumnDimension('N')->setWidth(13);
+        $sheet->getColumnDimension('M')->setWidth(18);
+        $sheet->getColumnDimension('N')->setWidth(18);
         $sheet->getColumnDimension('O')->setWidth(13);
 
         // Permitir saltos de línea en el abstract
