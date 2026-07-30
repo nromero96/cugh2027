@@ -297,6 +297,12 @@ class AbstractPostController extends Controller
      */
     public function show(AbstractPost $abstractPost)
     {
+
+        // 🔒 Validar que sea el dueño o Admistrador
+        if ($abstractPost->user_id != \Auth::id() && !\Auth::user()->hasRole('Administrador')) {
+            abort(403);
+        }
+
         $data = [
             'category_name' => 'abstract_posts',
             'page_name' => 'abstract_posts_show',
@@ -327,6 +333,11 @@ class AbstractPostController extends Controller
      */
     public function edit(AbstractPost $abstractPost)
     {
+
+        // 🔥 Validar que sea el dueño
+        if ($abstractPost->user_id != \Auth::id()) {
+            abort(403);
+        }
 
         $data = [
             'category_name' => 'abstract_posts',
@@ -584,5 +595,224 @@ class AbstractPostController extends Controller
             $filename
         );
     }
+
+
+    public function pdf(AbstractPost $abstractPost)
+    {
+
+        // 🔒 Validar que sea el dueño o Admistrador
+        if ($abstractPost->user_id != \Auth::id() && !\Auth::user()->hasRole('Administrador')) {
+            abort(403);
+        }
+
+
+
+        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        $pdf->SetCreator(config('app.name'));
+        $pdf->SetAuthor(config('app.name'));
+        $pdf->SetTitle('Abstract N° ' . $abstractPost->id);
+
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+        $pdf->AddPage();
+
+        $pdf->SetFont('helvetica', '', 10);
+
+
+        $coAuthorsData = $abstractPost->co_authors ?? [];
+        $institutionsData = $abstractPost->institutions ?? [];
+
+        // Compatibilidad con registros antiguos
+        if (is_string($coAuthorsData)) {
+            $coAuthorsData = json_decode($coAuthorsData, true) ?? [];
+        }
+
+        if (is_string($institutionsData)) {
+            $institutionsData = json_decode($institutionsData, true) ?? [];
+        }
+
+        $coAuthors = collect(
+            is_array($coAuthorsData) ? $coAuthorsData : []
+        );
+
+        // Numerar las instituciones
+        $institutions = collect(
+            is_array($institutionsData) ? $institutionsData : []
+        )->values()->map(function ($institution, $index) {
+            $institution['number'] = $index + 1;
+
+            return $institution;
+        });
+
+        // Instituciones asociadas al autor principal
+        $mainAuthorInstitutions = [];
+
+        foreach ($institutions as $institution) {
+            $institutionAuthors = $institution['coauthors'] ?? [];
+
+            if (
+                is_array($institutionAuthors) &&
+                in_array('main_author', $institutionAuthors, true)
+            ) {
+                $mainAuthorInstitutions[] = $institution['number'];
+            }
+        }
+
+        // Instituciones asociadas a cada coautor
+        $coAuthorsMapped = $coAuthors->map(function ($coauthor) use ($institutions) {
+            $institutionNumbers = [];
+
+            foreach ($institutions as $institution) {
+                $institutionAuthors = $institution['coauthors'] ?? [];
+
+                if (
+                    isset($coauthor['id']) &&
+                    is_array($institutionAuthors) &&
+                    in_array($coauthor['id'], $institutionAuthors, true)
+                ) {
+                    $institutionNumbers[] = $institution['number'];
+                }
+            }
+
+            $coauthor['institutions'] = $institutionNumbers;
+
+            return $coauthor;
+        });
+
+
+        $mainAuthorInstitutions = '';
+        if(!empty($mainAuthorInstitutions)){
+            $mainAuthorInstitutions = implode(', ', $mainAuthorInstitutions);
+        }
+
+        $htmlcoautinstitutio = '';
+        if ($coAuthorsMapped->isNotEmpty()) {
+            $htmlcoautinstitutio .= '<span class="text-black mb-4">';
+            foreach ($coAuthorsMapped as $index => $coauthor) {
+                $htmlcoautinstitutio .= '<span>';
+                $htmlcoautinstitutio .= ($coauthor['name'] ?? '') . ' ' . ($coauthor['lastname'] ?? '');
+                if (!empty($coauthor['institutions'])) {
+                    $htmlcoautinstitutio .= '<sup><b>' . implode(',', $coauthor['institutions']) . '</b></sup>';
+                }
+                $htmlcoautinstitutio .= '</span>';
+                if ($index < ($coAuthorsMapped->count() - 1)) {
+                    $htmlcoautinstitutio .= '<br>';
+                }
+            }
+            $htmlcoautinstitutio .= '</span>';
+        } else {
+            $htmlcoautinstitutio .= '<span class="text-muted">No co-authors registered.</span>';
+        }
+        if ($institutions->isNotEmpty()) {
+            $htmlcoautinstitutio .= '<br><br>';
+            $htmlcoautinstitutio .= '<span class="text-black fst-italic">';
+            foreach ($institutions as $index => $institution) {
+                $htmlcoautinstitutio .= '<span>';
+                $htmlcoautinstitutio .= '<sup><b>'.$institution['number'].'</b></sup>';
+                $htmlcoautinstitutio .= ($institution['name'] ?? '');
+                $htmlcoautinstitutio .= '</span>';
+                if ($index < ($institutions->count() - 1)) {
+                    $htmlcoautinstitutio .= '&nbsp;&nbsp;';
+                }
+            }
+            $htmlcoautinstitutio .= '</span>';
+        } else {
+            $htmlcoautinstitutio .= '<span class="text-muted">No institutions registered.</span>';
+        }
+
+        $keywords = $abstractPost->keywords ?? [];
+        // Compatibilidad con registros antiguos
+        if (is_string($keywords)) {
+            $keywords = json_decode($keywords, true) ?? [];
+        }
+
+        $htmlkeywords = '';
+        if (is_array($keywords) && count($keywords)) {
+
+            foreach ($keywords as $index => $keyword) {
+
+                $htmlkeywords .= '<span class="tag">' . $keyword . '</span>';
+
+                if ($index < (count($keywords) - 1)) {
+                    $htmlkeywords .= ', ';
+                }
+            }
+
+        } else {
+
+            $htmlkeywords .= '<span class="text-muted">No keywords registered.</span>';
+        }
+
+        $html = '
+        <style>
+            .title {
+                font-size: 16px;
+                font-weight: bold;
+                
+            }
+
+            h4 {
+                font-size: 12px;
+            }
+
+            .label {
+                font-weight: bold;
+                color: #000000;
+            }
+
+            .value {
+                color: #333333;
+                line-height: 1.5;
+            }
+
+            .item {
+                margin-bottom: 8px;
+            }
+
+            hr {
+                border: 0.5px solid #dddddd;
+                margin-bottom: 0px;         }
+        </style>
+
+        <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+                <td><span class="title">Abstract N°: ' . e($abstractPost->id) . '</span></td>
+                <td align="right" style="font-size: 8px;">
+                    <span class="label" style="color: #000000;">Country:</span><span class="value" style="color: #000000;"> ' . e($abstractPost->mainAuthorCountry->name) . '</span><br>
+                    <span class="label" style="color: #a7a7a7;">Created:</span><span class="value" style="color: #a7a7a7;"> ' . e($abstractPost->created_at) . '</span><br>
+                    <span class="label" style="color: #a7a7a7;">Updated:</span><span class="value" style="color: #a7a7a7;"> ' . e($abstractPost->updated_at) . '</span>
+                </td>
+            </tr>
+        </table>
+        <br>
+
+        <div class="item"><span class="label">' . e($abstractPost->presentation_type) . '</span></div>
+
+        <div class="item"><span class="label">Abstract Type:</span><br><span class="value">' . e($abstractPost->abstract_type) . '</span></div>
+
+        <div class="item"><span class="label">Sub theme:</span><br><span class="value">' . e($abstractPost->subtopic) . '</span></div>
+
+        <div class="item"><span class="label">Title:</span><br><span class="value">' . e($abstractPost->title) . '</span></div>
+
+        <div class="item"><span class="label">Main author:</span><br><span class="value">' . e($abstractPost->main_author["name"] ?? "") . ' ' . e($abstractPost->main_author["lastname"] ?? "") . '</span><sup><b>'.$mainAuthorInstitutions.'</b></sup></div>
+
+        <div class="item"><span class="label">Co-authors:</span><br><span class="value">' . $htmlcoautinstitutio . '</span></div>
+
+        <div class="item"><span class="label">Body text:</span><br><span class="value">' . nl2br(e($abstractPost->body)) . '</span></div>
+
+        <div class="item"><span class="label">Keywords:</span><br><span class="value">' . $htmlkeywords . '</span></div>
+
+        ';
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        return response($pdf->Output('workshop-' . $abstractPost->id . '.pdf', 'S'))
+            ->header('Content-Type', 'application/pdf');
+    }
+
 
 }

@@ -179,9 +179,7 @@
                                         {{ $abstract_post->main_author['lastname'] ?? '' }}
 
                                         @if(!empty($mainAuthorInstitutions))
-                                            <sup>
-                                                {{ implode(',', $mainAuthorInstitutions) }}
-                                            </sup>
+                                            <sup><b>{{ implode(',', $mainAuthorInstitutions) }}</b></sup>
                                         @endif
                                     </p>
                                 </div>
@@ -196,12 +194,9 @@
                                             @foreach($coAuthorsMapped as $coauthor)
                                                 <span>
                                                     {{ $coauthor['name'] ?? '' }}
-                                                    {{ $coauthor['lastname'] ?? '' }}
-
+                                                    {{ $coauthor['lastname'] ?? ''}}
                                                     @if(!empty($coauthor['institutions']))
-                                                        <sup>
-                                                            {{ implode(',', $coauthor['institutions']) }}
-                                                        </sup>
+                                                    <sup><b>{{ implode(',', $coauthor['institutions']) }}</b></sup>
                                                     @endif
                                                 </span>
 
@@ -220,12 +215,11 @@
                                         <p class="text-black fst-italic">
                                             @foreach($institutions as $institution)
                                                 <span>
-                                                    <sup>{{ $institution['number'] }}</sup>
-                                                    {{ $institution['name'] ?? '' }}
+                                                    <sup><b>{{ $institution['number'] }}</b></sup>{{ $institution['name'] ?? '' }}
                                                 </span>
 
                                                 @if(!$loop->last)
-                                                    <br>
+                                                    &nbsp;
                                                 @endif
                                             @endforeach
                                         </p>
@@ -282,7 +276,8 @@
                                     @endif
 
                                     <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary">Back</a>
-                                    <a href="#" onclick="window.print()" class="btn btn-primary">Print</a>
+                                    <a href="{{ route('abstract_posts.pdf', $abstract_post->id)}}" class="btn btn-outline-primary" target="_blank">Download PDF</a>
+                                    
 
                                 </div>
                             </div>
