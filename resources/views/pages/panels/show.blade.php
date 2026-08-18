@@ -175,10 +175,12 @@
                                 <p class="">{{ $panel->learning_objectives }}</p>
                             </div>
 
-                            {{-- Print Pdf --}}
-                            <div class="col-md-12 text-end">
-                                <a href="{{ route('panels.pdf', $panel->id) }}" class="btn btn-primary" target="_blank">Print PDF</a>
-                            </div>
+                            {{-- Print Pdf Administrator --}}
+                            @if(\Auth::user()->hasRole('Administrador'))
+                                <div class="col-md-12 text-end">
+                                    <a href="{{ route('panels.pdf', $panel->id) }}" class="btn btn-primary" target="_blank">Print PDF</a>
+                                </div>
+                            @endif
 
                             
                         </div>
