@@ -237,6 +237,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Panel
     Route::resource('panels', PanelController::class)->names('panels');
+    Route::get('/panels/{panel}/pdf', [PanelController::class, 'pdf'])->name('panels.pdf');
 
     //::::Administracio::::://
     //coupons

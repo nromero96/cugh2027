@@ -211,4 +211,130 @@ class PanelController extends Controller
             ->with('success', 'Panel submitted successfully.');
     }
 
+    public function pdf(Panel $panel)
+    {
+
+        // 🔒 Validar que sea el Admistrador
+        if (!\Auth::user()->hasRole('Administrador')) {
+            abort(403);
+        }
+
+        $pdf = new \TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+
+        $pdf->SetCreator(config('app.name'));
+        $pdf->SetAuthor(config('app.name'));
+        $pdf->SetTitle('Panel N° ' . $panel->id);
+
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(false);
+
+        $pdf->SetMargins(15, 15, 15);
+        $pdf->SetAutoPageBreak(true, 15);
+        $pdf->AddPage();
+
+        $pdf->SetFont('helvetica', '', 10);
+
+        $subthemes_list = '';
+        // 1. Convertir la cadena JSON de la base de datos a un array de PHP
+        $subthemes = is_string($panel->subthemes) ? json_decode($panel->subthemes, true) : $panel->subthemes;
+
+        if (!empty($subthemes) && is_array($subthemes)) {
+            $items = [];
+            foreach ($subthemes as $subtheme) {
+                $items[] = '<span><b>*</b> ' . htmlspecialchars($subtheme) . '</span>';
+            }
+            $subthemes_list = implode('<br>', $items);
+        }
+
+
+        $speakers_list = '';
+
+        // 1. Convertir la cadena JSON de la base de datos a un array de PHP
+        $speakers = is_string($panel->speakers) ? json_decode($panel->speakers, true) : $panel->speakers;
+
+        if (!empty($speakers) && is_array($speakers)) {
+            $items = [];
+            $num = 1;
+
+            foreach ($speakers as $speaker) {
+                // Evita errores "Undefined index" usando el operador nulo seguro (??)
+                $name = htmlspecialchars($speaker['name'] ?? '');
+                $position = htmlspecialchars($speaker['position'] ?? '');
+                $institution = htmlspecialchars($speaker['institution'] ?? '');
+                $country = htmlspecialchars($speaker['country'] ?? '');
+
+                $items[] = '<tr>
+                                <td width="15" style="text-align: center; background-color: #e6e6e6;"><br><br><br>' . $num++ . '</td>
+                                <td>
+                                    <span><b>Name: </b> ' . $name . '</span><br>
+                                    <span><b>Position: </b> ' . $position . '</span><br>
+                                    <span><b>Institution: </b> ' . $institution . '</span><br>
+                                    <span><b>Country: </b> ' . $country . '</span>
+                                </td>
+                            </tr>';
+            }
+
+            // 2. Unir los elementos fuera del bucle foreach
+            $speakers_list = implode('', $items);
+        }
+
+        $html = '
+        <style>
+            .title {
+                font-size: 16px;
+                font-weight: bold;
+                
+            }
+
+            h4 {
+                font-size: 12px;
+            }
+
+            .label {
+                font-weight: bold;
+                color: #000000;
+            }
+
+            .value {
+                color: #333333;
+                line-height: 1.5;
+            }
+
+            .item {
+                margin-bottom: 8px;
+            }
+
+            hr {
+                border: 0.5px solid #dddddd;
+                margin-bottom: 0px;  
+            }
+        </style>
+
+        <table width="100%" border="0" cellspacing="0" cellpadding="0">
+            <tr><td class="title">Panel N° ' . $panel->id . '</td></tr>
+        </table>
+        <br />
+        <div class="item"><span class="label">Lenguaje:</span><br /><span class="value">' . e($panel->language) . '</span></div>
+        <div class="item"><span class="label">Sub-Themes:</span><br /><span class="value">' .  $subthemes_list . '</span></div>
+        <div class="item"><span class="label">Title:</span><br /><span class="value">' . e($panel->title) . '</span></div>
+        <h3>Contact person:</h3>
+        <b>Salutation: </b><span>' . e($panel->contact_salutation).'</span><br><b>Name: </b><span>' . e($panel->contact_name) . '</span><br><b>Institution:</b> <span>' . e($panel->contact_institution) . '</span><br><b>Country:</b> <span>' . e($panel->contact_country) . '</span><br><b>Phone:</b> <span>' . e($panel->contact_phone) . '</span><br><b>E-mail:</b> <span>' . e($panel->contact_email) . '</span>
+        <h3>Moderator:</h3>
+        <b>Name: </b><span>' .e($panel->moderator_name). '</span><br><b>Position: </b><span>' .e($panel->moderator_position). '</span><br><b>Institution: </b><span>' .e($panel->moderator_institution). '</span><br><b>Country: </b><span>' .e($panel->moderator_country). '</span><br>
+        <h3>Speakers:</h3>
+        <table border="1" cellspacing="0" cellpadding="2" width="950">' . $speakers_list . '</table>
+        <br>
+        <div class="item"><span class="label">Panel Description:</span><br /><span class="value">' . e($panel->description) . '</span></div>
+        <div class="item"><span class="label">Learning Objectives:</span><br /><span class="value">' . e($panel->learning_objectives) . '</span></div>
+        ';
+
+        $pdf->writeHTML($html, true, false, true, false, '');
+
+        return response($pdf->Output('panel.pdf', 'I'))->header('Content-Type', 'application/pdf');
+
+        
+
+       
+    }
+
 }
