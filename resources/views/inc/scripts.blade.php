@@ -115,6 +115,12 @@
             <script src="{{ asset('assets/js/apps/inscriptions/show.js')}}?v={{ config('app.version') }}"></script>
             @break
 
+         @case('inscriptions_edit')
+            <script src="{{ asset('plugins/src/filepond/filepond.min.js') }}"></script>
+            <script src="{{ asset('plugins/src/filepond/FilePondPluginFileValidateType.min.js') }}"></script>
+            <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}"></script>
+            @break
+
         @case('beneficiarios_becas')
             {{-- Beneficiarios --}}
             <script src="{{asset('plugins/src/table/datatable/datatables.js')}}"></script>

@@ -314,7 +314,7 @@ class PanelController extends Controller
             <tr><td class="title">Panel N° ' . $panel->id . '</td></tr>
         </table>
         <br />
-        <div class="item"><span class="label">Lenguaje:</span><br /><span class="value">' . e($panel->language) . '</span></div>
+        <div class="item"><span class="label">Language:</span><br /><span class="value">' . e($panel->language) . '</span></div>
         <div class="item"><span class="label">Sub-Themes:</span><br /><span class="value">' .  $subthemes_list . '</span></div>
         <div class="item"><span class="label">Title:</span><br /><span class="value">' . e($panel->title) . '</span></div>
         <h3>Contact person:</h3>

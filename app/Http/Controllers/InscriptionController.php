@@ -502,6 +502,39 @@ class InscriptionController extends Controller
     public function edit($id)
     {
 
+        //if user is admin or secretary
+        if (!auth()->user()?->hasAnyRole(['Administrador', 'Secretaria'])) {
+            abort(403, 'No tiene permisos para exportar.');
+        }
+
+        // 1. Evita error 500 si no existe el ID (devuelve 404)
+        $inscription = Inscription::findOrFail($id);
+
+        // 2. Obtener el usuario relacionado
+        $user = $inscription->user; // Asumiendo relación 'user' en el modelo Inscription
+
+        if (!$user) {
+            return redirect()->back()->with('error', 'Usuario no encontrado.');
+        }
+
+
+        $data = [
+            'category_name'     => 'inscriptions',
+            'page_name'         => 'inscriptions_edit',
+            'has_scrollspy'     => 0,
+            'scrollspy_offset'  => '',
+            'category_inscriptions' => CategoryInscription::orderBy('order', 'asc')->get(),
+            'countries'             => Country::orderByRaw("CASE WHEN name = 'Perú' THEN 0 ELSE 1 END, name ASC")->get(),
+            'memberinstitutions'   => MemberInstitution::where('is_active', 1)->get(),
+            'user'                  => $user,
+            'myinscription'         => $inscription, // Ya tienes la inscripción cargada
+            'paymentcards'          => Payment::where('inscription_id', $id)->orderBy('id', 'desc')->get(),
+            'ismemberindividual'    => MemberIndividual::where('email', $user->email)->where('is_active', 1)->exists(),
+        ];
+
+        // 3. Compactar data para una vista más limpia
+        return view('pages.inscriptions.edit', $data);
+
     }
 
     /**
