@@ -1300,7 +1300,7 @@
                                 </div>
                             </div>
                             
-                            @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
+                            @if(in_array($myinscription->status, ['Draft', 'Pending']))
                                 <div class="col-12 text-center">
                                     <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save Draft</button>
                                     <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>

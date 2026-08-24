@@ -510,6 +510,11 @@ class InscriptionController extends Controller
         // 1. Evita error 500 si no existe el ID (devuelve 404)
         $inscription = Inscription::findOrFail($id);
 
+        if ($inscription->status === 'Confirmed') {
+            return redirect()->route('inscriptions.show', $inscription->id)
+                ->with('error', 'Confirmed registrations cannot be edited.');
+        }
+
         // 2. Obtener el usuario relacionado
         $user = $inscription->user; // Asumiendo relación 'user' en el modelo Inscription
 
@@ -551,6 +556,12 @@ class InscriptionController extends Controller
         }
 
         $inscription = Inscription::findOrFail($id);
+
+        if ($inscription->status === 'Confirmed') {
+            return redirect()->route('inscriptions.show', $inscription->id)
+                ->with('error', 'Confirmed registrations cannot be edited.');
+        }
+
         $user = $inscription->user;
 
         if (!$user) {
