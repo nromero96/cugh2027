@@ -71,18 +71,22 @@ class AbstractPostController extends Controller
 
                 $termSearch = function ($allTermsQuery) use ($terms) {
                     foreach ($terms as $term) {
-                        $escapedTerm = addcslashes($term, '%_\\');
+                        $escapedTerm = addcslashes(mb_strtolower($term, 'UTF-8'), '%_\\');
                         $like = "%{$escapedTerm}%";
 
                         $allTermsQuery->where(function ($fieldQuery) use ($like) {
                             $fieldQuery
-                                ->where('abstract_posts.main_author->name', 'LIKE', $like)
-                                ->orWhere('abstract_posts.main_author->lastname', 'LIKE', $like)
-                                ->orWhere('abstract_posts.title', 'LIKE', $like)
-                                ->orWhere('abstract_posts.presentation_type', 'LIKE', $like)
-                                ->orWhere('abstract_posts.abstract_type', 'LIKE', $like)
+                                ->whereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(abstract_posts.main_author, '$.name'))) LIKE ?", [$like])
+                                ->orWhereRaw("LOWER(JSON_UNQUOTE(JSON_EXTRACT(abstract_posts.main_author, '$.lastname'))) LIKE ?", [$like])
+                                ->orWhereRaw('LOWER(abstract_posts.title) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(abstract_posts.presentation_type) LIKE ?', [$like])
+                                ->orWhereRaw('LOWER(abstract_posts.abstract_type) LIKE ?', [$like])
                                 ->orWhereHas('user', function ($userQuery) use ($like) {
-                                    $userQuery->where('email', 'LIKE', $like);
+                                    $userQuery
+                                        ->whereRaw('LOWER(email) LIKE ?', [$like])
+                                        ->orWhereRaw('LOWER(name) LIKE ?', [$like])
+                                        ->orWhereRaw('LOWER(lastname) LIKE ?', [$like])
+                                        ->orWhereRaw('LOWER(second_lastname) LIKE ?', [$like]);
                                 });
                         });
                     }
