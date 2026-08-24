@@ -169,6 +169,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     Route::post('/inscriptions/{id}/delete-document-file', [InscriptionController::class, 'deleteDocumentFile'])
     ->name('inscriptions.delete-document-file');
+    Route::post('/inscriptions/{id}/delete-voucher-file', [InscriptionController::class, 'deleteVoucherFile'])
+    ->name('inscriptions.delete-voucher-file');
 
 
     Route::get('/countries-by-institution/{id?}', [CountryController::class, 'getByInstitution'])->name('countries.byInstitution');

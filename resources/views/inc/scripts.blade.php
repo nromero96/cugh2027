@@ -100,6 +100,7 @@
         @case('inscriptions_myinscription')
             <script src="{{ asset('plugins/src/filepond/filepond.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginFileValidateType.min.js') }}"></script>
+            <script src="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.js') }}"></script>
             <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}"></script>
             @break
         @case('inscriptions_create')
@@ -118,6 +119,7 @@
          @case('inscriptions_edit')
             <script src="{{ asset('plugins/src/filepond/filepond.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginFileValidateType.min.js') }}"></script>
+            <script src="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.js') }}"></script>
             <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}"></script>
             @break
 

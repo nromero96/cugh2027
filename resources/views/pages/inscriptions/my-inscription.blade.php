@@ -28,6 +28,11 @@
                 @if ($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <strong>There were validation errors. Please review the form and try again.</strong>
+                        <ul class="mb-0 mt-2 ps-4">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
@@ -57,6 +62,7 @@
                     <div class="widget-content widget-content-area pt-0">
                         <form class="row g-3" action="{{ route('inscriptions.storemyinscription') }}" method="POST" id="formInscription" enctype="multipart/form-data">
                             @csrf
+                            <input type="hidden" name="action" id="formAction" value="">
                             <div class="col-md-4">
                                 <label for="salutation" class="form-label text-muted mb-0">Salutation <span class="text-danger">*</span></label>
                                 <select name="salutation" id="salutation" class="form-control @error('salutation') is-invalid @enderror">
@@ -257,6 +263,7 @@
                                             <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace Name <span class="text-danger">*</span></label>
                                             <input type="text" name="workplace" class="form-control @error('workplace') is-invalid @enderror" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}">
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
+                                            <div class="alert alert-warning py-2 mt-2 mb-0 d-none" id="workplace_membership_alert" role="alert"></div>
                                         </div>
 
                                         <div class="col-md-8 mt-3">
@@ -298,7 +305,7 @@
                                 <label for="inputWorkPhoneNumber" class="form-label text-muted mb-0">Work Phone</label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="work_phone_code" class="form-select rounded-0 rounded-start @error('work_phone_code') is-invalid @enderror" id="inputPhoneCode">
+                                        <select name="work_phone_code" class="form-select rounded-0 rounded-start @error('work_phone_code') is-invalid @enderror" id="inputWorkPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
                                                 <option value="{{$country->phone}}" {{ old('work_phone_code', $user->work_phone_code) == $country->phone ? 'selected' : '' }} >+{{$country->phone}} ({{$country->name}})</option>
@@ -324,7 +331,7 @@
                                 <label for="inputPhoneNumber" class="form-label text-muted mb-0">Cell Phone <span class="text-danger">*</span></label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="phone_code" class="form-select rounded-0 rounded-start @error('phone_code') is-invalid @enderror" id="inputPhoneCode">
+                                        <select name="phone_code" class="form-select rounded-0 rounded-start @error('phone_code') is-invalid @enderror" id="inputCellPhoneCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
                                                 <option value="{{$country->phone}}" {{ old('phone_code', $user->phone_code) == $country->phone ? 'selected' : '' }}>+{{$country->phone}} ({{$country->name}})</option>
@@ -342,10 +349,10 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label for="inputPhoneNumber" class="form-label text-muted mb-0">WhatsApp</label>
+                                <label for="inputWhatsappNumber" class="form-label text-muted mb-0">WhatsApp</label>
                                 <div class="d-flex">
                                     <div class="w-25">
-                                        <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputPhoneCode">
+                                        <select name="whatsapp_code" class="form-select rounded-0 rounded-start" id="inputWhatsappCode">
                                             <option value="" disabled selected>_ _</option>
                                             @foreach ($countries as $country)
                                                 <option value="{{$country->phone}}" {{ old('whatsapp_code', $user->whatsapp_code) == $country->phone ? 'selected' : '' }}>+{{$country->phone}} ({{$country->name}})</option>
@@ -1023,7 +1030,7 @@
                                                     <tr class="category-row" data-membership="{{ $category->membership_type }}">
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
-                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
+                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)', 'Scholars', 'Special Code']) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
                                                                 <label class="form-check-label mb-0 ms-1 cursor-pointer" for="category_{{ $category->id }}">{{ $category->name }}{!! $infomark !!}
                                                                 <small class="text-muted">{!! $category->description !!}</small>
                                                                 </label>
@@ -1058,17 +1065,20 @@
 
                                         </tbody>
                                     </table>
+                                    {!!$errors->first("category_inscription_id", "<span class='text-danger d-block'>:message</span>")!!}
+                                    {!!$errors->first("specialcode", "<span class='text-danger d-block'>:message</span>")!!}
                                 </div>
 
                                 <div id="dv_document_file" class="d-none">
-                                    <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg)</small>
+                                    <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg/.jpeg/.png)</small>
 
                                     <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span>
+                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg/.jpeg/.png)</span>
                                     </label>
-                                    <input type="file" name="document_file" id="document_file" class="file-control">
+                                    <input type="file" name="document_file" id="document_file" class="file-control" accept="application/pdf,image/jpeg,image/png">
 
                                     <input type="hidden" id="has_document_file" value="{{ !empty($myinscription->document_file) ? 1 : 0 }}">
+                                    {!!$errors->first("document_file", "<span class='text-danger d-block'>:message</span>")!!}
 
                                     @if (!empty($myinscription->document_file))
                                     <div class="mt-2" id="card_document_file">
@@ -1086,7 +1096,7 @@
 
                                                 <!-- Botón eliminar -->
                                                 <a href="javascript:void(0)"
-                                                class="text-decoration-none fw-semibold text-danger d-flex align-items-center gap-1 btn btn-light-danger"
+                                                class="text-decoration-none fw-semibold text-danger d-none align-items-center gap-1 btn btn-light-danger"
                                                 data-id="{{ $myinscription->id }}"
                                                 data-name="{{ $myinscription->document_file }}"
                                                 id="btn_delete_document_file">
@@ -1176,23 +1186,24 @@
 
 
                                     <!-- RADIO OCULTO: NO PAYMENT -->
-                                    <input type="radio" name="payment_method" value="none" id="payment_method_none" checked hidden>
+                                    <input type="radio" name="payment_method" value="none" id="payment_method_none" {{ old('payment_method', $myinscription->payment_method ?? 'none') === 'none' ? 'checked' : '' }} hidden>
 
                                     
                                     <div class="text-center" id="dv_payment_method">
                                         <div class="form-check form-check-primary form-check-inline">
-                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer">
+                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Bank Transfer/Wire" id="payment_method_transfer" {{ old('payment_method', $myinscription->payment_method) === 'Bank Transfer/Wire' ? 'checked' : '' }}>
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_transfer">
                                                 Bank Transfer/Wire
                                             </label>
                                         </div>
                                         <div class="form-check form-check-primary form-check-inline">
-                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Credit/Debit Card" id="payment_method_card">
+                                            <input class="form-check-input cursor-pointer" type="radio" name="payment_method" value="Credit/Debit Card" id="payment_method_card" {{ old('payment_method', $myinscription->payment_method) === 'Credit/Debit Card' ? 'checked' : '' }}>
                                             <label class="form-check-label mb-0 cursor-pointer" for="payment_method_card">
                                                 Credit/Debit Card
                                             </label>
                                         </div>
                                     </div>
+                                    {!!$errors->first("payment_method", "<span class='text-danger d-block text-center'>:message</span>")!!}
 
                                     <div id="dv_nopayment" class="mt-3 d-none">
                                         <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
@@ -1216,8 +1227,31 @@
                                             <div class="col-md-2"></div>
                                             <div class="col-md-8">
                                                 <div id="dv_voucher_file" class="mt-2">
-                                                    <label for="voucher_file" class="d-block text-center">Upload copy of wire transfer PDF, JPG format. <small id="cprequired" class="text-danger">(required field)</small></label>
-                                                    <input type="file" name="voucher_file" id="voucher_file" class="file-control">
+                                                    <label for="voucher_file" class="d-block text-center">Upload a copy of the wire transfer in PDF, JPG, JPEG, or PNG format (maximum 10 MB). <small id="cprequired" class="text-danger">(required field)</small></label>
+                                                    <input type="file" name="voucher_file" id="voucher_file" class="file-control" accept="application/pdf,image/jpeg,image/png">
+                                                    <input type="hidden" id="has_voucher_file" value="{{ !empty($myinscription->voucher_file) ? 1 : 0 }}">
+                                                    {!!$errors->first("voucher_file", "<span class='text-danger d-block'>:message</span>")!!}
+
+                                                    @if (!empty($myinscription->voucher_file))
+                                                        <div class="card border shadow-sm mt-2" id="card_voucher_file">
+                                                            <div class="card-body px-3 py-2 d-flex justify-content-between align-items-center gap-2 flex-wrap">
+                                                                <div>
+                                                                <small class="text-muted d-block mb-1">Current proof of transfer:</small>
+                                                                <a href="{{ asset('storage/uploads/voucher_file/'.$myinscription->voucher_file) }}"
+                                                                   class="text-decoration-none fw-semibold text-primary d-flex align-items-center gap-1"
+                                                                   title="Download proof of transfer"
+                                                                   target="_blank"
+                                                                   download>
+                                                                    <i class="bi bi-file-earmark-arrow-down fs-5"></i>
+                                                                    {{ $myinscription->voucher_file }}
+                                                                </a>
+                                                                </div>
+                                                                <button type="button" class="btn btn-light-danger btn-sm d-none" data-id="{{ $myinscription->id }}" id="btn_delete_voucher_file">
+                                                                    Delete File
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </div>
                                             <div class="col-md-2"></div>
@@ -1234,19 +1268,6 @@
                                         </p>
                                     </div>
 
-
-                                    @if ($myinscription->payment_method == 'Bank Transfer/Wire' && $myinscription->voucher_file != null)
-                                        <div class="row mt-1">
-                                            <div class="col-md-12">
-                                                <div class="mt-1">
-                                                    <a href="{{ asset('storage/uploads/voucher_file').'/'.$myinscription->voucher_file}}" class="badge badge-light-primary text-start me-2 bs-tooltip" data-toggle="tooltip" data-placement="top" title="" data-bs-original-title="Descargar" target="_blank">
-                                                        {{ $myinscription->voucher_file }}
-                                                        <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="m7 10 5 5 5-5"></path><path d="M12 15V3"></path></svg>
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
 
                                     @if ($myinscription->payment_method == 'Credit/Debit Card' && $paymentcards->count() > 0)
                                         @foreach ($paymentcards as $paymentcard)
@@ -1303,6 +1324,16 @@
 <script>
     const isMemberIndividualVerified = @json($ismemberindividual);
     const allCategories = @json($category_inscriptions);
+    const memberInstitutionNames = @json($memberinstitutions->pluck('name')->values());
+    const existingDocumentFile = @json(!empty($myinscription->document_file) ? [
+        'name' => $myinscription->document_file,
+        'url' => asset('storage/uploads/document_file/'.$myinscription->document_file),
+    ] : null);
+    const existingVoucherFile = @json(!empty($myinscription->voucher_file) ? [
+        'name' => $myinscription->voucher_file,
+        'url' => asset('storage/uploads/voucher_file/'.$myinscription->voucher_file),
+    ] : null);
+    const currentInscriptionId = @json($myinscription->id);
 </script>
 
 @endsection

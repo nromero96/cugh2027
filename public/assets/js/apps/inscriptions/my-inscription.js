@@ -5,12 +5,23 @@ document.addEventListener("DOMContentLoaded", function () {
     var btnSubInscription = document.getElementById("btnSubInscription");
 
     formInscription.addEventListener("submit", function (event) {
-        const action = event.submitter.value; // save o register
+        const action = event.submitter ? event.submitter.value : null; // save or register
+
+        if (!action) {
+            event.preventDefault();
+            return;
+        }
+
+        document.getElementById('formAction').value = action;
+
         if (action === "register") {
             btnSubInscription.textContent = "Processing...";
             if (!validarCamposInscription()) {
                 event.preventDefault();
                 btnSubInscription.textContent = "Register Now";
+            } else {
+                btnSubInscription.disabled = true;
+                btnSaveInscription.disabled = true;
             }
         }
 
@@ -19,6 +30,9 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!validarCamposInscriptionDraft()) {
                 event.preventDefault();
                 btnSaveInscription.textContent = "Save Draft";
+            } else {
+                btnSaveInscription.disabled = true;
+                btnSubInscription.disabled = true;
             }
         }
 
@@ -73,8 +87,6 @@ document.addEventListener("DOMContentLoaded", function () {
         },
 
         updateCategories: function (type) {
-            let firstVisibleRadio = null;
-
             document.querySelectorAll('.category-row').forEach(row => {
                 const membership = row.dataset.membership;
                 const radio = row.querySelector('input[type="radio"]');
@@ -83,23 +95,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (membership === 'all' || membership === type) {
                     row.classList.remove('d-none');
-
-                    if (!firstVisibleRadio && !radio.disabled) {
-                        firstVisibleRadio = radio;
-                    }
-
                 } else {
                     row.classList.add('d-none');
                     radio.checked = false;
                 }
             });
-
-            const selected = document.querySelector('input[name="category_inscription_id"]:checked');
-
-            if (!selected && firstVisibleRadio) {
-                firstVisibleRadio.checked = true;
-                firstVisibleRadio.dispatchEvent(new Event('change'));
-            }
 
             if (typeof calculateTotalPrice === "function") {
                 calculateTotalPrice();
@@ -115,6 +115,65 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 🚀 inicializar módulo
     cughMembership.init();
+
+    const workplaceInput = document.getElementById('inputWorkplace');
+    const workplaceMembershipAlert = document.getElementById('workplace_membership_alert');
+    const institutionNames = typeof memberInstitutionNames !== 'undefined' ? memberInstitutionNames : [];
+    const ignoredInstitutionWords = new Set([
+        'and', 'the', 'for', 'from', 'with', 'of', 'de', 'del', 'la', 'las', 'el', 'los', 'y'
+    ]);
+    let workplaceCheckTimer = null;
+
+    function institutionWords(value) {
+        return [...new Set(
+            String(value || '')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim()
+                .split(/\s+/)
+                .filter(word => word.length >= 3 && !ignoredInstitutionWords.has(word))
+        )];
+    }
+
+    function checkWorkplaceMembership() {
+        if (!workplaceInput || !workplaceMembershipAlert) return;
+
+        const memberSelection = document.querySelector('input[name="is_cugh_member"]:checked');
+        const workplaceWords = new Set(institutionWords(workplaceInput.value));
+
+        if (!memberSelection || memberSelection.value !== '0' || workplaceWords.size < 2) {
+            workplaceMembershipAlert.classList.add('d-none');
+            workplaceMembershipAlert.textContent = '';
+            return;
+        }
+
+        const matches = institutionNames.filter(name => {
+            const matchingWords = institutionWords(name).filter(word => workplaceWords.has(word));
+            return matchingWords.length >= 2;
+        }).slice(0, 3);
+
+        if (matches.length === 0) {
+            workplaceMembershipAlert.classList.add('d-none');
+            workplaceMembershipAlert.textContent = '';
+            return;
+        }
+
+        workplaceMembershipAlert.textContent = `Your workplace may be a CUGH member institution: ${matches.join(', ')}. Please review the CUGH Member question above and select Yes if applicable.`;
+        workplaceMembershipAlert.classList.remove('d-none');
+    }
+
+    if (workplaceInput) {
+        workplaceInput.addEventListener('input', () => {
+            clearTimeout(workplaceCheckTimer);
+            workplaceCheckTimer = setTimeout(checkWorkplaceMembership, 400);
+        });
+        document.querySelectorAll('input[name="is_cugh_member"]').forEach(radio => {
+            radio.addEventListener('change', checkWorkplaceMembership);
+        });
+        checkWorkplaceMembership();
+    }
 
 
     // Eliminar espacios en tiempo real
@@ -337,11 +396,9 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
     
-        const categoriasPermitidas = ['3', '4', '5','6'];
-
         const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
-        if (categoriasPermitidas.includes(selectedRadioCategoryInscription.value) && !hasDocumentFile) {
+        if (selectedRadioCategoryInscription.dataset.requiresDocument === '1' && !hasDocumentFile) {
             if (!validarArchivoFilePond('document_file', 'You must attach proof of category (Title, Certificate, Professional Card).')) {
                 return false;
             }
@@ -353,12 +410,13 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     
         if (selectedRadioPaymentMethod.value === 'Bank Transfer/Wire') {
-            if (!validarArchivoFilePond('voucher_file', "You must attach proof of transfer or deposit.")) {
+            const hasVoucherFile = document.getElementById('has_voucher_file').value === '1';
+            if (!hasVoucherFile && !validarArchivoFilePond('voucher_file', "You must attach proof of transfer or deposit.")) {
                 return false;
             }
         }
 
-        if(selectedRadioCategoryInscription.value === '6' && document.getElementById('specialcode_verify').value === ''){
+        if(selectedRadioCategoryInscription.dataset.specialCode === '1' && document.getElementById('specialcode_verify').value === ''){
             alert('Please enter and validate a valid special fee code.');
             return false;
         }
@@ -374,17 +432,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return false;
         }
 
-        const categoriasPermitidas = ['3', '4'];
-
         const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
-        if (categoriasPermitidas.includes(selectedRadioCategoryInscription.value) && !hasDocumentFile) {
-            if (!validarArchivoFilePond('document_file', 'Please attach proof of student status.')) {
+        if (selectedRadioCategoryInscription.dataset.requiresDocument === '1' && !hasDocumentFile) {
+            if (!validarArchivoFilePond('document_file', 'Please attach supporting documentation for the selected category.')) {
                 return false;
             }
         }
 
-        if(selectedRadioCategoryInscription.value === '6' && document.getElementById('specialcode_verify').value === ''){
+        if(selectedRadioCategoryInscription.dataset.specialCode === '1' && document.getElementById('specialcode_verify').value === ''){
             alert('Please enter and validate a valid special fee code.');
             const specialcode = document.getElementById('specialcode');
             specialcode.focus();
@@ -685,7 +741,7 @@ document.getElementById('cugh_member_institution').addEventListener('change', fu
     let countrySelect = document.getElementById('inputCountry');
 
     // Resetear select
-    countrySelect.innerHTML = '<option value="">Seleccione país</option>';
+    countrySelect.innerHTML = '<option value="">Select country...</option>';
 
     let url = institutionId 
     ? `/countries-by-institution/${institutionId}` 
@@ -787,53 +843,193 @@ inputPaymentMethod.forEach(radio => {
 });
 
 function handlePaymentMethod(){
-    const selectedValuePaymentMethod = document.querySelector('input[type="radio"][name="payment_method"]:checked').value;
+    const selectedPaymentMethod = document.querySelector('input[type="radio"][name="payment_method"]:checked');
+    if (!selectedPaymentMethod) return;
+
+    const selectedValuePaymentMethod = selectedPaymentMethod.value;
     if(selectedValuePaymentMethod === 'Bank Transfer/Wire'){
         dvTranfer.classList.remove('d-none');
         dvCard.classList.add('d-none');
-    }else{
+    }else if(selectedValuePaymentMethod === 'Credit/Debit Card'){
         dvTranfer.classList.add('d-none');
         dvCard.classList.remove('d-none');
+    }else{
+        dvTranfer.classList.add('d-none');
+        dvCard.classList.add('d-none');
     }
 }
 
+handlePaymentMethod();
+
 const inputDocumentFile = document.getElementById('document_file');
+let uploadsInProgress = 0;
+
+function setUploadState(isStarting) {
+    uploadsInProgress = Math.max(0, uploadsInProgress + (isStarting ? 1 : -1));
+    const isUploading = uploadsInProgress > 0;
+
+    if (btnSubInscription) {
+        btnSubInscription.disabled = isUploading;
+        btnSubInscription.textContent = isUploading ? 'Uploading file... Please wait.' : 'Register Now';
+    }
+
+    if (btnSaveInscription) {
+        btnSaveInscription.disabled = isUploading;
+        btnSaveInscription.textContent = isUploading ? 'Uploading file... Please wait.' : 'Save Draft';
+    }
+}
+
+// Configure the upload endpoint before creating any FilePond instance.
+const filePondPlugins = [FilePondPluginFileValidateType];
+if (typeof FilePondPluginImagePreview !== 'undefined') {
+    filePondPlugins.push(FilePondPluginImagePreview);
+}
+FilePond.registerPlugin(...filePondPlugins);
+
+const currentDocumentFile = typeof existingDocumentFile !== 'undefined' ? existingDocumentFile : null;
+const currentVoucherFile = typeof existingVoucherFile !== 'undefined' ? existingVoucherFile : null;
+const inscriptionIdForFiles = typeof currentInscriptionId !== 'undefined' ? currentInscriptionId : null;
+
+FilePond.setOptions({
+    server: {
+        process: {
+            url: baseurl + '/upload',
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        },
+        load: (source, load, error, progress, abort) => {
+            const controller = new AbortController();
+
+            fetch(source, { signal: controller.signal })
+                .then(response => {
+                    if (!response.ok) throw new Error('Unable to load the existing file.');
+                    return response.blob();
+                })
+                .then(load)
+                .catch(loadError => {
+                    if (loadError.name !== 'AbortError') error(loadError.message);
+                });
+
+            return {
+                abort: () => {
+                    controller.abort();
+                    abort();
+                }
+            };
+        }
+    }
+});
+
+function existingFileOptions(file) {
+    if (!file) return [];
+
+    return [{
+        source: file.url,
+        options: {
+            type: 'local',
+            file: { name: file.name }
+        }
+    }];
+}
+
+function hasAllowedRegistrationExtension(file) {
+    if (file.origin === FilePond.FileOrigin.LOCAL) return true;
+
+    const extension = String(file.filename || '').split('.').pop().toLowerCase();
+    const allowed = ['pdf', 'jpg', 'jpeg', 'png'].includes(extension);
+
+    if (!allowed) {
+        alert('Only PDF, JPG, JPEG, and PNG files are allowed.');
+    }
+
+    return allowed;
+}
+
+function detectRegistrationFileType(source, browserType) {
+    const filename = typeof source === 'string' ? source : (source.name || '');
+    const extension = filename.split('?')[0].split('.').pop().toLowerCase();
+    const mimeTypes = {
+        pdf: 'application/pdf',
+        jpg: 'image/jpeg',
+        jpeg: 'image/jpeg',
+        png: 'image/png'
+    };
+
+    return Promise.resolve(mimeTypes[extension] || browserType);
+}
+
+async function removeStoredFile(file, type) {
+    if (file.origin !== FilePond.FileOrigin.LOCAL) return true;
+
+    const label = type === 'document' ? 'supporting document' : 'proof of transfer';
+    if (!confirm(`Are you sure you want to delete this ${label}? This action cannot be undone.`)) {
+        return false;
+    }
+
+    if (!inscriptionIdForFiles) return false;
+
+    const response = await fetch(`/inscriptions/${inscriptionIdForFiles}/delete-${type}-file`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        alert(data.message || `The ${label} could not be deleted.`);
+        return false;
+    }
+
+    const hiddenInput = document.getElementById(type === 'document' ? 'has_document_file' : 'has_voucher_file');
+    const existingCard = document.getElementById(type === 'document' ? 'card_document_file' : 'card_voucher_file');
+    if (hiddenInput) hiddenInput.value = '0';
+    if (existingCard) existingCard.classList.add('d-none');
+
+    return true;
+}
+
 const pondDocument = FilePond.create(inputDocumentFile, {
-    onaddfilestart: () => {
-        btnSubInscription.disabled = true;
-        btnSubInscription.textContent = 'Uploading file... Please wait.';
-    },
-    onprocessfile: () => {
-        btnSubInscription.disabled = false;
-        btnSubInscription.textContent = 'Register Now';
+    files: existingFileOptions(currentDocumentFile),
+    allowRemove: true,
+    acceptedFileTypes: ['application/pdf', 'image/jpeg', 'image/png'],
+    fileValidateTypeDetectType: detectRegistrationFileType,
+    beforeAddFile: hasAllowedRegistrationExtension,
+    beforeRemoveFile: file => removeStoredFile(file, 'document'),
+    onprocessfilestart: () => setUploadState(true),
+    onprocessfile: (error) => {
+        setUploadState(false);
+        if (error) {
+            alert('The supporting document could not be uploaded. Please use a PDF, JPG, JPEG, or PNG file up to 10 MB.');
+        }
     }
 });
 
 const inputVoucherFile  = document.getElementById("voucher_file");
 const pondVoucher = FilePond.create(inputVoucherFile, {
-    onaddfilestart: () => {
-        btnSubInscription.disabled = true;
-        btnSubInscription.textContent = 'Uploading file... Please wait.';
-    },
-    onprocessfile: () => {
-        btnSubInscription.disabled = false;
-        btnSubInscription.textContent = 'Register Now';
+    files: existingFileOptions(currentVoucherFile),
+    allowRemove: true,
+    acceptedFileTypes: ['application/pdf', 'image/jpeg', 'image/png'],
+    fileValidateTypeDetectType: detectRegistrationFileType,
+    beforeAddFile: hasAllowedRegistrationExtension,
+    beforeRemoveFile: file => removeStoredFile(file, 'voucher'),
+    onprocessfilestart: () => setUploadState(true),
+    onprocessfile: (error) => {
+        setUploadState(false);
+        if (error) {
+            alert('The proof of transfer could not be uploaded. Please use a PDF, JPG, JPEG, or PNG file up to 10 MB.');
+        }
     }
-});
-
-FilePond.setOptions({
-  server: {
-      url: baseurl + '/upload',
-      headers: {
-          'x-csrf-token': $('meta[name="csrf-token"]').attr('content'),
-      },
-  },
 });
 
 
 //Delete File Document btn_delete_document_file
 const btnDeleteDocumentFile = document.getElementById('btn_delete_document_file');
 if (btnDeleteDocumentFile) {
+    if (currentDocumentFile) btnDeleteDocumentFile.classList.add('d-none');
     btnDeleteDocumentFile.addEventListener('click', function () {
         
         if (!confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
@@ -856,6 +1052,7 @@ if (btnDeleteDocumentFile) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                pondDocument.setOptions({ allowRemove: true });
                 pondDocument.removeFile();
                 const card_document_file = document.getElementById('card_document_file');
                 card_document_file.classList.add('d-none');
@@ -871,6 +1068,38 @@ if (btnDeleteDocumentFile) {
 
 
 
+    });
+}
+
+const btnDeleteVoucherFile = document.getElementById('btn_delete_voucher_file');
+if (btnDeleteVoucherFile) {
+    if (currentVoucherFile) btnDeleteVoucherFile.classList.add('d-none');
+    btnDeleteVoucherFile.addEventListener('click', function () {
+        if (!confirm('Are you sure you want to delete this proof of transfer? This action cannot be undone.')) {
+            return;
+        }
+
+        const id = this.getAttribute('data-id');
+
+        fetch(`/inscriptions/${id}/delete-voucher-file`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json().then(data => ({ ok: response.ok, data })))
+        .then(result => {
+            if (!result.ok || !result.data.success) {
+                throw new Error(result.data.message || 'The proof of transfer could not be deleted.');
+            }
+
+            pondVoucher.setOptions({ allowRemove: true });
+            pondVoucher.removeFile();
+            document.getElementById('card_voucher_file').classList.add('d-none');
+            document.getElementById('has_voucher_file').value = '0';
+        })
+        .catch(error => alert(error.message));
     });
 }
 

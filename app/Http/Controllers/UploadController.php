@@ -4,10 +4,25 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\TemporaryFile;
+use Illuminate\Validation\ValidationException;
 
 class UploadController extends Controller
 {
     public function store(Request $request){
+
+        if ($request->hasFile('document_file')) {
+            $request->validate([
+                'document_file' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:10240',
+            ]);
+            $this->validateRegistrationFileExtension($request->file('document_file'), 'document_file');
+        }
+
+        if ($request->hasFile('voucher_file')) {
+            $request->validate([
+                'voucher_file' => 'file|mimetypes:application/pdf,image/jpeg,image/png|max:10240',
+            ]);
+            $this->validateRegistrationFileExtension($request->file('voucher_file'), 'voucher_file');
+        }
 
         $documentFields = ['file_1', 'file_2', 'file_3', 'file_4', 'file_5', 'file_6','document_file','voucher_file','poster'];
         $uploadedFolder = '';
@@ -37,5 +52,16 @@ class UploadController extends Controller
             }
         }
         return $uploadedFolder;
+    }
+
+    private function validateRegistrationFileExtension($file, string $field): void
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if (!in_array($extension, ['pdf', 'jpg', 'jpeg', 'png'], true)) {
+            throw ValidationException::withMessages([
+                $field => 'Only PDF, JPG, JPEG, and PNG files are allowed.',
+            ]);
+        }
     }
 }

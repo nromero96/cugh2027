@@ -34,6 +34,7 @@ use Maatwebsite\Excel\Facades\Excel;
 use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class InscriptionController extends Controller
 {
@@ -502,9 +503,8 @@ class InscriptionController extends Controller
     public function edit($id)
     {
 
-        //if user is admin or secretary
-        if (!auth()->user()?->hasAnyRole(['Administrador', 'Secretaria'])) {
-            abort(403, 'No tiene permisos para exportar.');
+        if (!auth()->user()?->hasRole('Administrador')) {
+            abort(403, 'Unauthorized action.');
         }
 
         // 1. Evita error 500 si no existe el ID (devuelve 404)
@@ -546,7 +546,184 @@ class InscriptionController extends Controller
      */
     public function update(Request $request, $id)
     {
-        
+        if (!auth()->user()?->hasRole('Administrador')) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $inscription = Inscription::findOrFail($id);
+        $user = $inscription->user;
+
+        if (!$user) {
+            return redirect()->route('inscriptions.index')->with('error', 'Participant not found.');
+        }
+
+        $request->validate([
+            'salutation' => 'nullable|string|max:20',
+            'name' => 'required|string|max:100',
+            'lastname' => 'nullable|string|max:100',
+            'second_lastname' => 'nullable|string|max:100',
+            'degrees' => 'nullable|string|max:100',
+            'other_degrees' => 'nullable|string|max:100',
+            'is_cugh_member' => 'required|in:0,1',
+            'cugh_membership_type' => 'nullable|in:Institutional Member,Individual Member',
+            'cugh_member_institution' => 'nullable|integer|exists:member_institutions,id',
+            'job_title' => 'nullable|string|max:150',
+            'email' => 'required|email|unique:users,email,'.$user->id,
+            'cc_email' => 'nullable|email',
+            'document_type' => 'nullable|string|max:50',
+            'document_number' => 'nullable|string|max:50',
+            'nationality' => 'nullable|integer|exists:countries,id',
+            'gender' => 'nullable|string|max:50',
+            'occupation' => 'nullable|string|max:100',
+            'occupation_other' => 'nullable|string|max:100',
+            'workplace' => 'nullable|string|max:200',
+            'address' => 'nullable|string|max:50',
+            'city' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'country' => 'required|integer|exists:countries,id',
+            'work_phone_code' => 'nullable|string|max:10',
+            'work_phone_code_city' => 'nullable|string|max:10',
+            'work_phone_number' => 'nullable|string|max:20',
+            'phone_code' => 'nullable|string|max:10',
+            'phone_number' => 'nullable|string|max:20',
+            'whatsapp_code' => 'nullable|string|max:10',
+            'whatsapp_number' => 'nullable|string|max:20',
+            'solapin_name' => 'nullable|string|max:100',
+            'solapin_lastname' => 'nullable|string|max:100',
+            'category_inscription_id' => 'required|integer|exists:category_inscriptions,id,status,active',
+            'invoice' => 'required|in:yes,no',
+            'invoice_type' => 'required|in:Boleta,Factura',
+            'invoice_type_document' => 'nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
+            'invoice_ruc' => 'nullable|string|max:50',
+            'invoice_social_reason' => 'nullable|string|max:200',
+            'invoice_address' => 'nullable|string|max:50',
+            'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
+        ]);
+
+        $category = CategoryInscription::findOrFail($request->category_inscription_id);
+        $country = Country::findOrFail($request->country);
+        $price = $country->price_type === 'Middle Income'
+            ? (float) $category->price_low
+            : (float) $category->price;
+
+        if ($category->name === 'Special Code') {
+            $specialCode = $this->validSpecialCode($request->specialcode, $inscription);
+            $price = $specialCode->payment_required === 'Si' ? (float) $specialCode->amount : 0;
+        }
+
+        $allowedPaymentMethods = $price > 0
+            ? ['Bank Transfer/Wire', 'Credit/Debit Card']
+            : ['none'];
+
+        if (!in_array($request->payment_method, $allowedPaymentMethods, true)) {
+            throw ValidationException::withMessages([
+                'payment_method' => $price > 0
+                    ? 'Please select a valid payment method for this registration fee.'
+                    : 'No payment method is required for this category.',
+            ]);
+        }
+
+        $documentRequired = in_array($category->name, [
+            'Student (Member)', 'Student (Non-Member)', 'Scholars', 'Special Code',
+        ], true);
+
+        if ($documentRequired && !$inscription->document_file && !$this->temporaryUploadExists($request->document_file)) {
+            throw ValidationException::withMessages([
+                'document_file' => 'You must attach supporting documentation for the selected category.',
+            ]);
+        }
+
+        if (
+            $request->payment_method === 'Bank Transfer/Wire'
+            && !$inscription->voucher_file
+            && !$this->temporaryUploadExists($request->voucher_file)
+        ) {
+            throw ValidationException::withMessages(['voucher_file' => 'You must attach proof of transfer or deposit.']);
+        }
+
+        $documentToDelete = null;
+        $voucherToDelete = null;
+
+        DB::beginTransaction();
+        try {
+            foreach ([
+                'salutation', 'name', 'lastname', 'second_lastname', 'degrees', 'other_degrees',
+                'is_cugh_member', 'cugh_membership_type', 'cugh_member_institution', 'job_title',
+                'email', 'cc_email', 'document_type', 'document_number', 'nationality', 'gender',
+                'occupation', 'occupation_other', 'workplace', 'address', 'city', 'state', 'country',
+                'work_phone_code', 'work_phone_code_city', 'work_phone_number', 'phone_code',
+                'phone_number', 'whatsapp_code', 'whatsapp_number', 'solapin_name', 'solapin_lastname',
+            ] as $field) {
+                $user->{$field} = $request->input($field);
+            }
+            $user->save();
+
+            $inscription->category_inscription_id = $category->id;
+            $inscription->price_category = $price;
+            $inscription->total = $price;
+            $inscription->special_code = $category->name === 'Special Code' ? $request->specialcode : null;
+            $inscription->invoice = $request->invoice;
+            $inscription->invoice_type = $request->invoice_type;
+            $inscription->invoice_type_document = $request->invoice_type_document;
+            $inscription->invoice_ruc = $request->invoice_ruc;
+            $inscription->invoice_social_reason = $request->invoice_social_reason;
+            $inscription->invoice_address = $request->invoice_address;
+            $inscription->payment_method = $request->payment_method;
+
+            if ($request->payment_method === 'Credit/Debit Card' && $inscription->voucher_file) {
+                $voucherToDelete = $inscription->voucher_file;
+                $inscription->voucher_file = null;
+            }
+
+            $documentFolder = $this->temporaryUploadFolder($request->document_file);
+            $temporaryDocument = TemporaryFile::where('folder', $documentFolder)->first();
+            if ($temporaryDocument) {
+                $documentToDelete = $inscription->document_file;
+                Storage::move(
+                    'public/uploads/tmp/'.$documentFolder.'/'.$temporaryDocument->filename,
+                    'public/uploads/document_file/'.$temporaryDocument->filename
+                );
+                $inscription->document_file = $temporaryDocument->filename;
+                Storage::deleteDirectory('public/uploads/tmp/'.$documentFolder);
+                $temporaryDocument->delete();
+            }
+
+            if ($request->payment_method === 'Bank Transfer/Wire') {
+                $voucherFolder = $this->temporaryUploadFolder($request->voucher_file);
+                $temporaryVoucher = TemporaryFile::where('folder', $voucherFolder)->first();
+                if ($temporaryVoucher) {
+                    $voucherToDelete = $inscription->voucher_file;
+                    Storage::move(
+                        'public/uploads/tmp/'.$voucherFolder.'/'.$temporaryVoucher->filename,
+                        'public/uploads/voucher_file/'.$temporaryVoucher->filename
+                    );
+                    $inscription->voucher_file = $temporaryVoucher->filename;
+                    Storage::deleteDirectory('public/uploads/tmp/'.$voucherFolder);
+                    $temporaryVoucher->delete();
+                }
+            }
+
+            $inscription->save();
+            DB::commit();
+
+            if ($documentToDelete) {
+                Storage::delete('public/uploads/document_file/'.$documentToDelete);
+            }
+            $this->deleteVoucherFromStorage($voucherToDelete);
+
+            return redirect()->route('inscriptions.edit', $inscription->id)
+                ->with('success', 'Registration updated successfully.');
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Administrative registration update failed: '.$e->getMessage());
+
+            return redirect()->route('inscriptions.edit', $inscription->id)
+                ->withInput()
+                ->with('error', 'We could not update the registration. Please try again.');
+        }
     }
 
     /**
@@ -586,6 +763,13 @@ class InscriptionController extends Controller
         //Obtener la inscripción del usuario
         $myinscription = $user->inscription;
 
+        if (!$myinscription) {
+            $myinscription = Inscription::create([
+                'user_id' => $id,
+                'status' => 'Draft',
+            ]);
+        }
+
         //List of payment cards
         $paymentcards = Payment::where('inscription_id', $myinscription->id)->orderBy('id', 'desc')->get();
 
@@ -613,9 +797,6 @@ class InscriptionController extends Controller
         //get logged user id
         $iduser = \Auth::user()->id;
 
-        Log::info('Datos de la inscripción: '.json_encode($request->all()));
-
-        
         if ($action === 'register') {
 
             // VALIDACIÓN COMPLETA
@@ -631,7 +812,7 @@ class InscriptionController extends Controller
                 'cugh_membership_type' => 'nullable|string',
                 'cugh_member_institution' => 'nullable|string',
                 'job_title' => 'required|string',
-                'email' => 'required|email',
+                'email' => 'required|email|unique:users,email,'.$iduser,
                 'cc_email' => 'nullable|email',
                 'document_type' => 'required|string',
                 'document_number' => 'required|string',
@@ -643,7 +824,7 @@ class InscriptionController extends Controller
                 'address' => 'required|string|max:50',
                 'city' => 'required|string',
                 'state' => 'required|string',
-                'country' => 'required|string',
+                'country' => 'required|integer|exists:countries,id',
                 'work_phone_code' => 'nullable|string',
                 'work_phone_code_city' => 'nullable|string',
                 'work_phone_number' => 'nullable|string',
@@ -684,14 +865,15 @@ class InscriptionController extends Controller
                 'panel_presenter_moderator' => 'required|string',
 
                 //data inscription
-                'category_inscription_id' => 'required|numeric',
-                'invoice' => 'required|string',
-                'invoice_type' => 'required|string',
-                'invoice_type_document' => 'required|string',
+                'category_inscription_id' => 'required|integer|exists:category_inscriptions,id,status,active',
+                'invoice' => 'required|in:yes,no',
+                'invoice_type' => 'required|in:Boleta,Factura',
+                'invoice_type_document' => 'required|in:ID Tax Payer,RUC,DNI,Passport,Other',
                 'invoice_ruc' => 'required|string',
                 'invoice_social_reason' => 'required|string',
                 'invoice_address' => 'required|string|max:50',
-                'payment_method' => 'required|string',
+                'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
+                'action' => 'required|in:register,save',
             ];
 
         } else {
@@ -708,7 +890,7 @@ class InscriptionController extends Controller
                 'cugh_membership_type' => 'nullable|string',
                 'cugh_member_institution' => 'nullable|string',
                 'job_title' => 'nullable|string',
-                'email' => 'required|email',
+                'email' => 'required|email|unique:users,email,'.$iduser,
                 'cc_email' => 'nullable|email',
                 'document_type' => 'required|string',
                 'document_number' => 'required|string',
@@ -720,7 +902,7 @@ class InscriptionController extends Controller
                 'address' => 'nullable|string|max:50',
                 'city' => 'nullable|string',
                 'state' => 'nullable|string',
-                'country' => 'nullable|string',
+                'country' => 'nullable|integer|exists:countries,id',
                 'work_phone_code' => 'nullable|string',
                 'work_phone_code_city' => 'nullable|string',
                 'work_phone_number' => 'nullable|string',
@@ -761,23 +943,112 @@ class InscriptionController extends Controller
                 'panel_presenter_moderator' => 'nullable|string',
 
                 //data inscription
-                'category_inscription_id' => 'nullable|numeric',
-                'invoice' => 'required|string',
-                'invoice_type' => 'required|string',
-                'invoice_type_document' => 'nullable|string',
+                'category_inscription_id' => 'nullable|integer|exists:category_inscriptions,id,status,active',
+                'invoice' => 'required|in:yes,no',
+                'invoice_type' => 'required|in:Boleta,Factura',
+                'invoice_type_document' => 'nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
                 'invoice_ruc' => 'nullable|string',
                 'invoice_social_reason' => 'nullable|string',
                 'invoice_address' => 'nullable|string|max:50',
-                'payment_method' => 'nullable|string',
+                'payment_method' => 'nullable|in:none,Bank Transfer/Wire,Credit/Debit Card',
+                'action' => 'required|in:register,save',
             ];
         }
 
         $validatedData = $request->validate($rules);
 
+        $inscription = Inscription::where('user_id', $iduser)->firstOrFail();
+
+        if (!in_array($inscription->status, ['Draft', 'Pending'], true)) {
+            return redirect()->route('inscriptions.myinscription')
+                ->with('error', 'This registration can no longer be modified.');
+        }
+
+        $categoryInscription = $request->filled('category_inscription_id')
+            ? CategoryInscription::find($request->category_inscription_id)
+            : null;
+        $countryInscription = $request->filled('country')
+            ? Country::find($request->country)
+            : null;
+        $specialCode = null;
+        $priceCategory = 0;
+        $voucherToDelete = null;
+
+        if ($categoryInscription && $countryInscription) {
+            $priceCategory = $countryInscription->price_type === 'Middle Income'
+                ? (float) $categoryInscription->price_low
+                : (float) $categoryInscription->price;
+        }
+
+        if ($action === 'register') {
+            $membershipType = $this->verifiedMembershipType($request, \Auth::user());
+
+            if (!in_array($categoryInscription->membership_type, ['all', $membershipType], true)) {
+                throw ValidationException::withMessages([
+                    'category_inscription_id' => 'The selected registration category is not available for your membership status.',
+                ]);
+            }
+
+            if ($categoryInscription->name === 'Special Code') {
+                $specialCode = $this->validSpecialCode($request->specialcode, $inscription);
+                $priceCategory = $specialCode->payment_required === 'Si'
+                    ? (float) $specialCode->amount
+                    : 0;
+            }
+
+            $documentRequired = in_array($categoryInscription->name, [
+                'Student (Member)',
+                'Student (Non-Member)',
+                'Scholars',
+                'Special Code',
+            ], true);
+
+            if ($documentRequired && !$inscription->document_file && !$this->temporaryUploadExists($request->document_file)) {
+                throw ValidationException::withMessages([
+                    'document_file' => 'You must attach supporting documentation for the selected category.',
+                ]);
+            }
+
+            $allowedPaymentMethods = $priceCategory > 0
+                ? ['Bank Transfer/Wire', 'Credit/Debit Card']
+                : ['none'];
+
+            if (!in_array($request->payment_method, $allowedPaymentMethods, true)) {
+                throw ValidationException::withMessages([
+                    'payment_method' => $priceCategory > 0
+                        ? 'Please select a valid payment method for this registration fee.'
+                        : 'No payment method is required for this category.',
+                ]);
+            }
+
+            if (
+                $request->payment_method === 'Bank Transfer/Wire'
+                && !$inscription->voucher_file
+                && !$this->temporaryUploadExists($request->voucher_file)
+            ) {
+                throw ValidationException::withMessages([
+                    'voucher_file' => 'You must attach proof of transfer or deposit.',
+                ]);
+            }
+        }
+
         DB::beginTransaction();
 
         try {
-            $country_inscription = Country::find($request->country);
+            if ($specialCode) {
+                SpecialCode::whereKey($specialCode->id)->lockForUpdate()->first();
+
+                $usedCount = Inscription::where('special_code', $specialCode->code)
+                    ->where('id', '!=', $inscription->id)
+                    ->whereNotIn('status', ['Draft', 'Refused', 'Rechazado'])
+                    ->count();
+
+                if ($usedCount >= (int) $specialCode->quantity) {
+                    throw ValidationException::withMessages([
+                        'specialcode' => 'Special fee code has reached its usage limit.',
+                    ]);
+                }
+            }
 
             // Actualizar usuario
             $user = User::find($iduser);
@@ -804,9 +1075,9 @@ class InscriptionController extends Controller
             $user->city = $request->city;
             $user->state = $request->state;
             $user->country = $request->country;
-            $user->work_phone_code = $request->phone_code;
+            $user->work_phone_code = $request->work_phone_code;
             $user->work_phone_code_city = $request->work_phone_code_city;
-            $user->work_phone_number = $request->phone_number;
+            $user->work_phone_number = $request->work_phone_number;
             $user->phone_code = $request->phone_code;
             $user->phone_number = $request->phone_number;
             $user->whatsapp_code = $request->whatsapp_code;
@@ -846,28 +1117,12 @@ class InscriptionController extends Controller
             $user->save();
 
             //Buscar inscripción del usuario para actualizarla
-            $inscription = Inscription::where('user_id', $iduser)->first();
-            
             // Actualizar inscripción del usuario
-            $inscription = Inscription::find($inscription->id);
             $inscription->user_id = $iduser;
             $inscription->category_inscription_id = $request->category_inscription_id;
 
-            
-            $categoryInscription = CategoryInscription::find($request->category_inscription_id);
-
-            if ($categoryInscription) {
-                // Si se encuentra la categoría
-                $price_category = $country_inscription->price_type === 'Middle Income'
-                    ? $categoryInscription->price_low
-                    : $categoryInscription->price;
-            } else {
-                // Si no llega category_inscription_id o no se encuentra
-                $price_category = 0;
-            }
-
-            $inscription->price_category = $price_category;
-            $inscription->total = $price_category;
+            $inscription->price_category = $priceCategory;
+            $inscription->total = $priceCategory;
 
 
             $inscription->special_code = $request->specialcode;
@@ -879,10 +1134,15 @@ class InscriptionController extends Controller
             $inscription->invoice_address = $request->invoice_address;
             $inscription->payment_method = $request->payment_method;
 
+            if ($request->payment_method === 'Credit/Debit Card' && $inscription->voucher_file) {
+                $voucherToDelete = $inscription->voucher_file;
+                $inscription->voucher_file = null;
+            }
+
             $inscription->save();
 
             // Manejo de documentos temporales
-            $documentFile = trim($request->document_file, '[]"');
+            $documentFile = $this->temporaryUploadFolder($request->document_file);
             $temporaryfile_document_file = TemporaryFile::where('folder', $documentFile)->first();
             if ($temporaryfile_document_file) {
                 Storage::move('public/uploads/tmp/'.$documentFile.'/'.$temporaryfile_document_file->filename, 'public/uploads/document_file/'.$temporaryfile_document_file->filename);
@@ -892,20 +1152,26 @@ class InscriptionController extends Controller
                 $temporaryfile_document_file->delete();
             }
 
-            $voucherFile = trim($request->voucher_file, '[]"');
-            $temporaryfile_voucher_file = TemporaryFile::where('folder', $voucherFile)->first();
-            if ($temporaryfile_voucher_file) {
-                Storage::move('public/uploads/tmp/'.$voucherFile.'/'.$temporaryfile_voucher_file->filename, 'public/uploads/voucher_file/'.$temporaryfile_voucher_file->filename);
-                $inscription->voucher_file = $temporaryfile_voucher_file->filename;
-                $inscription->save();
-                rmdir(storage_path('app/public/uploads/tmp/'.$voucherFile));
-                $temporaryfile_voucher_file->delete();
+            if ($request->payment_method === 'Bank Transfer/Wire') {
+                $voucherFile = $this->temporaryUploadFolder($request->voucher_file);
+                $temporaryfile_voucher_file = TemporaryFile::where('folder', $voucherFile)->first();
+                if ($temporaryfile_voucher_file) {
+                    if ($inscription->voucher_file) {
+                        $voucherToDelete = $inscription->voucher_file;
+                    }
+                    Storage::move('public/uploads/tmp/'.$voucherFile.'/'.$temporaryfile_voucher_file->filename, 'public/uploads/voucher_file/'.$temporaryfile_voucher_file->filename);
+                    $inscription->voucher_file = $temporaryfile_voucher_file->filename;
+                    $inscription->save();
+                    rmdir(storage_path('app/public/uploads/tmp/'.$voucherFile));
+                    $temporaryfile_voucher_file->delete();
+                }
             }
 
             if($action == 'save'){
                 $inscription->status = 'Draft';
                 $inscription->save();
                 DB::commit();
+                $this->deleteVoucherFromStorage($voucherToDelete);
                 return redirect()->route('inscriptions.myinscription')->with('success', 'Draft saved successfully. Registration is not completed yet.');
             }else{
                 if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
@@ -923,16 +1189,22 @@ class InscriptionController extends Controller
                         'datainscription' => $datainscription,
                     ];
 
-                    Mail::to($user->email)
-                        ->cc(config('services.correonotificacion.inscripcion'))
-                        ->send(new \App\Mail\InscriptionCreated($data));
-
                     DB::commit();
+                    $this->deleteVoucherFromStorage($voucherToDelete);
+
+                    try {
+                        Mail::to($user->email)
+                            ->cc(config('services.correonotificacion.inscripcion'))
+                            ->send(new \App\Mail\InscriptionCreated($data));
+                    } catch (\Exception $mailException) {
+                        Log::error('Registration saved, but confirmation email failed: '.$mailException->getMessage());
+                    }
 
                 } else if ($request->payment_method == 'Credit/Debit Card') {
                     $inscription->status = 'Pending';
                     $inscription->save();
                     DB::commit();
+                    $this->deleteVoucherFromStorage($voucherToDelete);
                 }
             }
 
@@ -941,10 +1213,13 @@ class InscriptionController extends Controller
             $url = config('services.upch.url_send_data').'/' . $inscription->token;
             return redirect($url);
 
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Error al registrar inscripción: '.$e->getMessage());
-            return redirect()->route('inscriptions.myinscription')->with('error', 'Error al registrar inscripción');
+            return redirect()->route('inscriptions.myinscription')->with('error', 'We could not save your registration. Please try again.');
         }
     }
 
@@ -1104,6 +1379,10 @@ class InscriptionController extends Controller
             ], 403);
         }
 
+        if ($inscription->document_file) {
+            Storage::delete('public/uploads/document_file/' . $inscription->document_file);
+        }
+
         $inscription->update([
             'document_file' => null,
         ]);
@@ -1112,6 +1391,118 @@ class InscriptionController extends Controller
             'success' => true,
             'message' => 'Document deleted successfully.',
         ]);
+    }
+
+    public function deleteVoucherFile($id)
+    {
+        $inscription = Inscription::find($id);
+
+        if (!$inscription) {
+            return response()->json(['success' => false, 'message' => 'Registration not found.'], 404);
+        }
+
+        if (!auth()->user()->hasRole('Administrador') && $inscription->user_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized access.'], 403);
+        }
+
+        if ($inscription->voucher_file) {
+            Storage::delete('public/uploads/voucher_file/' . $inscription->voucher_file);
+        }
+
+        $inscription->update(['voucher_file' => null]);
+
+        return response()->json(['success' => true, 'message' => 'Proof of transfer deleted successfully.']);
+    }
+
+    private function verifiedMembershipType(Request $request, User $user): string
+    {
+        if ((string) $request->is_cugh_member !== '1') {
+            return 'non-member';
+        }
+
+        if ($request->cugh_membership_type === 'Institutional Member') {
+            $institutionIsActive = MemberInstitution::whereKey($request->cugh_member_institution)
+                ->where('is_active', 1)
+                ->exists();
+
+            return $institutionIsActive ? 'member' : 'non-member';
+        }
+
+        if ($request->cugh_membership_type === 'Individual Member') {
+            $individualIsActive = MemberIndividual::where('email', $user->email)
+                ->where('is_active', 1)
+                ->exists();
+
+            return $individualIsActive ? 'member' : 'non-member';
+        }
+
+        return 'non-member';
+    }
+
+    private function validSpecialCode(?string $code, Inscription $inscription): SpecialCode
+    {
+        $specialCode = SpecialCode::where('code', trim((string) $code))->first();
+
+        if (!$specialCode || $specialCode->status !== 'Activo') {
+            throw ValidationException::withMessages(['specialcode' => 'Invalid or inactive special fee code.']);
+        }
+
+        if (!$specialCode->expiration || Carbon::parse($specialCode->expiration)->lte(now())) {
+            throw ValidationException::withMessages(['specialcode' => 'Special fee code has expired.']);
+        }
+
+        $usedCount = Inscription::where('special_code', $specialCode->code)
+            ->where('id', '!=', $inscription->id)
+            ->whereNotIn('status', ['Draft', 'Refused', 'Rechazado'])
+            ->count();
+
+        if ($usedCount >= (int) $specialCode->quantity) {
+            throw ValidationException::withMessages(['specialcode' => 'Special fee code has reached its usage limit.']);
+        }
+
+        return $specialCode;
+    }
+
+    private function temporaryUploadExists($folder): bool
+    {
+        $folder = $this->temporaryUploadFolder($folder);
+
+        if ($folder === '') {
+            return false;
+        }
+
+        $temporaryFile = TemporaryFile::where('folder', $folder)->first();
+
+        return $temporaryFile
+            && in_array(strtolower(pathinfo($temporaryFile->filename, PATHINFO_EXTENSION)), ['pdf', 'jpg', 'jpeg', 'png'], true)
+            && Storage::exists('public/uploads/tmp/' . $folder . '/' . $temporaryFile->filename);
+    }
+
+    private function temporaryUploadFolder($value): string
+    {
+        if (is_array($value)) {
+            $value = reset($value);
+        }
+
+        $value = trim((string) $value);
+        $decoded = json_decode($value, true);
+
+        if (json_last_error() === JSON_ERROR_NONE) {
+            if (is_array($decoded)) {
+                $value = (string) reset($decoded);
+            } elseif (is_string($decoded)) {
+                $value = $decoded;
+            }
+        }
+
+        return trim($value, '[]"');
+    }
+
+    private function deleteVoucherFromStorage(?string $filename): void
+    {
+        if ($filename) {
+            Storage::delete('public/uploads/voucher_file/' . $filename);
+        }
     }
 
 

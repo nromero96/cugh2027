@@ -102,6 +102,7 @@
         @case('inscriptions_myinscription')
             {{-- Inscriptions --}}
             <link href="{{ asset('plugins/src/filepond/filepond.min.css') }}" rel="stylesheet" type="text/css" />
+            <link href="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.css') }}" rel="stylesheet" type="text/css" />
             <link href="{{ asset('plugins/css/light/filepond/custom-filepond.css') }}?v={{ config('app.version') }}" rel="stylesheet" type="text/css" />
             <link href="{{ asset('plugins/css/dark/filepond/custom-filepond.css') }}?v={{ config('app.version') }}" rel="stylesheet" type="text/css" />
             @break
@@ -109,6 +110,7 @@
         @case('inscriptions_edit')
             {{-- Inscriptions --}}
             <link href="{{ asset('plugins/src/filepond/filepond.min.css') }}" rel="stylesheet" type="text/css" />
+            <link href="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.css') }}" rel="stylesheet" type="text/css" />
             <link href="{{ asset('plugins/css/light/filepond/custom-filepond.css') }}?v={{ config('app.version') }}" rel="stylesheet" type="text/css" />
             <link href="{{ asset('plugins/css/dark/filepond/custom-filepond.css') }}?v={{ config('app.version') }}" rel="stylesheet" type="text/css" />
             @break

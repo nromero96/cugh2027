@@ -28,6 +28,11 @@
                 @if ($errors->any())
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
                         <strong>There were validation errors. Please review the form and try again.</strong>
+                        <ul class="mb-0 mt-2 ps-4">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 @endif
@@ -58,6 +63,7 @@
                         <form class="row g-3" action="{{ route('inscriptions.update',$myinscription->id) }}" method="POST" id="formInscription" enctype="multipart/form-data">
                             @csrf
                             @method('PUT')
+                            <input type="hidden" name="action" id="formAction" value="update">
                             <div class="col-md-4">
                                 <label for="salutation" class="form-label text-muted mb-0">Salutation <span class="text-danger">*</span></label>
                                 <select name="salutation" id="salutation" class="form-control @error('salutation') is-invalid @enderror">
@@ -258,6 +264,7 @@
                                             <label for="inputWorkplace" class="form-label text-muted mb-0">Workplace Name <span class="text-danger">*</span></label>
                                             <input type="text" name="workplace" class="form-control @error('workplace') is-invalid @enderror" id="inputWorkplace" value="{{ old('workplace', $user->workplace) }}">
                                             {!!$errors->first("workplace", "<span class='text-danger'>:message</span>")!!}
+                                            <div class="alert alert-warning py-2 mt-2 mb-0 d-none" id="workplace_membership_alert" role="alert"></div>
                                         </div>
 
                                         <div class="col-md-8 mt-3">
@@ -389,7 +396,10 @@
 
                             
 
-                            <div class="col-md-12 mt-4">
+                            <div class="col-md-12 mt-4 questionnaire-readonly">
+                                <div class="alert alert-secondary py-2" role="status">
+                                    Participant questionnaire — read-only for administrators.
+                                </div>
                                 <div class="card">
                                     <div class="card-body">
                                         <div class="row">
@@ -1062,12 +1072,12 @@
                                 </div>
 
                                 <div id="dv_document_file" class="d-none">
-                                    <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg)</small>
+                                    <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg/.jpeg/.png)</small>
 
                                     <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg)</span>
+                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg/.jpeg/.png)</span>
                                     </label>
-                                    <input type="file" name="document_file" id="document_file" class="file-control">
+                                    <input type="file" name="document_file" id="document_file" class="file-control" accept="application/pdf,image/jpeg,image/png">
 
                                     <input type="hidden" id="has_document_file" value="{{ !empty($myinscription->document_file) ? 1 : 0 }}">
 
@@ -1217,8 +1227,8 @@
                                             <div class="col-md-2"></div>
                                             <div class="col-md-8">
                                                 <div id="dv_voucher_file" class="mt-2">
-                                                    <label for="voucher_file" class="d-block text-center">Upload copy of wire transfer PDF, JPG format. <small id="cprequired" class="text-danger">(required field)</small></label>
-                                                    <input type="file" name="voucher_file" id="voucher_file" class="file-control">
+                                                    <label for="voucher_file" class="d-block text-center">Upload a copy of the wire transfer in PDF, JPG, JPEG, or PNG format (maximum 10 MB). <small id="cprequired" class="text-danger">(required field)</small></label>
+                                                    <input type="file" name="voucher_file" id="voucher_file" class="file-control" accept="application/pdf,image/jpeg,image/png">
                                                 </div>
                                             </div>
                                             <div class="col-md-2"></div>
@@ -1280,12 +1290,9 @@
                                 </div>
                             </div>
                             
-                            @if($myinscription->status == 'Draft' || $myinscription->status == 'Pending')
-                                <div class="col-12 text-center">
-                                    <button type="submit" class="btn btn-secondary btn-lg" name="action" value="save" id="btnSaveInscription">Save Draft</button>
-                                    <button type="submit" class="btn btn-primary btn-lg" name="action" value="register" id="btnSubInscription">Register Now</button>
-                                </div>
-                            @endif
+                            <div class="col-12 text-center">
+                                <button type="submit" class="btn btn-primary btn-lg" name="action" value="update">Update Registration</button>
+                            </div>
                         </form>
                     </div>
                 </div>
@@ -1304,6 +1311,19 @@
 <script>
     const isMemberIndividualVerified = @json($ismemberindividual);
     const allCategories = @json($category_inscriptions);
+    const memberInstitutionNames = @json($memberinstitutions->pluck('name')->values());
+    const existingDocumentFile = @json(!empty($myinscription->document_file) ? [
+        'name' => $myinscription->document_file,
+        'url' => asset('storage/uploads/document_file/'.$myinscription->document_file),
+    ] : null);
+    const existingVoucherFile = @json(!empty($myinscription->voucher_file) ? [
+        'name' => $myinscription->voucher_file,
+        'url' => asset('storage/uploads/voucher_file/'.$myinscription->voucher_file),
+    ] : null);
+    const currentInscriptionId = @json($myinscription->id);
+
+    document.querySelectorAll('.questionnaire-readonly input, .questionnaire-readonly select, .questionnaire-readonly textarea')
+        .forEach(field => field.disabled = true);
 </script>
 
 @endsection
