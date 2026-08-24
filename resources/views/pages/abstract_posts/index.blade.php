@@ -83,10 +83,10 @@
                                                 </option>
 
                                                 <option
-                                                    value="refused"
-                                                    {{ request('status') === 'refused' ? 'selected' : '' }}
+                                                    value="rejected"
+                                                    {{ request('status') === 'rejected' ? 'selected' : '' }}
                                                 >
-                                                    Refused
+                                                    Rejected
                                                 </option>
                                             </select>
                                         </div>
@@ -204,7 +204,7 @@
                                                         <span class="badge badge-light-info text-capitalize">{{ $abstrpost->status }}</span>
                                                     @elseif ($abstrpost->status == 'accepted')
                                                         <span class="badge badge-light-success text-capitalize">{{ $abstrpost->status }}</span>
-                                                    @elseif ($abstrpost->status == 'refused')
+                                                    @elseif ($abstrpost->status == 'rejected')
                                                         <span class="badge badge-light-danger text-capitalize">{{ $abstrpost->status }}</span>
                                                     @endif
                                                 </td>

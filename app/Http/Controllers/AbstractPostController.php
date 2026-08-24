@@ -38,8 +38,7 @@ class AbstractPostController extends Controller
         $search = trim($request->input('search', ''));
         $status = $request->input('status');
 
-        $query = AbstractPost::with('user')
-        ->where('status', '!=', 'rechazado');
+        $query = AbstractPost::with('user');
 
         /*
         |--------------------------------------------------------------------------
@@ -62,25 +61,38 @@ class AbstractPostController extends Controller
 
         if ($search !== '') {
             $query->where(function ($subQuery) use ($search) {
-                $subQuery
-                    // ID del abstract
-                    ->where('abstract_posts.id', $search)
+                $idSearch = ltrim($search, '#');
+                $isIdSearch = ctype_digit($idSearch);
+                $terms = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
 
-                    // Autor principal guardado como JSON
-                    ->orWhere('abstract_posts.main_author->name', 'LIKE', "%{$search}%")
-                    ->orWhere('abstract_posts.main_author->lastname', 'LIKE', "%{$search}%")
+                if ($isIdSearch) {
+                    $subQuery->where('abstract_posts.id', (int) $idSearch);
+                }
 
-                    // Título
-                    ->orWhere('abstract_posts.title', 'LIKE', "%{$search}%")
+                $termSearch = function ($allTermsQuery) use ($terms) {
+                    foreach ($terms as $term) {
+                        $escapedTerm = addcslashes($term, '%_\\');
+                        $like = "%{$escapedTerm}%";
 
-                    // Tipos
-                    ->orWhere('abstract_posts.presentation_type', 'LIKE', "%{$search}%")
-                    ->orWhere('abstract_posts.abstract_type', 'LIKE', "%{$search}%")
+                        $allTermsQuery->where(function ($fieldQuery) use ($like) {
+                            $fieldQuery
+                                ->where('abstract_posts.main_author->name', 'LIKE', $like)
+                                ->orWhere('abstract_posts.main_author->lastname', 'LIKE', $like)
+                                ->orWhere('abstract_posts.title', 'LIKE', $like)
+                                ->orWhere('abstract_posts.presentation_type', 'LIKE', $like)
+                                ->orWhere('abstract_posts.abstract_type', 'LIKE', $like)
+                                ->orWhereHas('user', function ($userQuery) use ($like) {
+                                    $userQuery->where('email', 'LIKE', $like);
+                                });
+                        });
+                    }
+                };
 
-                    // Usuario que registró el abstract
-                    ->orWhereHas('user', function ($userQuery) use ($search) {
-                        $userQuery->where('email', 'LIKE', "%{$search}%");
-                    });
+                if ($isIdSearch) {
+                    $subQuery->orWhere($termSearch);
+                } else {
+                    $subQuery->where($termSearch);
+                }
             });
         }
 
@@ -90,7 +102,7 @@ class AbstractPostController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (!empty($status)) {
+        if (in_array($status, ['draft', 'submitted', 'accepted', 'rejected'], true)) {
             $query->where('status', $status);
         }
 
