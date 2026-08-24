@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Inscription;
 use App\Models\Program;
+use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller{
     public function index(){
@@ -32,7 +33,46 @@ class DashboardController extends Controller{
             $myprograms = '[]';
         }
 
-        return view('dashboard.index')->with($data)->with('myinscription', $myinscription)->with('myprograms', $myprograms)->with('assistance', $assistance);
+        $registrationReport = null;
+
+        if (auth()->user()->hasRole('Administrador')) {
+            $statusCounts = Inscription::select('status', DB::raw('COUNT(*) as total'))
+                ->groupBy('status')
+                ->pluck('total', 'status');
+
+            $categoryCounts = Inscription::leftJoin(
+                    'category_inscriptions',
+                    'inscriptions.category_inscription_id',
+                    '=',
+                    'category_inscriptions.id'
+                )
+                ->selectRaw("COALESCE(category_inscriptions.name, 'No category selected') as category_name, COUNT(inscriptions.id) as total")
+                ->groupBy('category_inscriptions.id', 'category_inscriptions.name')
+                ->orderByDesc('total')
+                ->get();
+
+            $paymentCounts = Inscription::selectRaw("COALESCE(payment_method, 'Not selected') as payment_method, COUNT(*) as total")
+                ->groupBy('payment_method')
+                ->orderByDesc('total')
+                ->get();
+
+            $completedStatuses = ['Paid', 'Confirmed', 'Pagado'];
+            $completed = collect($completedStatuses)->sum(function ($status) use ($statusCounts) {
+                return (int) ($statusCounts[$status] ?? 0);
+            });
+
+            $registrationReport = [
+                'total' => (int) $statusCounts->sum(),
+                'completed' => $completed,
+                'in_progress' => (int) ($statusCounts['Processing'] ?? 0) + (int) ($statusCounts['Pending'] ?? 0),
+                'drafts' => (int) ($statusCounts['Draft'] ?? 0),
+                'status_counts' => $statusCounts,
+                'category_counts' => $categoryCounts,
+                'payment_counts' => $paymentCounts,
+            ];
+        }
+
+        return view('dashboard.index')->with($data)->with('myinscription', $myinscription)->with('myprograms', $myprograms)->with('assistance', $assistance)->with('registrationReport', $registrationReport);
     }
 
 

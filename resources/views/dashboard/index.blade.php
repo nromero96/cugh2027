@@ -8,6 +8,101 @@
     <div class="middle-content container-xxl p-0">
 
         <div class="row layout-top-spacing">
+
+
+            @if (Auth::user()->hasRole('Administrador'))
+                <div class="col-12 mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h4 class="mb-0">Registration Summary</h4>
+                        <a href="{{ route('inscriptions.index') }}" class="btn btn-primary btn-sm">View registrations</a>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card h-100 border-start border-primary border-4">
+                                <div class="card-body">
+                                    <span class="text-muted">Total registrations</span>
+                                    <h2 class="mb-0">{{ number_format($registrationReport['total']) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card h-100 border-start border-success border-4">
+                                <div class="card-body">
+                                    <span class="text-muted">Paid / Confirmed</span>
+                                    <h2 class="mb-0">{{ number_format($registrationReport['completed']) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card h-100 border-start border-warning border-4">
+                                <div class="card-body">
+                                    <span class="text-muted">Pending / Processing</span>
+                                    <h2 class="mb-0">{{ number_format($registrationReport['in_progress']) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="card h-100 border-start border-secondary border-4">
+                                <div class="card-body">
+                                    <span class="text-muted">Drafts</span>
+                                    <h2 class="mb-0">{{ number_format($registrationReport['drafts']) }}</h2>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">By status</h5>
+                                    @forelse($registrationReport['status_counts'] as $statusName => $statusTotal)
+                                        <div class="d-flex justify-content-between border-bottom py-2">
+                                            <span>{{ $statusName ?: 'Not selected' }}</span>
+                                            <strong>{{ number_format($statusTotal) }}</strong>
+                                        </div>
+                                    @empty
+                                        <p class="text-muted mb-0">No registration data available.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">By category</h5>
+                                    @forelse($registrationReport['category_counts'] as $category)
+                                        <div class="d-flex justify-content-between border-bottom py-2 gap-2">
+                                            <span>{{ $category->category_name }}</span>
+                                            <strong>{{ number_format($category->total) }}</strong>
+                                        </div>
+                                    @empty
+                                        <p class="text-muted mb-0">No category data available.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">By payment method</h5>
+                                    @forelse($registrationReport['payment_counts'] as $payment)
+                                        <div class="d-flex justify-content-between border-bottom py-2 gap-2">
+                                            <span>{{ $payment->payment_method === 'none' ? 'No payment required' : $payment->payment_method }}</span>
+                                            <strong>{{ number_format($payment->total) }}</strong>
+                                        </div>
+                                    @empty
+                                        <p class="text-muted mb-0">No payment data available.</p>
+                                    @endforelse
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+
             {{-- <div class="col-sm-6 mb-3 mb-sm-3">
                 <div class="card">
                     <div class="card-body">
@@ -126,10 +221,6 @@
                     </div>
                     </div>
                 </div>
-            @endif
-
-            @if (Auth::user()->hasRole('Administrador'))
-            
             @endif
         </div>
 
