@@ -123,12 +123,24 @@
                                         Export List</a>
                                  @endif
 
-                                <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-3">New Abstract</a>
+                                @if($abstractLimitReached)
+                                    <button type="button" class="btn btn-primary mb-3" disabled title="{{ $maxAbstracts }} abstracts maximum">
+                                        New Abstract
+                                    </button>
+                                @else
+                                    <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-3">New Abstract</a>
+                                @endif
                             </div>
                         </div>
                     </div>
 
                     <div class="widget-content widget-content-area pt-0">
+
+                        @if($abstractLimitReached)
+                            <div class="alert alert-warning" role="alert">
+                                You have reached the maximum limit of {{ $maxAbstracts }} abstracts per participant. You cannot create another abstract.
+                            </div>
+                        @endif
 
                         <div class="table-responsive">
                             <table class="table table-hover table-striped table-bordered" id="work-list">
@@ -156,7 +168,13 @@
                                             <tr>
                                                 <td colspan="8" class="text-center">
                                                     <h6 class="mt-2">{{__("There are no registered abstract")}}</h6>
-                                                    <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Abstract")}}</a>
+                                                    @if($abstractLimitReached)
+                                                        <button type="button" class="btn btn-primary mb-4 ms-3 me-3" disabled title="{{ $maxAbstracts }} abstracts maximum">
+                                                            {{__("New Abstract")}}
+                                                        </button>
+                                                    @else
+                                                        <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Abstract")}}</a>
+                                                    @endif
                                                 </td>
                                             </tr>
                                         @endif

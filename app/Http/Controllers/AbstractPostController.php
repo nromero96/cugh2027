@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Country;
+use Illuminate\Support\Facades\DB;
 
 use App\Exports\AbstractPostExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -16,6 +17,8 @@ use TCPDF;
 
 class AbstractPostController extends Controller
 {
+    private const MAX_ABSTRACTS_PER_PARTICIPANT = 3;
+
     /**
      * Display a listing of the resource.
      *
@@ -96,11 +99,18 @@ class AbstractPostController extends Controller
             ->paginate(20)
             ->withQueryString();
 
+        $abstractCount = AbstractPost::where('user_id', $userid)->count();
+        $abstractLimitReached = auth()->user()->hasRole('Participante')
+            && $abstractCount >= self::MAX_ABSTRACTS_PER_PARTICIPANT;
+
         return view('pages.abstract_posts.index')
             ->with($data)
             ->with('abstract_posts', $abstract_posts)
             ->with('search', $search)
-            ->with('status', $status);
+            ->with('status', $status)
+            ->with('abstractCount', $abstractCount)
+            ->with('abstractLimitReached', $abstractLimitReached)
+            ->with('maxAbstracts', self::MAX_ABSTRACTS_PER_PARTICIPANT);
 
         
     }
@@ -113,6 +123,11 @@ class AbstractPostController extends Controller
     public function create()
     {
         $id = \Auth::user()->id;
+
+        if ($this->participantAbstractLimitReached($id)) {
+            return redirect()->route('abstract_posts.index')
+                ->with('error', $this->abstractLimitMessage());
+        }
 
         $data = [
             'category_name' => 'abstract_posts',
@@ -140,6 +155,12 @@ class AbstractPostController extends Controller
     public function store(Request $request)
     {
         $id_user = \Auth::user()->id;
+
+        if ($this->participantAbstractLimitReached($id_user)) {
+            return redirect()->route('abstract_posts.index')
+                ->with('error', $this->abstractLimitMessage());
+        }
+
         $action = $request->action;
 
         $keywords = json_decode($request->keywords ?? '[]', true);
@@ -275,7 +296,23 @@ class AbstractPostController extends Controller
         $abstractpost->institutions = $institutions;
         $abstractpost->keywords = $keywords;
 
-        $abstractpost->save();
+        $abstractWasCreated = DB::transaction(function () use ($abstractpost, $id_user) {
+            // Lock the participant row so simultaneous requests cannot exceed the limit.
+            User::whereKey($id_user)->lockForUpdate()->first();
+
+            if ($this->participantAbstractLimitReached($id_user)) {
+                return false;
+            }
+
+            $abstractpost->save();
+
+            return true;
+        });
+
+        if (!$abstractWasCreated) {
+            return redirect()->route('abstract_posts.index')
+                ->with('error', $this->abstractLimitMessage());
+        }
 
         // =========================
         // 🔁 REDIRECCIÓN
@@ -812,6 +849,17 @@ class AbstractPostController extends Controller
 
         return response($pdf->Output('workshop-' . $abstractPost->id . '.pdf', 'S'))
             ->header('Content-Type', 'application/pdf');
+    }
+
+    private function participantAbstractLimitReached(int $userId): bool
+    {
+        return auth()->user()->hasRole('Participante')
+            && AbstractPost::where('user_id', $userId)->count() >= self::MAX_ABSTRACTS_PER_PARTICIPANT;
+    }
+
+    private function abstractLimitMessage(): string
+    {
+        return 'You have reached the maximum limit of 3 abstracts per participant.';
     }
 
 
