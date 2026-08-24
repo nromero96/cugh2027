@@ -167,12 +167,12 @@
 
                             <div class="col-md-12">
                                 <label class="form-label fw-bold mb-0">Panel Description:</label>
-                                <p class="">{{ $panel->description }}</p>
+                                <p class="">{!! nl2br(e($panel->description)) !!}</p>
                             </div>
 
                             <div class="col-md-12">
                                 <label class="form-label fw-bold mb-0">Learning Objectives:</label>
-                                <p class="">{{ $panel->learning_objectives }}</p>
+                                <p>{!! nl2br(e($panel->learning_objectives)) !!}</p>
                             </div>
 
                             {{-- Print Pdf Administrator --}}

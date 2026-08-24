@@ -324,8 +324,8 @@ class PanelController extends Controller
         <h3>Speakers:</h3>
         <table border="1" cellspacing="0" cellpadding="2" width="950">' . $speakers_list . '</table>
         <br>
-        <div class="item"><span class="label">Panel Description:</span><br /><span class="value">' . e($panel->description) . '</span></div>
-        <div class="item"><span class="label">Learning Objectives:</span><br /><span class="value">' . e($panel->learning_objectives) . '</span></div>
+        <div class="item"><span class="label">Panel Description:</span><br /><span class="value">' . nl2br(e($panel->description)) . '</span></div>
+        <div class="item"><span class="label">Learning Objectives:</span><br /><span class="value">' . nl2br(e($panel->learning_objectives)) . '</span></div>
         ';
 
         $pdf->writeHTML($html, true, false, true, false, '');

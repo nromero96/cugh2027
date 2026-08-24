@@ -94,8 +94,7 @@
                                         <div class="col-md-3 d-flex align-items-end gap-2">
                                             <button
                                                 type="submit"
-                                                class="btn btn-primary flex-grow-1"
-                                            >
+                                                class="btn btn-primary flex-row-1">
                                                 Search
                                             </button>
 
