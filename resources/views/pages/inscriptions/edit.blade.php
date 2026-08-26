@@ -1172,7 +1172,7 @@
                                             {!!$errors->first("invoice_ruc", "<span class='text-danger'>:message</span>")!!}
                                         </div>
                                         <div class="col-md-4">
-                                            <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Postal Address</span> <span class="text-danger">*</span></label>
+                                            <label for="invoice_address" class="form-label text-muted mb-0"><span id="lbl_invoice_address">Full Postal Address</span> <span class="text-danger">*</span></label>
                                             <input type="text" name="invoice_address" id="invoice_address" class="form-control @error('invoice_address') is-invalid @enderror" placeholder="" maxlength="50" autocomplete="new-address" value="{{ old('invoice_address', $myinscription->invoice_address ?? '') }}">
                                             {!!$errors->first("invoice_address", "<span class='text-danger'>:message</span>")!!}
                                         </div>
