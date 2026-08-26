@@ -36,8 +36,9 @@
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
-                            <form class="row g-3" action="{{ route('abstract_posts.update', $abstract_post->id) }}" method="POST">
+                            <form class="row g-3 abstract-submission-form" action="{{ route('abstract_posts.update', $abstract_post->id) }}" method="POST">
                                 @csrf
+                                <input type="hidden" name="action" value="draft" class="abstract-action-input">
                                 @method('PUT')
                                 <div class="col-md-12">
                                     <div class="form-check form-check-inline">
@@ -283,8 +284,8 @@
 
                                 
                                 <div class="col-12 text-end">
-                                    <button type="submit" name="action" class="btn btn-outline-secondary" value="draft">Save as Draft</button>
-                                    <button type="submit" name="action" class="btn btn-primary" value="submitted">Send for Review</button>
+                                    <button type="submit" class="btn btn-outline-secondary" data-abstract-action="draft">Save as Draft</button>
+                                    <button type="submit" class="btn btn-primary" data-abstract-action="submitted">Send for Review</button>
                                 </div>
                             </form>
                         
@@ -728,5 +729,22 @@
     });
 </script>
 
+
+<script>
+document.querySelectorAll('.abstract-submission-form').forEach(function (form) {
+    form.addEventListener('submit', function (event) {
+        const actionInput = form.querySelector('.abstract-action-input');
+        const submittedAction = event.submitter?.dataset.abstractAction;
+
+        if (submittedAction) {
+            actionInput.value = submittedAction;
+        }
+
+        form.querySelectorAll('button[type="submit"]').forEach(function (button) {
+            button.disabled = true;
+        });
+    });
+});
+</script>
 
 @endsection

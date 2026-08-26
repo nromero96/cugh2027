@@ -172,6 +172,13 @@ class AbstractPostController extends Controller
     {
         $id_user = \Auth::user()->id;
 
+        $request->validate([
+            'action' => ['required', 'in:draft,submitted'],
+        ], [
+            'action.required' => 'Please choose whether to save the abstract as a draft or send it for review.',
+            'action.in' => 'The selected abstract action is invalid. Please try again.',
+        ]);
+
         if ($this->participantAbstractLimitReached($id_user)) {
             return redirect()->route('abstract_posts.index')
                 ->with('error', $this->abstractLimitMessage());
@@ -312,18 +319,30 @@ class AbstractPostController extends Controller
         $abstractpost->institutions = $institutions;
         $abstractpost->keywords = $keywords;
 
-        $abstractWasCreated = DB::transaction(function () use ($abstractpost, $id_user) {
-            // Lock the participant row so simultaneous requests cannot exceed the limit.
-            User::whereKey($id_user)->lockForUpdate()->first();
+        try {
+            $abstractWasCreated = DB::transaction(function () use ($abstractpost, $id_user) {
+                // Lock the participant row so simultaneous requests cannot exceed the limit.
+                User::whereKey($id_user)->lockForUpdate()->first();
 
-            if ($this->participantAbstractLimitReached($id_user)) {
-                return false;
-            }
+                if ($this->participantAbstractLimitReached($id_user)) {
+                    return false;
+                }
 
-            $abstractpost->save();
+                $abstractpost->save();
 
-            return true;
-        });
+                return true;
+            });
+        } catch (\Throwable $exception) {
+            \Log::error('Abstract creation failed.', [
+                'user_id' => $id_user,
+                'action' => $action,
+                'exception' => $exception,
+            ]);
+
+            return back()->withInput()->withErrors([
+                'submission' => 'We could not save your abstract. Please try again. If the problem continues, contact support.',
+            ]);
+        }
 
         if (!$abstractWasCreated) {
             return redirect()->route('abstract_posts.index')
@@ -433,6 +452,13 @@ class AbstractPostController extends Controller
         if ($abstractPost->user_id != \Auth::id()) {
             abort(403);
         }
+
+        $request->validate([
+            'action' => ['required', 'in:draft,submitted'],
+        ], [
+            'action.required' => 'Please choose whether to save the abstract as a draft or send it for review.',
+            'action.in' => 'The selected abstract action is invalid. Please try again.',
+        ]);
 
         $action = $request->action;
 
@@ -571,7 +597,20 @@ class AbstractPostController extends Controller
         $abstractPost->institutions = $institutions;
         $abstractPost->keywords = $keywords;
 
-        $abstractPost->save();
+        try {
+            $abstractPost->save();
+        } catch (\Throwable $exception) {
+            \Log::error('Abstract update failed.', [
+                'user_id' => \Auth::id(),
+                'abstract_post_id' => $abstractPost->id,
+                'action' => $action,
+                'exception' => $exception,
+            ]);
+
+            return back()->withInput()->withErrors([
+                'submission' => 'We could not save your abstract. Please try again. If the problem continues, contact support.',
+            ]);
+        }
 
         // =========================
         // 🔁 REDIRECCIÓN
