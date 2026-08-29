@@ -292,7 +292,7 @@
                                             $txt_invoice_address = 'Business Address';
                                         }else{
                                             $txt_invoice_social_reason = 'Full Name or entity';
-                                            $txt_invoice_address = 'Postal Address';
+                                            $txt_invoice_address = 'Full Postal Address';
                                         }
                                     @endphp
 

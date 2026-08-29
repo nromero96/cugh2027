@@ -488,7 +488,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
 
             labelSocialReason.textContent = 'Full Name or entity';
-            labelInvoiceAddress.textContent = 'Postal Address';
+            labelInvoiceAddress.textContent = 'Full Postal Address';
 
             // Habilitar todas menos RUC
             Array.from(selectInvoiceDocument.options).forEach(option => {
