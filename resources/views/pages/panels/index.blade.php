@@ -7,6 +7,9 @@
     .panels-table { table-layout: fixed; width: 100%; }
     .panels-table td { vertical-align: middle; overflow-wrap: anywhere; }
     .panels-table .action-btns .btn-show svg { color: #4c8df5 !important; }
+    .panel-search-row { display: flex; flex-wrap: nowrap; width: 100%; }
+    .panel-search-row .form-control { min-width: 0; }
+    .panel-search-row .btn { flex: 0 0 auto; }
 
     @media (max-width: 767.98px) {
         .panels-table thead { display: none; }
@@ -18,22 +21,50 @@
             border: 1px solid #e0e6ed;
             border-radius: .5rem;
             margin-bottom: 1rem;
-            padding: .5rem .75rem;
+            padding: .65rem 1rem;
         }
         .panels-table td {
             border: 0;
             border-bottom: 1px solid #eef0f3;
-            display: grid;
-            grid-template-columns: 90px minmax(0, 1fr);
-            gap: .75rem;
-            padding: .65rem 0;
+            display: block;
+            padding: .75rem 0;
             text-align: left !important;
+            line-height: 1.45;
+            min-width: 0;
         }
 
-
-
-        .panels-table td::before { content: attr(data-label); font-weight: 600; }
+        .panels-table td::before {
+            content: attr(data-label);
+            display: block;
+            color: #6c757d;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .03em;
+            margin-bottom: .3rem;
+            text-transform: uppercase;
+        }
+        .panels-table td a,
+        .panels-table td strong,
+        .panels-table td small {
+            max-width: 100%;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
         .panels-table td:last-child { border-bottom: 0; }
+        .panels-table .action-btns {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: .5rem;
+            padding-top: .15rem;
+        }
+        .panels-table .action-btns a {
+            align-items: center;
+            display: inline-flex;
+            justify-content: center;
+            min-height: 34px;
+            min-width: 38px;
+        }
         .panels-table .empty-panels { display: block; text-align: center !important; }
         .panels-table .empty-panels::before { content: none; }
     }
@@ -68,8 +99,8 @@
                         </div>
                         <div class="row px-3">
                             <div class="col-md-10">
-                                <form method="GET" action="{{ route('panels.index') }}" class="row g-2 mb-3">
-                                    <div class="col-md-8 col-lg-6">
+                                <form method="GET" action="{{ route('panels.index') }}" class="mb-3">
+                                    <div class="panel-search-row">
                                         <input
                                             type="text"
                                             name="search"
@@ -78,13 +109,11 @@
                                             value="{{ request('search') }}"
                                             placeholder="ID, title, contact, email or institution"
                                         >
-                                    </div>
-                                    <div class="col-md-4 col-lg-3 d-flex align-items-end gap-2">
                                         <button type="submit" class="btn btn-primary">Search</button>
-                                        @if(request()->filled('search'))
-                                            <a href="{{ route('panels.index') }}" class="btn btn-outline-secondary">Clear</a>
-                                        @endif
                                     </div>
+                                    @if(request()->filled('search'))
+                                        <a href="{{ route('panels.index') }}" class="small d-inline-block mt-1">Clear search</a>
+                                    @endif
                                 </form>
                             </div>
 
