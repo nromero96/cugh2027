@@ -92,6 +92,17 @@
     </div>
   @endif
 
+  @if($errors->any())
+    <div class="alert alert-danger" role="alert">
+        <strong>There were validation errors. Please review the form and try again.</strong>
+        <ul class="mb-0 mt-2">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+  @endif
+
     <div class="card section-card">
       <h6 class="card-header bg-primary text-white fw-bold py-3">Panel Details</h6>
       <div class="card-body">
@@ -101,15 +112,15 @@
                 <div class="mb-2">
                     <label class="form-label text-muted mb-2">Language <small>(Please indicate the language in which you will present the panel.)</small></label><br>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="language" id="languageRadio1" value="English">
+                        <input class="form-check-input" type="radio" name="language" id="languageRadio1" value="English" {{ old('language') === 'English' ? 'checked' : '' }} required>
                         <label class="form-check-label" for="languageRadio1">English</label>
                     </div>
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="language" id="languageRadio2" value="Spanish">
+                        <input class="form-check-input" type="radio" name="language" id="languageRadio2" value="Spanish" {{ old('language') === 'Spanish' ? 'checked' : '' }}>
                         <label class="form-check-label" for="languageRadio2">Spanish</label>
                     </div>                            
                     <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="language" id="languageRadio3" value="PPT Slides in English and Oral Presentation in Spanish">
+                        <input class="form-check-input" type="radio" name="language" id="languageRadio3" value="PPT Slides in English and Oral Presentation in Spanish" {{ old('language') === 'PPT Slides in English and Oral Presentation in Spanish' ? 'checked' : '' }}>
                         <label class="form-check-label" for="languageRadio3">PPT Slides in English and Oral Presentation in Spanish</label>
                     </div>
                 </div>
@@ -121,63 +132,63 @@
                                 </label><br>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes1" value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes1" value="Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care" {{ in_array('Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes1">
                                         Non-Communicable Diseases, Health Systems, Public Health, Primary and Surgical Care
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes2" value="Social Determinants of Health">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes2" value="Social Determinants of Health" {{ in_array('Social Determinants of Health', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes2">
                                         Social Determinants of Health
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes3" value="Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes3" value="Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution" {{ in_array('Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes3">
                                         Environmental Determinants of Health, Planetary Health, One Health, Environmental Health, Climate Change, Biodiversity Crisis, Pollution
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes4" value="Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes4" value="Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases" {{ in_array('Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes4">
                                         Communicable Diseases, Pandemic Prevention, Detection and Response, Emerging Infectious Diseases
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes5" value="Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes5" value="Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research" {{ in_array('Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes5">
                                         Research, Education, Translation and Implementation Science, Bridging Research to Policy, Innovation and Research
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes6" value="Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes6" value="Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions" {{ in_array('Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes6">
                                         Governance, Political Determinants of Health, Diplomacy, Law, Anti-Corruption, Human Rights, Strengthening Public Institutions
                                     </label>
                                 </div>
 
                                 <div class="form-check form-check-block">
-                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes7" value="Other">
+                                    <input class="form-check-input subtheme-checkbox" type="checkbox" name="subthemes[]" id="subthemes7" value="Other" {{ in_array('Other', old('subthemes', []), true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="subthemes7">
                                         Other
                                     </label>
                                 </div>
 
-                                <div class="mt-0 d-none" id="subthemesother">
-                                    <input type="text" class="form-control" name="subthemes_other" placeholder="Please specify">
+                                <div class="mt-0 {{ in_array('Other', old('subthemes', []), true) ? '' : 'd-none' }}" id="subthemesother">
+                                    <input type="text" class="form-control" name="subthemes_other" value="{{ old('subthemes_other') }}" placeholder="Please specify">
                                 </div>
                             </div>
 
                             <!-- TITLE -->
                             <div class="mb-3">
                                 <label class="form-label mb-0"><b>TITLE</b> (max 15 words)</label>
-                                <input type="text" class="form-control" name="title" maxlength="150">
+                                <input type="text" class="form-control" name="title" maxlength="150" value="{{ old('title') }}" required>
                             </div>
 
                             <!-- POINT OF CONTACT -->
@@ -185,39 +196,37 @@
                             <div class="row">
                                 <div class="col-md-2 mb-3">
                                     <label class="form-label text-muted mb-0">Salutation</label>
-                                    <select class="form-select" name="contact_salutation">
-                                        <option>Mr.</option>
-                                        <option>Mrs.</option>
-                                        <option>Ms.</option>
-                                        <option>Dr.</option>
-                                        <option>Prof.</option>
+                                    <select class="form-select" name="contact_salutation" required>
+                                        @foreach(['Mr.', 'Mrs.', 'Ms.', 'Dr.', 'Prof.'] as $salutation)
+                                            <option value="{{ $salutation }}" {{ old('contact_salutation') === $salutation ? 'selected' : '' }}>{{ $salutation }}</option>
+                                        @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label text-muted mb-0" >Full Name</label>
-                                    <input type="text" class="form-control" name="contact_name">
+                                    <input type="text" class="form-control" name="contact_name" value="{{ old('contact_name') }}" required>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label text-muted mb-0">Institution</label>
-                                    <input type="text" class="form-control" name="contact_institution">
+                                    <input type="text" class="form-control" name="contact_institution" value="{{ old('contact_institution') }}">
                                 </div>
                                 <div class="col-md-2 mb-3">
                                     <label class="form-label text-muted mb-0">Country</label>
-                                    <select class="form-select" name="contact_country" id="country">
+                                    <select class="form-select" name="contact_country" id="contact_country">
                                         <option value="">Select...</option>
                                         @foreach($countries as $country)
-                                            <option value="{{ $country->name }}">{{ $country->name }}</option>
+                                            <option value="{{ $country->name }}" {{ old('contact_country') === $country->name ? 'selected' : '' }}>{{ $country->name }}</option>
                                         @endforeach
                                     </select>
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label text-muted mb-0">Cell Phone <small>(Country code & number)</small></label>
-                                    <input type="text" class="form-control" name="contact_phone">
+                                    <input type="text" class="form-control" name="contact_phone" value="{{ old('contact_phone') }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
                                     <label class="form-label text-muted mb-0">E-mail</label>
-                                    <input type="email" class="form-control" name="contact_email">
+                                    <input type="email" class="form-control" name="contact_email" value="{{ old('contact_email') }}" required>
                                 </div>
                             </div>
 
@@ -226,22 +235,22 @@
                             <div class="row">
                             <div class="col-md-3 mb-3">
                                 <label class="form-label text-muted mb-0">Full Name</label>
-                                <input type="text" class="form-control" name="moderator_name">
+                                <input type="text" class="form-control" name="moderator_name" value="{{ old('moderator_name') }}">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label text-muted mb-0">Position</label>
-                                <input type="text" class="form-control" name="moderator_position">
+                                <input type="text" class="form-control" name="moderator_position" value="{{ old('moderator_position') }}">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label text-muted mb-0">Institution</label>
-                                <input type="text" class="form-control" name="moderator_institution">
+                                <input type="text" class="form-control" name="moderator_institution" value="{{ old('moderator_institution') }}">
                             </div>
                             <div class="col-md-3 mb-3">
                                 <label class="form-label text-muted mb-0">Country</label>
-                                <select class="form-select" name="moderator_country" id="country">
+                                <select class="form-select" name="moderator_country" id="moderator_country">
                                     <option value="">Select...</option>
                                     @foreach($countries as $country)
-                                        <option value="{{ $country->name }}">{{ $country->name }}</option>
+                                        <option value="{{ $country->name }}" {{ old('moderator_country') === $country->name ? 'selected' : '' }}>{{ $country->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -256,16 +265,16 @@
                             <!-- DESCRIPTION -->
                             <div class="mb-3">
                             <label class="form-label text-muted mb-0">Panel Description (max 2000 chars)</label>
-                            <textarea class="form-control" maxlength="2000" rows="5" name="description"></textarea>
+                            <textarea class="form-control" maxlength="2000" rows="5" name="description" required>{{ old('description') }}</textarea>
                             </div>
 
                             <div class="mb-3">
                             <label class="form-label text-muted mb-0">Learning Objectives (max 2000 chars)</label>
-                            <textarea class="form-control" maxlength="2000" rows="5" name="learning_objectives"></textarea>
+                            <textarea class="form-control" maxlength="2000" rows="5" name="learning_objectives" required>{{ old('learning_objectives') }}</textarea>
                             </div>
 
                             <div class="col-12 text-end">
-                                <button type="submit" name="action" class="btn btn-primary" id="submitBtn">Send for Review</button>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">Send for Review</button>
                             </div>
                         </form>
       </div>
@@ -278,6 +287,7 @@ let speakerCount = 0;
 
 // 👇 Convert Laravel countries to JS
 const countries = @json($countries);
+const oldSpeakers = @json(old('speakers', []));
 
 function renderCountryOptions() {
   let options = '<option value="">Select...</option>';
@@ -312,7 +322,7 @@ function removeSpeaker(button) {
   });
 }
 
-function addSpeaker() {
+function addSpeaker(speaker = {}) {
   if (speakerCount >= 4) return alert("Max 4 speakers");
 
   speakerCount++;
@@ -344,7 +354,14 @@ function addSpeaker() {
   `;
 
   document.getElementById('speakers').appendChild(div);
+
+  div.querySelector(`[name="speakers[${speakerCount}][name]"]`).value = speaker.name || '';
+  div.querySelector(`[name="speakers[${speakerCount}][position]"]`).value = speaker.position || '';
+  div.querySelector(`[name="speakers[${speakerCount}][institution]"]`).value = speaker.institution || '';
+  div.querySelector(`[name="speakers[${speakerCount}][country]"]`).value = speaker.country || '';
 }
+
+oldSpeakers.slice(0, 4).forEach(speaker => addSpeaker(speaker));
 </script>
 
 <script>
@@ -369,14 +386,16 @@ function addSpeaker() {
             // Mostrar/Ocultar input de Other
             if (otherCheckbox.checked) {
                 otherInput.classList.remove('d-none');
-                //clear inputs
-                
+                otherInputValue.required = true;
             } else {
                 otherInput.classList.add('d-none');
                 otherInputValue.value = '';
+                otherInputValue.required = false;
             }
         });
     });
+
+    otherInputValue.required = otherCheckbox.checked;
 </script>
 
 

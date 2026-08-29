@@ -102,7 +102,9 @@ Route::get('/workshops/{workshop}/pdf', [WorkshopController::class, 'pdf'])->nam
 
 //Panel
 Route::get('panel-submission', [PanelController::class, 'formOnline'])->name('panels.formonline');
-Route::post('panel-store', [PanelController::class, 'storeOnline'])->name('panels.storeonline');
+Route::post('panel-store', [PanelController::class, 'storeOnline'])
+    ->middleware('throttle:5,1')
+    ->name('panels.storeonline');
 
 //Programs
 Route::get('programa-preliminar', [ProgramController::class, 'showOnlinePrograms'])->name('onlineprograms.preliminary');
@@ -239,6 +241,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Panel
     Route::resource('panels', PanelController::class)->names('panels');
+    Route::get('/exportar-excel-panels', [PanelController::class, 'exportExcel'])->name('panels.exportexcel');
     Route::get('/panels/{panel}/pdf', [PanelController::class, 'pdf'])->name('panels.pdf');
 
     //::::Administracio::::://

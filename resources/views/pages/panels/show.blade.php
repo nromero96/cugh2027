@@ -10,6 +10,13 @@
 
         <div class="row layout-spacing">
             <div class="col-lg-12 layout-top-spacing mt-4">
+                @if(session('success'))
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        {{ session('success') }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                @endif
+
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header">
                         <div class="row">
@@ -178,6 +185,7 @@
                             {{-- Print Pdf Administrator --}}
                             @if(\Auth::user()->hasRole('Administrador'))
                                 <div class="col-md-12 text-end">
+                                    <a href="{{ route('panels.edit', $panel->id) }}" class="btn btn-outline-primary">Edit Panel</a>
                                     <a href="{{ route('panels.pdf', $panel->id) }}" class="btn btn-primary" target="_blank">Print PDF</a>
                                 </div>
                             @endif
