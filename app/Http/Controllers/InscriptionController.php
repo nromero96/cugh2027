@@ -635,12 +635,12 @@ class InscriptionController extends Controller
         }
 
         $documentRequired = in_array($category->name, [
-            'Student (Member)', 'Student (Non-Member)', 'Scholars', 'Special Code',
+            'Student (Member)', 'Student (Non-Member)',
         ], true);
 
         if ($documentRequired && !$inscription->document_file && !$this->temporaryUploadExists($request->document_file)) {
             throw ValidationException::withMessages([
-                'document_file' => 'You must attach supporting documentation for the selected category.',
+                'document_file' => 'You must attach supporting documentation confirming your current student enrollment.',
             ]);
         }
 
@@ -686,17 +686,26 @@ class InscriptionController extends Controller
                 $inscription->voucher_file = null;
             }
 
-            $documentFolder = $this->temporaryUploadFolder($request->document_file);
-            $temporaryDocument = TemporaryFile::where('folder', $documentFolder)->first();
-            if ($temporaryDocument) {
+            if (!$documentRequired && $inscription->document_file) {
                 $documentToDelete = $inscription->document_file;
-                Storage::move(
-                    'public/uploads/tmp/'.$documentFolder.'/'.$temporaryDocument->filename,
-                    'public/uploads/document_file/'.$temporaryDocument->filename
-                );
-                $inscription->document_file = $temporaryDocument->filename;
-                Storage::deleteDirectory('public/uploads/tmp/'.$documentFolder);
-                $temporaryDocument->delete();
+                $inscription->document_file = null;
+            }
+
+            if ($documentRequired) {
+                $documentFolder = $this->temporaryUploadFolder($request->document_file);
+                $temporaryDocument = TemporaryFile::where('folder', $documentFolder)->first();
+                if ($temporaryDocument) {
+                    $documentToDelete = $inscription->document_file;
+                    Storage::move(
+                        'public/uploads/tmp/'.$documentFolder.'/'.$temporaryDocument->filename,
+                        'public/uploads/document_file/'.$temporaryDocument->filename
+                    );
+                    $inscription->document_file = $temporaryDocument->filename;
+                    Storage::deleteDirectory('public/uploads/tmp/'.$documentFolder);
+                    $temporaryDocument->delete();
+                }
+            } else {
+                $this->discardTemporaryUpload($request->document_file);
             }
 
             if ($request->payment_method === 'Bank Transfer/Wire') {
@@ -983,7 +992,13 @@ class InscriptionController extends Controller
             : null;
         $specialCode = null;
         $priceCategory = 0;
+        $documentToDelete = null;
         $voucherToDelete = null;
+
+        $documentRequired = $categoryInscription && in_array($categoryInscription->name, [
+            'Student (Member)',
+            'Student (Non-Member)',
+        ], true);
 
         if ($categoryInscription && $countryInscription) {
             $priceCategory = $countryInscription->price_type === 'Middle Income'
@@ -1007,16 +1022,9 @@ class InscriptionController extends Controller
                     : 0;
             }
 
-            $documentRequired = in_array($categoryInscription->name, [
-                'Student (Member)',
-                'Student (Non-Member)',
-                'Scholars',
-                'Special Code',
-            ], true);
-
             if ($documentRequired && !$inscription->document_file && !$this->temporaryUploadExists($request->document_file)) {
                 throw ValidationException::withMessages([
-                    'document_file' => 'You must attach supporting documentation for the selected category.',
+                    'document_file' => 'You must attach supporting documentation confirming your current student enrollment.',
                 ]);
             }
 
@@ -1150,17 +1158,27 @@ class InscriptionController extends Controller
                 $inscription->voucher_file = null;
             }
 
+            if ($categoryInscription && !$documentRequired && $inscription->document_file) {
+                $documentToDelete = $inscription->document_file;
+                $inscription->document_file = null;
+            }
+
             $inscription->save();
 
             // Manejo de documentos temporales
-            $documentFile = $this->temporaryUploadFolder($request->document_file);
-            $temporaryfile_document_file = TemporaryFile::where('folder', $documentFile)->first();
-            if ($temporaryfile_document_file) {
-                Storage::move('public/uploads/tmp/'.$documentFile.'/'.$temporaryfile_document_file->filename, 'public/uploads/document_file/'.$temporaryfile_document_file->filename);
-                $inscription->document_file = $temporaryfile_document_file->filename;
-                $inscription->save();
-                rmdir(storage_path('app/public/uploads/tmp/'.$documentFile));
-                $temporaryfile_document_file->delete();
+            if ($documentRequired) {
+                $documentFile = $this->temporaryUploadFolder($request->document_file);
+                $temporaryfile_document_file = TemporaryFile::where('folder', $documentFile)->first();
+                if ($temporaryfile_document_file) {
+                    $documentToDelete = $inscription->document_file;
+                    Storage::move('public/uploads/tmp/'.$documentFile.'/'.$temporaryfile_document_file->filename, 'public/uploads/document_file/'.$temporaryfile_document_file->filename);
+                    $inscription->document_file = $temporaryfile_document_file->filename;
+                    $inscription->save();
+                    Storage::deleteDirectory('public/uploads/tmp/'.$documentFile);
+                    $temporaryfile_document_file->delete();
+                }
+            } else {
+                $this->discardTemporaryUpload($request->document_file);
             }
 
             if ($request->payment_method === 'Bank Transfer/Wire') {
@@ -1182,6 +1200,7 @@ class InscriptionController extends Controller
                 $inscription->status = 'Draft';
                 $inscription->save();
                 DB::commit();
+                $this->deleteDocumentFromStorage($documentToDelete);
                 $this->deleteVoucherFromStorage($voucherToDelete);
                 return redirect()->route('inscriptions.myinscription')->with('success', 'Draft saved successfully. Registration is not completed yet.');
             }else{
@@ -1201,6 +1220,7 @@ class InscriptionController extends Controller
                     ];
 
                     DB::commit();
+                    $this->deleteDocumentFromStorage($documentToDelete);
                     $this->deleteVoucherFromStorage($voucherToDelete);
 
                     try {
@@ -1215,6 +1235,7 @@ class InscriptionController extends Controller
                     $inscription->status = 'Pending';
                     $inscription->save();
                     DB::commit();
+                    $this->deleteDocumentFromStorage($documentToDelete);
                     $this->deleteVoucherFromStorage($voucherToDelete);
                 }
             }
@@ -1514,6 +1535,24 @@ class InscriptionController extends Controller
         if ($filename) {
             Storage::delete('public/uploads/voucher_file/' . $filename);
         }
+    }
+
+    private function deleteDocumentFromStorage(?string $filename): void
+    {
+        if ($filename) {
+            Storage::delete('public/uploads/document_file/' . $filename);
+        }
+    }
+
+    private function discardTemporaryUpload($value): void
+    {
+        $folder = $this->temporaryUploadFolder($value);
+        if ($folder === '') {
+            return;
+        }
+
+        Storage::deleteDirectory('public/uploads/tmp/' . $folder);
+        TemporaryFile::where('folder', $folder)->delete();
     }
 
 

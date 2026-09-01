@@ -399,7 +399,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
         if (selectedRadioCategoryInscription.dataset.requiresDocument === '1' && !hasDocumentFile) {
-            if (!validarArchivoFilePond('document_file', 'You must attach proof of category (Title, Certificate, Professional Card).')) {
+            if (!validarArchivoFilePond('document_file', 'You must attach supporting documentation confirming your current student enrollment.')) {
                 return false;
             }
         }
@@ -435,7 +435,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
         if (selectedRadioCategoryInscription.dataset.requiresDocument === '1' && !hasDocumentFile) {
-            if (!validarArchivoFilePond('document_file', 'Please attach supporting documentation for the selected category.')) {
+            if (!validarArchivoFilePond('document_file', 'You must attach supporting documentation confirming your current student enrollment.')) {
                 return false;
             }
         }
@@ -610,6 +610,7 @@ calculateTotalPrice();
 
 // Obtén los elementos del DOM
 const dvDocumentFile = document.getElementById('dv_document_file');
+const inputDocumentFile = document.getElementById('document_file');
 const dvSpecialCode = document.getElementById('dv_specialcode');
 const inputSpecialCode = document.getElementById('specialcode');
 const txtPriceSpecialCode = document.getElementById('dc_price_5');
@@ -628,10 +629,12 @@ function handleCategoryRadioButtons(selectedValueCategory){
     
     if(!selectedValueCategory) return;
 
+    const selectedCategory = document.querySelector(`input[name="category_inscription_id"][value="${selectedValueCategory}"]`);
+    const requiresDocument = selectedCategory && selectedCategory.dataset.requiresDocument === '1';
+
+    dvDocumentFile.classList.toggle('d-none', !requiresDocument);
+
     if(selectedValueCategory === '3' || selectedValueCategory === '4' || selectedValueCategory === '5'){
-      
-        //Document file required
-        dvDocumentFile.classList.remove('d-none');
         
         inputSpecialCode.value = '';
         inputSpecialCode.removeAttribute('required');
@@ -643,9 +646,6 @@ function handleCategoryRadioButtons(selectedValueCategory){
         btnClearSpecialCode.classList.add('d-none');
 
     }else if(selectedValueCategory === '1' || selectedValueCategory === '2'){
-        
-        //Document file not required
-        dvDocumentFile.classList.add('d-none');
         
         //Special code required not validation
         dvSpecialCode.classList.add('d-none');
@@ -660,9 +660,6 @@ function handleCategoryRadioButtons(selectedValueCategory){
 
       } else if(selectedValueCategory === '6'){
         
-        //Document file not required
-        dvDocumentFile.classList.remove('d-none');
-
         //Special code required validation
         dvSpecialCode.classList.remove('d-none');
         inputSpecialCode.setAttribute('required', 'required');
@@ -674,9 +671,6 @@ function handleCategoryRadioButtons(selectedValueCategory){
         btnClearSpecialCode.classList.add('d-none');
       }else{
         
-        //Document file not required
-        dvDocumentFile.classList.add('d-none');
-
         //Special code required not validation
         dvSpecialCode.classList.add('d-none');
         inputSpecialCode.value = '';
@@ -861,7 +855,6 @@ function handlePaymentMethod(){
 
 handlePaymentMethod();
 
-const inputDocumentFile = document.getElementById('document_file');
 let uploadsInProgress = 0;
 
 function setUploadState(isStarting) {

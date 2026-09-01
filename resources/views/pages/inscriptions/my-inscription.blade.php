@@ -1012,7 +1012,7 @@
 
                                              @foreach ($category_inscriptions as $category)
                                                 @php
-                                                    if($category->name == 'Student (Member)' || $category->name == 'Student (Non-Member)' || $category->name == 'Scholars' || $category->name == 'Special Code'){
+                                                    if($category->name == 'Student (Member)' || $category->name == 'Student (Non-Member)'){
                                                         $infomark = ' <span class="text-danger">*</span>';
                                                     }else{
                                                         $infomark = '';
@@ -1030,7 +1030,7 @@
                                                     <tr class="category-row" data-membership="{{ $category->membership_type }}">
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
-                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)', 'Scholars', 'Special Code']) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
+                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)'], true) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
                                                                 <label class="form-check-label mb-0 ms-1 cursor-pointer" for="category_{{ $category->id }}">{{ $category->name }}{!! $infomark !!}
                                                                 <small class="text-muted">{!! $category->description !!}</small>
                                                                 </label>
@@ -1070,13 +1070,13 @@
                                 </div>
 
                                 <div id="dv_document_file" class="d-none">
-                                    <small class="text-danger"><b>{{__("Note:")}}</b> * You must attach proof of category (Title, Certificate, Professional Card) (.pdf/.jpg/.jpeg/.png)</small>
+                                    <small class="text-danger"><b>Note:</b> <span id="note_selected_category">* Enrollment Certificate for the 2026 academic year (Mandatory).</span></small>
 
-                                    <label for="document_file" class="form-label mt-2">
-                                        <span class="fw-bold">Attach supporting documentation for category:</span> <span class="text-info"> Title, Certificate, Professional License (.pdf/.jpg/.jpeg/.png)</span>
+                                    <label for="document_file" class="form-label mt-2 mb-0">
+                                        <span class="fw-bold">Attach supporting documentation for your selected category:</span>
                                     </label>
                                     <input type="file" name="document_file" id="document_file" class="file-control" accept="application/pdf,image/jpeg,image/png">
-
+                                    <span class="text-muted d-block" style="margin-top: -14px;font-size: 12px;">Allowed: .pdf/.jpg/.jpeg/.png</span>
                                     <input type="hidden" id="has_document_file" value="{{ !empty($myinscription->document_file) ? 1 : 0 }}">
                                     {!!$errors->first("document_file", "<span class='text-danger d-block'>:message</span>")!!}
 
