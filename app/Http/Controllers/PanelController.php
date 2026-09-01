@@ -72,11 +72,18 @@ class PanelController extends Controller
             });
         }
 
-        $panels = $panelsQuery->get();
+        $panels = $panelsQuery
+            ->paginate(20)
+            ->withQueryString();
+
+        $panelCount = Panel::where('status', '!=', 'Rejected')->count();
+        $rejectedPanelCount = Panel::where('status', 'Rejected')->count();
 
         return view('pages.panels.index', $data)
             ->with('panels', $panels)
-            ->with('rejectedPage', $rejectedPage);
+            ->with('rejectedPage', $rejectedPage)
+            ->with('panelCount', $panelCount)
+            ->with('rejectedPanelCount', $rejectedPanelCount);
     }
 
     public function rejected(Request $request)
@@ -400,13 +407,21 @@ class PanelController extends Controller
         }
     }
 
-    public function exportExcel()
+    public function exportExcel(Request $request)
     {
         $this->ensureAdministrator();
 
+        $list = $request->input('list', 'active');
+        if (!in_array($list, ['active', 'rejected'], true)) {
+            abort(422, 'Invalid panel list.');
+        }
+
+        $rejectedOnly = $list === 'rejected';
+        $filenamePrefix = $rejectedOnly ? 'Rejected_Panels_' : 'Active_Panels_';
+
         return Excel::download(
-            new PanelExport(),
-            'Panels_' . now()->format('Ymd_His') . '.xlsx'
+            new PanelExport($rejectedOnly),
+            $filenamePrefix . now()->format('Ymd_His') . '.xlsx'
         );
     }
 

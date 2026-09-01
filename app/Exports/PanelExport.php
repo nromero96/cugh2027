@@ -14,9 +14,23 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
 class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyles
 {
+    private $rejectedOnly;
+
+    public function __construct(bool $rejectedOnly = false)
+    {
+        $this->rejectedOnly = $rejectedOnly;
+    }
+
     public function collection()
     {
-        return Panel::orderBy('id')->get();
+        return Panel::query()
+            ->when($this->rejectedOnly, function ($query) {
+                $query->where('status', 'Rejected');
+            }, function ($query) {
+                $query->where('status', '!=', 'Rejected');
+            })
+            ->orderBy('id')
+            ->get();
     }
 
     public function headings(): array
