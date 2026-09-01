@@ -58,7 +58,8 @@
             gap: .5rem;
             padding-top: .15rem;
         }
-        .panels-table .action-btns a {
+        .panels-table .action-btns a,
+        .panels-table .action-btns button {
             align-items: center;
             display: inline-flex;
             justify-content: center;
@@ -93,13 +94,13 @@
                     <div class="widget-header pt-2">
                         <div class="row">
                             <div class="col-md-12">
-                                <h4>Panels</h4>
+                                <h4>{{ $rejectedPage ? 'Rejected Panels' : 'Panels' }}</h4>
                             </div>
                             
                         </div>
                         <div class="row px-3">
-                            <div class="col-md-10">
-                                <form method="GET" action="{{ route('panels.index') }}" class="mb-3">
+                            <div class="col-md-9">
+                                <form method="GET" action="{{ $rejectedPage ? route('panels.rejected') : route('panels.index') }}" class="mb-3">
                                     <div class="panel-search-row">
                                         <input
                                             type="text"
@@ -112,16 +113,31 @@
                                         <button type="submit" class="btn btn-primary">Search</button>
                                     </div>
                                     @if(request()->filled('search'))
-                                        <a href="{{ route('panels.index') }}" class="small d-inline-block mt-1">Clear search</a>
+                                        <a href="{{ $rejectedPage ? route('panels.rejected') : route('panels.index') }}" class="small d-inline-block mt-1">Clear search</a>
                                     @endif
                                 </form>
                             </div>
 
-                            <div class="col-md-2 text-end mt-1">
+                            <div class="col-md-3 text-end mt-0">
                                 @if(auth()->user()->hasRole('Administrador'))
+                                    @if($rejectedPage)
+                                        <a href="{{ route('panels.index') }}" class="btn btn-outline-secondary btn-sm" title="Back to Panels" aria-label="Back to Panels">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
+                                                <path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708z"/>
+                                            </svg>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('panels.rejected') }}" class="btn btn-danger btn-sm" title="Rejected Panels" aria-label="Rejected Panels">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                                                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                            </svg>
+                                        </a>
+                                    @endif
                                     <a href="{{ route('panels.exportexcel') }}" class="btn btn-success btn-sm" title="Export all panel data to Excel">
-                                        <i class="bi bi-file-earmark-spreadsheet me-1" aria-hidden="true"></i>
-                                        Export Excel
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
+                                            <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z"/>
+                                        </svg>
                                     </a>
                                 @endif
                             </div>
@@ -165,6 +181,18 @@
                                                             <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
                                                         </svg>
                                                     </a>
+                                                    @unless($rejectedPage)
+                                                        <form action="{{ route('panels.reject', $panel) }}" method="POST" class="d-inline ms-2">
+                                                            @csrf
+                                                            @method('PUT')
+                                                            <button type="submit" class="action-btn btn-delete border-0 bg-transparent p-0" title="Move to Rejected" aria-label="Move to Rejected" onclick="return confirm('Are you sure you want to move this panel to Rejected?')">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash text-danger" viewBox="0 0 16 16">
+                                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2h4V1a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v1h4zM6.5 1a.5.5 0 0 0-.5.5V2h4v-.5a.5.5 0 0 0-.5-.5zM4 4v9a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4z"/>
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    @endunless
                                                 @endif
                                             </div>
                                         </td>

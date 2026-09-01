@@ -241,6 +241,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Panel
+    Route::get('/panels-rejected', [PanelController::class, 'rejected'])->name('panels.rejected');
+    Route::put('/panels/{panel}/reject', [PanelController::class, 'reject'])->name('panels.reject');
     Route::resource('panels', PanelController::class)->names('panels');
     Route::get('/exportar-excel-panels', [PanelController::class, 'exportExcel'])->name('panels.exportexcel');
     Route::get('/panels/{panel}/pdf', [PanelController::class, 'pdf'])->name('panels.pdf');

@@ -32,6 +32,13 @@ class PanelController extends Controller
 
         $search = trim((string) $request->input('search', ''));
         $panelsQuery = Panel::query()->latest('created_at');
+        $rejectedPage = $request->attributes->get('rejected_listing', false);
+
+        if ($rejectedPage) {
+            $panelsQuery->where('status', 'Rejected');
+        } else {
+            $panelsQuery->where('status', '!=', 'Rejected');
+        }
 
         if ($search !== '') {
             $idSearch = ltrim($search, '#');
@@ -67,7 +74,38 @@ class PanelController extends Controller
 
         $panels = $panelsQuery->get();
 
-        return view('pages.panels.index', $data)->with('panels', $panels);
+        return view('pages.panels.index', $data)
+            ->with('panels', $panels)
+            ->with('rejectedPage', $rejectedPage);
+    }
+
+    public function rejected(Request $request)
+    {
+        $this->ensureAdministrator();
+        $request->attributes->set('rejected_listing', true);
+
+        return $this->index($request);
+    }
+
+    public function reject(Panel $panel)
+    {
+        $this->ensureAdministrator();
+
+        try {
+            $panel->status = 'Rejected';
+            $panel->save();
+        } catch (\Throwable $exception) {
+            Log::error('Panel could not be rejected.', [
+                'panel_id' => $panel->id,
+                'administrator_id' => auth()->id(),
+                'exception' => $exception,
+            ]);
+
+            return back()->with('error', 'We could not move the panel to Rejected. Please try again.');
+        }
+
+        return redirect()->route('panels.index')
+            ->with('success', 'Panel moved to Rejected successfully.');
     }
 
     /**
