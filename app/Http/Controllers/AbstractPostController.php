@@ -663,6 +663,12 @@ class AbstractPostController extends Controller
             abort(403);
         }
 
+        //verificar que solo este en draft
+        if ($abstractPost->status !== 'draft') {
+            return redirect()->route('abstract_posts.index')
+                ->with('error', 'Only draft abstracts can be deleted.');
+        }
+
         $abstractPost->delete();
 
         return redirect()->route('abstract_posts.index')
