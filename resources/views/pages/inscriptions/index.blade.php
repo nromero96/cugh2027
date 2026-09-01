@@ -3,6 +3,48 @@
 
 @section('content')
 
+<style>
+    #inscrip-list.columns-resized {
+        table-layout: fixed;
+    }
+
+    #inscrip-list thead th {
+        position: relative;
+        overflow: visible;
+        background-color: #ffffff;
+    }
+
+    #inscrip-list tbody td {
+        overflow: hidden;
+        background-color: #ffffff;
+    }
+
+    #inscrip-list.table-striped tbody tr:nth-of-type(odd) > td {
+        background-color: #f7f8fa;
+    }
+
+    #inscrip-list.table-hover tbody tr:hover > td {
+        background-color: #eef2f7;
+    }
+
+    #inscrip-list .column-resizer {
+        position: absolute;
+        top: 0;
+        right: -4px;
+        z-index: 2;
+        width: 8px;
+        height: 100%;
+        cursor: col-resize;
+        touch-action: none;
+        user-select: none;
+    }
+
+    #inscrip-list .column-resizer:hover,
+    #inscrip-list .column-resizer.is-resizing {
+        border-right: 2px solid #4361ee;
+    }
+</style>
+
 
 <div class="layout-px-spacing">
 
@@ -161,13 +203,28 @@
                                                 <th scope="col">{{__("Category")}}</th>
                                                 <th scope="col">{{__("Payment")}}</th>
                                                 <th scope="col">{{__("Status")}}</th>
+                                                <th scope="col" style="min-width: 150px;">
+                                                    @php
+                                                        $completionDirection = request('sort') === 'completion' && request('direction') === 'desc' ? 'asc' : 'desc';
+                                                    @endphp
+                                                    <a href="{{ route('inscriptions.index', array_merge(request()->query(), ['sort' => 'completion', 'direction' => $completionDirection, 'page' => 1])) }}"
+                                                        class="text-dark text-decoration-none"
+                                                        title="Sort by completion">
+                                                        {{__("Completion")}}
+                                                        @if(request('sort') === 'completion')
+                                                            <span aria-hidden="true">{{ request('direction') === 'asc' ? '↑' : '↓' }}</span>
+                                                        @else
+                                                            <span class="text-muted" aria-hidden="true">↑↓</span>
+                                                        @endif
+                                                    </a>
+                                                </th>
                                                 <th scope="col">{{__("Date")}}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             @if ($inscriptions->isEmpty())
                                                 <tr>
-                                                    <td colspan="7" class="text-center">
+                                                    <td colspan="8" class="text-center">
                                                         <h6 class="mt-2">There are no registrations recorded.</h6>
                                                     </td>
                                                 </tr>
@@ -234,7 +291,39 @@
                                                             @endif
                                                         </td>
                                                         <td>
-                                                            {{ $inscription->created_at }}
+                                                            @if($inscription->status === 'Draft' && isset($inscription->completion))
+                                                                @php
+                                                                    $completion = $inscription->completion;
+                                                                    $progressColor = $completion['percentage'] === 100
+                                                                        ? 'bg-success'
+                                                                        : ($completion['percentage'] >= 70 ? 'bg-info' : ($completion['percentage'] >= 40 ? 'bg-warning' : 'bg-danger'));
+                                                                    $missingText = implode(', ', $completion['missing']);
+                                                                @endphp
+                                                                <div title="{{ $missingText ? 'Missing: '.$missingText : 'All required information is complete.' }}">
+                                                                    <div class="d-flex justify-content-between mb-1" style="font-size: 11px;">
+                                                                        <span class="fw-semibold">{{ $completion['percentage'] }}%</span>
+                                                                        <span class="text-muted">{{ $completion['completed'] }}/{{ $completion['total'] }}</span>
+                                                                    </div>
+                                                                    <div class="progress" style="height: 7px;">
+                                                                        <div class="progress-bar {{ $progressColor }}"
+                                                                            role="progressbar"
+                                                                            style="width: {{ $completion['percentage'] }}%;"
+                                                                            aria-valuenow="{{ $completion['percentage'] }}"
+                                                                            aria-valuemin="0"
+                                                                            aria-valuemax="100">
+                                                                        </div>
+                                                                    </div>
+                                                                    <small class="d-block mt-1 {{ $completion['percentage'] === 100 ? 'text-success' : 'text-muted' }}" style="font-size: 10px; line-height: 1.2;">
+                                                                        {{ $completion['percentage'] === 100 ? 'Ready to submit' : count($completion['missing']).' sections pending' }}
+                                                                    </small>
+                                                                </div>
+                                                            @else
+                                                                <span class="text-muted">&mdash;</span>
+                                                            @endif
+                                                        </td>
+                                                        <td class="text-nowrap">
+                                                            <span class="d-block">{{ $inscription->created_at->format('Y-m-d') }}</span>
+                                                            <small class="text-muted">{{ $inscription->created_at->format('H:i:s') }}</small>
                                                         </td>
                                                     </tr>
                                                 @endforeach
@@ -282,7 +371,97 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    initializeResizableRegistrationColumns();
 });
 
+function initializeResizableRegistrationColumns() {
+    var table = document.getElementById('inscrip-list');
+    if (!table) {
+        return;
+    }
+
+    var headers = Array.prototype.slice.call(table.querySelectorAll('thead th'));
+    var storageKey = 'registrations-column-widths-{{ Auth::id() }}';
+    var minimumWidth = 70;
+
+    function applyWidths(widths) {
+        if (!Array.isArray(widths) || widths.length !== headers.length) {
+            return;
+        }
+
+        var totalWidth = 0;
+        headers.forEach(function(header, index) {
+            var width = Math.max(minimumWidth, Number(widths[index]) || minimumWidth);
+            header.style.width = width + 'px';
+            header.style.minWidth = width + 'px';
+            totalWidth += width;
+        });
+
+        table.classList.add('columns-resized');
+        table.style.width = totalWidth + 'px';
+        table.style.minWidth = totalWidth + 'px';
+    }
+
+    try {
+        var savedWidths = JSON.parse(localStorage.getItem(storageKey));
+        applyWidths(savedWidths);
+    } catch (error) {
+        localStorage.removeItem(storageKey);
+    }
+
+    headers.forEach(function(header, columnIndex) {
+        var resizer = document.createElement('span');
+        resizer.className = 'column-resizer';
+        resizer.title = 'Drag to resize. Double-click to reset all columns.';
+        resizer.setAttribute('aria-hidden', 'true');
+        header.appendChild(resizer);
+
+        resizer.addEventListener('pointerdown', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+
+            var initialWidths = headers.map(function(item) {
+                return Math.round(item.getBoundingClientRect().width);
+            });
+            applyWidths(initialWidths);
+
+            var startX = event.clientX;
+            var startWidth = initialWidths[columnIndex];
+            resizer.classList.add('is-resizing');
+            resizer.setPointerCapture(event.pointerId);
+
+            function resize(pointerEvent) {
+                initialWidths[columnIndex] = Math.max(minimumWidth, startWidth + pointerEvent.clientX - startX);
+                applyWidths(initialWidths);
+            }
+
+            function finish() {
+                resizer.classList.remove('is-resizing');
+                resizer.removeEventListener('pointermove', resize);
+                resizer.removeEventListener('pointerup', finish);
+                resizer.removeEventListener('pointercancel', finish);
+                localStorage.setItem(storageKey, JSON.stringify(initialWidths.map(Math.round)));
+            }
+
+            resizer.addEventListener('pointermove', resize);
+            resizer.addEventListener('pointerup', finish);
+            resizer.addEventListener('pointercancel', finish);
+        });
+
+        resizer.addEventListener('dblclick', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            localStorage.removeItem(storageKey);
+            headers.forEach(function(item) {
+                item.style.removeProperty('width');
+                item.style.removeProperty('min-width');
+            });
+            table.classList.remove('columns-resized');
+            table.style.removeProperty('width');
+            table.style.removeProperty('min-width');
+        });
+    });
+}
 
 </script>

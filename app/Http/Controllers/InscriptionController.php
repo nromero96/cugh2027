@@ -56,10 +56,13 @@ class InscriptionController extends Controller
 
         $listforpage = request()->query('listforpage') ?? 10;
         $search = request()->query('search');
+        $sort = request()->query('sort');
+        $direction = request()->query('direction') === 'asc' ? 'asc' : 'desc';
 
         if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria') || \Auth::user()->hasRole('Hotelero') || \Auth::user()->hasRole('Check-in')) {
 
-            $inscriptions = Inscription::leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
+            $inscriptionsQuery = Inscription::with('user')
+                ->leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
                 ->leftJoin('countries', 'users.country', '=', 'countries.id')
                 ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country', 'users.email as user_email')
@@ -95,9 +98,26 @@ class InscriptionController extends Controller
                             ->orWhere('inscriptions.created_at', 'LIKE', "%{$search}%")
                             ->orWhere('users.email', 'LIKE', "%{$search}%");
                     }
-                })
-                ->orderBy('inscriptions.id', 'desc')
-                ->paginate($listforpage);
+                });
+
+            if ($sort === 'completion') {
+                $inscriptionsQuery
+                    ->orderByRaw("CASE WHEN inscriptions.status = 'Draft' THEN 0 ELSE 1 END ASC")
+                    ->orderByRaw($this->registrationCompletionSql().' '.$direction)
+                    ->orderBy('inscriptions.id', 'desc');
+            } else {
+                $inscriptionsQuery->orderBy('inscriptions.id', 'desc');
+            }
+
+            $inscriptions = $inscriptionsQuery->paginate($listforpage);
+
+            $inscriptions->getCollection()->transform(function ($inscription) {
+                if ($inscription->status === 'Draft') {
+                    $inscription->completion = $this->registrationCompletion($inscription);
+                }
+
+                return $inscription;
+            });
         } else {
             $inscriptions = Inscription::leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
@@ -110,6 +130,129 @@ class InscriptionController extends Controller
         
 
         return view('pages.inscriptions.index')->with($data)->with('inscriptions', $inscriptions);
+    }
+
+    /**
+     * Measure whether a draft contains the information required to submit it.
+     * Optional fields are deliberately excluded from the percentage.
+     */
+    private function registrationCompletion(Inscription $inscription): array
+    {
+        $user = $inscription->user;
+        $groups = [
+            'Personal details' => [
+                $user->salutation, $user->name, $user->second_lastname, $user->degrees,
+                $user->document_type, $user->document_number, $user->nationality, $user->gender,
+            ],
+            'Professional details' => [
+                $user->is_cugh_member, $user->job_title, $user->occupation, $user->workplace,
+            ],
+            'Contact details' => [
+                $user->address, $user->city, $user->state, $user->country,
+                $user->phone_code, $user->phone_number,
+            ],
+            'Badge name' => [$user->solapin_name, $user->solapin_lastname],
+            'Questionnaire' => [
+                $user->sector, $user->area_of_work, $user->how_did_you_hear_about,
+                $user->why_attending, $user->how_is_your_attendance_funded,
+                $user->your_areas_of_focus_in_global_health,
+                $user->obstacles_to_attending_cughs_conferences,
+                $user->receive_news_and_updates, $user->contact_info,
+                $user->oral_poster_abstract_presenter, $user->panel_presenter_moderator,
+            ],
+            'Registration details' => [
+                $inscription->category_inscription_id, $inscription->invoice,
+                $inscription->invoice_type, $inscription->invoice_type_document,
+                $inscription->invoice_ruc, $inscription->invoice_social_reason,
+                $inscription->invoice_address, $inscription->payment_method,
+            ],
+        ];
+
+        if (in_array($inscription->category_inscription_name, ['Student (Member)', 'Student (Non-Member)'], true)) {
+            $groups['Supporting document'] = [$inscription->document_file];
+        }
+
+        if ($inscription->category_inscription_name === 'Special Code') {
+            $groups['Special code'] = [$inscription->special_code];
+        }
+
+        if ($inscription->payment_method === 'Bank Transfer/Wire') {
+            $groups['Payment voucher'] = [$inscription->voucher_file];
+        }
+
+        $isCompleted = static function ($value): bool {
+            if (is_array($value)) {
+                return count(array_filter($value, static fn ($item) => $item !== null && $item !== '')) > 0;
+            }
+
+            return $value !== null && $value !== '';
+        };
+
+        $completed = 0;
+        $total = 0;
+        $missing = [];
+
+        foreach ($groups as $label => $values) {
+            $groupComplete = true;
+
+            foreach ($values as $value) {
+                $total++;
+                if ($isCompleted($value)) {
+                    $completed++;
+                } else {
+                    $groupComplete = false;
+                }
+            }
+
+            if (!$groupComplete) {
+                $missing[] = $label;
+            }
+        }
+
+        return [
+            'percentage' => $total > 0 ? (int) round(($completed / $total) * 100) : 0,
+            'completed' => $completed,
+            'total' => $total,
+            'missing' => $missing,
+        ];
+    }
+
+    /**
+     * SQL equivalent of the draft completion ratio, used to sort the full result
+     * before pagination. Keep its fields aligned with registrationCompletion().
+     */
+    private function registrationCompletionSql(): string
+    {
+        $fields = [
+            'users.salutation', 'users.name', 'users.second_lastname', 'users.degrees',
+            'users.document_type', 'users.document_number', 'users.nationality', 'users.gender',
+            'users.is_cugh_member', 'users.job_title', 'users.occupation', 'users.workplace',
+            'users.address', 'users.city', 'users.state', 'users.country',
+            'users.phone_code', 'users.phone_number', 'users.solapin_name', 'users.solapin_lastname',
+            'users.sector', 'users.area_of_work', 'users.how_did_you_hear_about',
+            'users.why_attending', 'users.how_is_your_attendance_funded',
+            'users.your_areas_of_focus_in_global_health', 'users.obstacles_to_attending_cughs_conferences',
+            'users.receive_news_and_updates', 'users.contact_info',
+            'users.oral_poster_abstract_presenter', 'users.panel_presenter_moderator',
+            'inscriptions.category_inscription_id', 'inscriptions.invoice', 'inscriptions.invoice_type',
+            'inscriptions.invoice_type_document', 'inscriptions.invoice_ruc',
+            'inscriptions.invoice_social_reason', 'inscriptions.invoice_address', 'inscriptions.payment_method',
+        ];
+
+        $completedParts = array_map(static function ($field) {
+            return "CASE WHEN TRIM(COALESCE(CAST({$field} AS CHAR), '')) NOT IN ('', '[]') THEN 1 ELSE 0 END";
+        }, $fields);
+
+        $completedParts[] = "CASE WHEN category_inscriptions.name IN ('Student (Member)', 'Student (Non-Member)') AND TRIM(COALESCE(inscriptions.document_file, '')) <> '' THEN 1 ELSE 0 END";
+        $completedParts[] = "CASE WHEN category_inscriptions.name = 'Special Code' AND TRIM(COALESCE(inscriptions.special_code, '')) <> '' THEN 1 ELSE 0 END";
+        $completedParts[] = "CASE WHEN inscriptions.payment_method = 'Bank Transfer/Wire' AND TRIM(COALESCE(inscriptions.voucher_file, '')) <> '' THEN 1 ELSE 0 END";
+
+        $total = count($fields)
+            ." + CASE WHEN category_inscriptions.name IN ('Student (Member)', 'Student (Non-Member)') THEN 1 ELSE 0 END"
+            ." + CASE WHEN category_inscriptions.name = 'Special Code' THEN 1 ELSE 0 END"
+            ." + CASE WHEN inscriptions.payment_method = 'Bank Transfer/Wire' THEN 1 ELSE 0 END";
+
+        return '(('.implode(' + ', $completedParts).') / NULLIF(('.$total.'), 0))';
     }
 
     public function indexAccompanists(){
