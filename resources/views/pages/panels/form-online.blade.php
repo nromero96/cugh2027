@@ -323,7 +323,7 @@ function removeSpeaker(button) {
 }
 
 function addSpeaker(speaker = {}) {
-  if (speakerCount >= 4) return alert("Max 4 speakers");
+  if (speakerCount >= 5) return alert("You may add up to 5 speakers.");
 
   speakerCount++;
 
@@ -361,7 +361,7 @@ function addSpeaker(speaker = {}) {
   div.querySelector(`[name="speakers[${speakerCount}][country]"]`).value = speaker.country || '';
 }
 
-oldSpeakers.slice(0, 4).forEach(speaker => addSpeaker(speaker));
+oldSpeakers.slice(0, 5).forEach(speaker => addSpeaker(speaker));
 </script>
 
 <script>

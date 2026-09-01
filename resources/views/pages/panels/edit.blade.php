@@ -204,8 +204,8 @@ function renumberSpeakers() {
 }
 
 function addSpeaker(speaker = {}) {
-    if (speakersContainer.children.length >= 4) {
-        alert('You may add up to 4 speakers.');
+    if (speakersContainer.children.length >= 5) {
+        alert('You may add up to 5 speakers.');
         return;
     }
 
@@ -236,7 +236,7 @@ function addSpeaker(speaker = {}) {
     renumberSpeakers();
 }
 
-initialSpeakers.slice(0, 4).forEach(addSpeaker);
+initialSpeakers.slice(0, 5).forEach(addSpeaker);
 document.getElementById('addSpeakerButton').addEventListener('click', function () { addSpeaker(); });
 
 const subthemeCheckboxes = document.querySelectorAll('.subtheme-checkbox');

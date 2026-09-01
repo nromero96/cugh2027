@@ -334,7 +334,7 @@ class PanelController extends Controller
             'moderator_position' => ['nullable', 'string', 'max:255'],
             'moderator_institution' => ['nullable', 'string', 'max:255'],
             'moderator_country' => ['nullable', 'string', Rule::exists('countries', 'name')],
-            'speakers' => ['nullable', 'array', 'max:4'],
+            'speakers' => ['nullable', 'array', 'max:5'],
             'speakers.*' => ['array'],
             'speakers.*.name' => ['nullable', 'string', 'max:255'],
             'speakers.*.position' => ['nullable', 'string', 'max:255'],
@@ -346,7 +346,7 @@ class PanelController extends Controller
             'subthemes.required' => 'Please select at least one sub-theme.',
             'subthemes.max' => 'You may select up to 3 sub-themes.',
             'subthemes_other.required' => 'Please specify the other sub-theme.',
-            'speakers.max' => 'You may add up to 4 speakers.',
+            'speakers.max' => 'You may add up to 5 speakers.',
         ]);
 
     }
