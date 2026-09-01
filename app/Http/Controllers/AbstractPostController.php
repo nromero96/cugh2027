@@ -658,21 +658,21 @@ class AbstractPostController extends Controller
      */
     public function destroy(AbstractPost $abstractPost)
     {
-        // 🔒 Validar que sea el dueño
-        if ($abstractPost->user_id != \Auth::id()) {
-            abort(403);
-        }
+        // // 🔒 Validar que sea el dueño
+        // if ($abstractPost->user_id != \Auth::id()) {
+        //     abort(403);
+        // }
 
-        //verificar que solo este en draft
-        if ($abstractPost->status !== 'draft') {
-            return redirect()->route('abstract_posts.index')
-                ->with('error', 'Only draft abstracts can be deleted.');
-        }
+        // //verificar que solo este en draft
+        // if ($abstractPost->status !== 'draft') {
+        //     return redirect()->route('abstract_posts.index')
+        //         ->with('error', 'Only draft abstracts can be deleted.');
+        // }
 
-        $abstractPost->delete();
+        // $abstractPost->delete();
 
-        return redirect()->route('abstract_posts.index')
-            ->with('success', 'Deleted successfully');
+        // return redirect()->route('abstract_posts.index')
+        //     ->with('success', 'Deleted successfully');
     }
 
     public function updateStatus(Request $request, AbstractPost $abstractPost)
