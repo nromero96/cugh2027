@@ -132,6 +132,17 @@ class AbstractPostController extends Controller
         $abstractLimitReached = auth()->user()->hasRole('Participante')
             && $abstractCount >= self::MAX_ABSTRACTS_PER_PARTICIPANT;
 
+        $abstractReport = null;
+        if ($isStaff) {
+            $abstractReport = AbstractPost::query()
+                ->selectRaw('COUNT(*) as total')
+                ->selectRaw("SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft")
+                ->selectRaw("SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) as submitted")
+                ->selectRaw("SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted")
+                ->selectRaw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected")
+                ->first();
+        }
+
         return view('pages.abstract_posts.index')
             ->with($data)
             ->with('abstract_posts', $abstract_posts)
@@ -140,6 +151,7 @@ class AbstractPostController extends Controller
             ->with('rejectedPage', $rejectedPage)
             ->with('abstractCount', $abstractCount)
             ->with('abstractLimitReached', $abstractLimitReached)
+            ->with('abstractReport', $abstractReport)
             ->with('maxAbstracts', self::MAX_ABSTRACTS_PER_PARTICIPANT);
 
         

@@ -263,6 +263,48 @@
 
                     </div>
                 </div>
+
+                @if($abstractReport && !$rejectedPage)
+                    <div class="card mt-4 mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">Abstract Report</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3 text-center">
+                                <div class="col-6 col-md">
+                                    <div class="border rounded p-3 h-100">
+                                        <div class="text-muted small text-uppercase">Total</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->total }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-warning rounded p-3 h-100">
+                                        <div class="text-warning small text-uppercase">In Progress</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->draft }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-info rounded p-3 h-100">
+                                        <div class="text-info small text-uppercase">Submitted</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->submitted }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-success rounded p-3 h-100">
+                                        <div class="text-success small text-uppercase">Accepted</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->accepted }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-danger rounded p-3 h-100">
+                                        <div class="text-danger small text-uppercase">Rejected</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->rejected }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
 
