@@ -37,6 +37,12 @@ class AbstractPostController extends Controller
 
         $search = trim($request->input('search', ''));
         $status = $request->input('status');
+        $isStaff = auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Secretaria');
+        $rejectedPage = $request->attributes->get('rejected_listing', false);
+
+        if ($rejectedPage) {
+            $status = 'rejected';
+        }
 
         $query = AbstractPost::with('user');
 
@@ -47,10 +53,13 @@ class AbstractPostController extends Controller
         */
 
         if (
-            !auth()->user()->hasRole('Administrador') &&
-            !auth()->user()->hasRole('Secretaria')
+            !$isStaff
         ) {
             $query->where('user_id', $userid);
+        } elseif ($rejectedPage) {
+            $query->where('status', 'rejected');
+        } else {
+            $query->where('status', '!=', 'rejected');
         }
 
         /*
@@ -106,7 +115,11 @@ class AbstractPostController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        if (in_array($status, ['draft', 'submitted', 'accepted', 'rejected'], true)) {
+        $allowedStatuses = $isStaff
+            ? ['draft', 'submitted', 'accepted']
+            : ['draft', 'submitted', 'accepted', 'rejected'];
+
+        if (!$rejectedPage && in_array($status, $allowedStatuses, true)) {
             $query->where('status', $status);
         }
 
@@ -124,6 +137,7 @@ class AbstractPostController extends Controller
             ->with('abstract_posts', $abstract_posts)
             ->with('search', $search)
             ->with('status', $status)
+            ->with('rejectedPage', $rejectedPage)
             ->with('abstractCount', $abstractCount)
             ->with('abstractLimitReached', $abstractLimitReached)
             ->with('maxAbstracts', self::MAX_ABSTRACTS_PER_PARTICIPANT);
@@ -904,6 +918,20 @@ class AbstractPostController extends Controller
 
         return response($pdf->Output('workshop-' . $abstractPost->id . '.pdf', 'S'))
             ->header('Content-Type', 'application/pdf');
+    }
+
+    public function rejected(Request $request)
+    {
+        if (
+            !auth()->user()->hasRole('Administrador') &&
+            !auth()->user()->hasRole('Secretaria')
+        ) {
+            abort(403);
+        }
+
+        $request->attributes->set('rejected_listing', true);
+
+        return $this->index($request);
     }
 
     private function participantAbstractLimitReached(int $userId): bool

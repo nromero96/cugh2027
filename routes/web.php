@@ -199,6 +199,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Abstracts
+    Route::get('/abstract-posts-rejected', [AbstractPostController::class, 'rejected'])->name('abstract_posts.rejected');
     Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');
     Route::get('/exportar-excel-abstracts', [AbstractPostController::class, 'exportExcelAbstracts'])->name('abstract_posts.exportexcel');
     Route::post('/update-abstract-status/{abstractPost}', [AbstractPostController::class, 'updateStatus'])->name('abstract_posts.updatestatus');

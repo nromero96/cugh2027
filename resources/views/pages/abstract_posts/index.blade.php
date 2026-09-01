@@ -33,16 +33,21 @@
                     
                     
                     <div class="widget-header pt-4">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <h4>{{ $rejectedPage ? 'Rejected Abstracts' : 'Abstracts' }}</h4>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-8">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                     
                                     <form
-                                        action="{{ route('abstract_posts.index') }}"
+                                        action="{{ $rejectedPage ? route('abstract_posts.rejected') : route('abstract_posts.index') }}"
                                         method="GET"
                                         class="row g-2 mb-3"
                                         >
-                                        <div class="col-md-6">
+                                        <div class="{{ $rejectedPage ? 'col-md-8' : 'col-md-6' }}">
                                             <input
                                                 type="text"
                                                 name="search"
@@ -53,6 +58,7 @@
                                             >
                                         </div>
 
+                                        @unless($rejectedPage)
                                         <div class="col-md-3">
                                             <select
                                                 name="status"
@@ -82,14 +88,9 @@
                                                     Accepted
                                                 </option>
 
-                                                <option
-                                                    value="rejected"
-                                                    {{ request('status') === 'rejected' ? 'selected' : '' }}
-                                                >
-                                                    Rejected
-                                                </option>
                                             </select>
                                         </div>
+                                        @endunless
 
                                         <div class="col-md-3 d-flex align-items-end gap-2">
                                             <button
@@ -100,7 +101,7 @@
 
                                             @if(request()->filled('search') || request()->filled('status'))
                                                 <a
-                                                    href="{{ route('abstract_posts.index') }}"
+                                                    href="{{ $rejectedPage ? route('abstract_posts.rejected') : route('abstract_posts.index') }}"
                                                     class="btn btn-outline-secondary p-1"
                                                     title="Clear filters"
                                                 >
@@ -114,21 +115,35 @@
                             </div>
                             <div class="col-4 text-end">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                    @if($rejectedPage)
+                                        <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary mb-3" title="Back to Abstracts" aria-label="Back to Abstracts">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
+                                                <path fill-rule="evenodd" d="M1.146 4.854a.5.5 0 0 1 0-.708l4-4a.5.5 0 1 1 .708.708L2.707 4H12.5A2.5 2.5 0 0 1 15 6.5v8a.5.5 0 0 1-1 0v-8A1.5 1.5 0 0 0 12.5 5H2.707l3.147 3.146a.5.5 0 1 1-.708.708z"/>
+                                            </svg>
+                                        </a>
+                                    @else
+                                        <a href="{{ route('abstract_posts.rejected') }}" class="btn btn-danger mb-3">
+                                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18"></path><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M10 11v6"></path><path d="M14 11v6"></path></svg>
+                                        </a>
+                                        
+                                    @endif
                                 {{-- Export --}}
                                     <a href="{{ route('abstract_posts.exportexcel') }}" class="btn btn-success mb-3">
                                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
                                         <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z"/>
                                         </svg> 
-                                        Export List</a>
+                                        Export</a>
                                  @endif
 
-                                @if($abstractLimitReached)
-                                    <button type="button" class="btn btn-primary mb-3" disabled title="{{ $maxAbstracts }} abstracts maximum">
-                                        New Abstract
-                                    </button>
-                                @else
-                                    <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-3">New Abstract</a>
-                                @endif
+                                @unless($rejectedPage)
+                                    @if($abstractLimitReached)
+                                        <button type="button" class="btn btn-primary mb-3" disabled title="{{ $maxAbstracts }} abstracts maximum">
+                                            New
+                                        </button>
+                                    @else
+                                        <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-3">New</a>
+                                    @endif
+                                @endunless
                             </div>
                         </div>
                     </div>
