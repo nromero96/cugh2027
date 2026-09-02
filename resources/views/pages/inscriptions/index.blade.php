@@ -211,7 +211,7 @@
                                                     <a href="{{ route('inscriptions.index', array_merge(request()->query(), ['sort' => 'completion', 'direction' => $completionDirection, 'page' => 1])) }}"
                                                         class="text-dark text-decoration-none"
                                                         title="Sort by completion">
-                                                        {{__("Completion")}}
+                                                        Completion
                                                         @if(request('sort') === 'completion')
                                                             <span aria-hidden="true">{{ request('direction') === 'asc' ? '↑' : '↓' }}</span>
                                                         @else
