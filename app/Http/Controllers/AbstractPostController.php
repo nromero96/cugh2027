@@ -200,9 +200,17 @@ class AbstractPostController extends Controller
 
         $request->validate([
             'action' => ['required', 'in:draft,submitted'],
+            'co_authors_name' => ['nullable', 'array', 'max:20'],
+            'co_authors_name.*' => ['nullable', 'string', 'max:100'],
+            'co_authors_lastname' => ['nullable', 'array', 'max:20'],
+            'co_authors_lastname.*' => ['nullable', 'string', 'max:150'],
+            'co_authors_id' => ['nullable', 'array', 'max:20'],
         ], [
             'action.required' => 'Please choose whether to save the abstract as a draft or send it for review.',
             'action.in' => 'The selected abstract action is invalid. Please try again.',
+            'co_authors_name.max' => 'A maximum of 20 co-authors is allowed.',
+            'co_authors_lastname.max' => 'A maximum of 20 co-authors is allowed.',
+            'co_authors_id.max' => 'A maximum of 20 co-authors is allowed.',
         ]);
 
         if ($this->participantAbstractLimitReached($id_user)) {

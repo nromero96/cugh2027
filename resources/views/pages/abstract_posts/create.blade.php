@@ -162,9 +162,10 @@
                                         <small class="text-danger">{{ $message }}</small><br>
                                     @enderror
 
-                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" onclick="addRowCoAuthors()">
+                                    <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btn_add_coauthor" onclick="addRowCoAuthors()">
                                         + Add co-author
                                     </button>
+                                    <small class="text-muted ms-2" id="coauthors_limit_text">1 / 20 co-authors</small>
                                 </div>
 
                                 <div class="col-md-12">
@@ -410,8 +411,15 @@ function generateId() {
 // =============================
 // CO-AUTHORS
 // =============================
+const MAX_COAUTHORS = 20;
+
 function addRowCoAuthors(name = '', lastname = '') {
     const container = document.getElementById('container_coauthors');
+    if (container.querySelectorAll('.row-coauthors').length >= MAX_COAUTHORS) {
+        updateCoAuthorsLimit();
+        return;
+    }
+
     const id = generateId();
 
     const html = `
@@ -430,6 +438,7 @@ function addRowCoAuthors(name = '', lastname = '') {
     container.insertAdjacentHTML('beforeend', html);
     updateNumbersCoAuthors();
     updateCoAuthorsOptions();
+    updateCoAuthorsLimit();
 }
 
 function removeRowCoAuthors(btn) {
@@ -439,11 +448,29 @@ function removeRowCoAuthors(btn) {
     btn.parentElement.remove();
     updateNumbersCoAuthors();
     updateCoAuthorsOptions();
+    updateCoAuthorsLimit();
 }
 
 function updateNumbersCoAuthors() {
     const numbers = document.querySelectorAll('#container_coauthors .number-coauthors');
     numbers.forEach((el, i) => el.innerText = (i + 1) + '.');
+}
+
+function updateCoAuthorsLimit() {
+    const total = document.querySelectorAll('#container_coauthors .row-coauthors').length;
+    const addButton = document.getElementById('btn_add_coauthor');
+    const limitText = document.getElementById('coauthors_limit_text');
+
+    if (addButton) {
+        addButton.disabled = total >= MAX_COAUTHORS;
+        addButton.title = total >= MAX_COAUTHORS ? 'A maximum of 20 co-authors is allowed.' : '';
+    }
+
+    if (limitText) {
+        limitText.textContent = `${total} / ${MAX_COAUTHORS} co-authors`;
+        limitText.classList.toggle('text-danger', total >= MAX_COAUTHORS);
+        limitText.classList.toggle('text-muted', total < MAX_COAUTHORS);
+    }
 }
 
 // =============================
@@ -747,6 +774,7 @@ window.addEventListener('DOMContentLoaded', () => {
         </div>
     `;
     document.getElementById('container_coauthors').insertAdjacentHTML('beforeend', c1);
+    updateCoAuthorsLimit();
 
     // -----------------------------
     // INSTITUTION inicial
