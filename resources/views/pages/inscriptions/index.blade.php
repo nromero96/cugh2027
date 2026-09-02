@@ -203,6 +203,7 @@
                                                 <th scope="col">{{__("Category")}}</th>
                                                 <th scope="col">{{__("Payment")}}</th>
                                                 <th scope="col">{{__("Status")}}</th>
+                                                <th scope="col">{{__("Date")}}</th>
                                                 <th scope="col" style="min-width: 150px;">
                                                     @php
                                                         $completionDirection = request('sort') === 'completion' && request('direction') === 'desc' ? 'asc' : 'desc';
@@ -218,7 +219,6 @@
                                                         @endif
                                                     </a>
                                                 </th>
-                                                <th scope="col">{{__("Date")}}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -290,6 +290,10 @@
                                                                 <a href="{{ asset('storage/uploads/invoices/' . $inscription->compr_pdf) }}" class="btn btn-success me-1 btn-sm px-2 py-1">INV.</a>
                                                             @endif
                                                         </td>
+                                                        <td class="text-nowrap">
+                                                            <span class="d-block">{{ $inscription->created_at->format('Y-m-d') }}</span>
+                                                            <small class="text-muted">{{ $inscription->created_at->format('H:i:s') }}</small>
+                                                        </td>
                                                         <td>
                                                             @if($inscription->status === 'Draft' && isset($inscription->completion))
                                                                 @php
@@ -320,10 +324,6 @@
                                                             @else
                                                                 <span class="text-muted">&mdash;</span>
                                                             @endif
-                                                        </td>
-                                                        <td class="text-nowrap">
-                                                            <span class="d-block">{{ $inscription->created_at->format('Y-m-d') }}</span>
-                                                            <small class="text-muted">{{ $inscription->created_at->format('H:i:s') }}</small>
                                                         </td>
                                                     </tr>
                                                 @endforeach
