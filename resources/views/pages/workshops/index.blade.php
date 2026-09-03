@@ -14,6 +14,9 @@
                     <div class="widget-header pt-4">
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 col-12 text-end">
+                                @if(auth()->user()->hasRole('Administrador'))
+                                    <a href="{{ route('workshops.exportexcel') }}" class="btn btn-success mb-4">Export Excel</a>
+                                @endif
                                 <a href="{{ route('workshops.registerworkshop') }}" target="_blank" class="btn btn-primary mb-4 ms-3 me-3">{{__("Form Online")}}</a>
                             </div>
                         </div>

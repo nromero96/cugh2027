@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Workshop;
+use App\Exports\WorkshopExport;
+use Maatwebsite\Excel\Facades\Excel;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
@@ -41,6 +43,13 @@ class WorkshopController extends Controller
     public function create()
     {
         //
+    }
+
+    public function exportExcel()
+    {
+        abort_unless(auth()->check() && auth()->user()->hasRole('Administrador'), 403);
+
+        return Excel::download(new WorkshopExport(), 'Workshops_'.now()->format('Ymd_His').'.xlsx');
     }
 
     /**
@@ -120,143 +129,89 @@ class WorkshopController extends Controller
 
     public function registerWorkshop(Request $request)
     {
-        return view('pages.workshops.form-online');
+        $submissionToken = \Illuminate\Support\Facades\Crypt::encryptString((string) Str::uuid());
+
+        return view('pages.workshops.form-online', compact('submissionToken'));
     }
 
-    public function storeWorkshop(Request $request)
+    public function storeWorkshop(\App\Http\Requests\StoreWorkshopRequest $request)
     {
-    
-        $request->validate([
+        $input = $request->validated();
 
-            // Lead
-            'lead_name' => 'required|string|max:255',
-            'lead_institution' => 'required|string|max:255',
-            'lead_title' => 'required|string|max:255',
-            'lead_email' => 'required|email|max:255',
-            'lead_phone' => 'required|string|max:255',
-            'lead_cell' => 'required|string|max:255',
-
-            // Workshop
-            'workshop_title' => 'required|string|max:255',
-            'workshop_desc' => 'required|string',
-            'workshop_objectives' => 'required|string',
-            'workshop_speakers' => 'nullable|string',
-
-            // Room
-            'time_slot' => 'required|string',
-            'day_length' => 'required|string',
-            'room_setup' => 'required|string',
-            'attendees' => 'required|integer|min:1',
-            'notes' => 'nullable|string',
-
-            // Payment
-            'payment_lead_same' => 'required',
-
-            // Terms
-            'terms' => 'required',
-
-            // Signature
-            'signature' => 'required',
-            'place_date' => 'required',
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | Guardar firma
-        |--------------------------------------------------------------------------
-        */
-
-        $signature = $request->signature;
-
-        if (!$signature) {
-            dd('No llegó la firma');
+        try {
+            $submissionId = \Illuminate\Support\Facades\Crypt::decryptString($input['submission_token']);
+            if (!Str::isUuid($submissionId)) {
+                throw new \RuntimeException('Invalid workshop submission identifier.');
+            }
+        } catch (\Throwable $exception) {
+            return back()->withErrors(['submission_token' => 'Your form has expired. Please reload the page and try again.'])
+                ->withInput($request->except('signature', '_token', 'submission_token'));
         }
 
-        // quitar encabezado
-        $signature = preg_replace('/^data:image\/\w+;base64,/', '', $signature);
+        $filename = $submissionId.'.png';
+        $path = 'uploads/workshops/'.$filename;
+        $lock = null;
+        $acquired = false;
+        $created = false;
+        $fileWritten = false;
 
-        $signature = str_replace(' ', '+', $signature);
+        try {
+            $lock = \Illuminate\Support\Facades\Cache::lock('workshop-submission:'.$submissionId, 120);
+            $acquired = $lock->get();
 
-        $imageData = base64_decode($signature);
+            if (!$acquired) {
+                return back()->withErrors(['submission' => 'Your application is being processed. Please wait before trying again.'])
+                    ->withInput($request->except('signature', '_token'));
+            }
 
-        if ($imageData === false) {
-            dd('Base64 inválido');
+            // Repeated requests with the same form token must not create a second application.
+            if (Workshop::where('signature_path', $filename)->exists()) {
+                return redirect()->route('workshops.registerworkshop')
+                    ->with('success', 'Workshop application already submitted successfully.');
+            }
+
+            $image = \App\Http\Requests\StoreWorkshopRequest::decodeSignature($input['signature']);
+            if ($image === null) {
+                throw new \RuntimeException('Invalid workshop signature.');
+            }
+            $fileWritten = true;
+            if (!Storage::disk('public')->put($path, $image)) {
+                throw new \RuntimeException('Unable to store the workshop signature.');
+            }
+
+            unset($input['submission_token'], $input['terms'], $input['signature']);
+            $input['payment_lead_same'] = $input['payment_lead_same'] === 'Yes';
+            $input['signature_path'] = $filename;
+
+            \Illuminate\Support\Facades\DB::transaction(function () use ($input) {
+                Workshop::create($input);
+            });
+            $created = true;
+
+            return redirect()->route('workshops.registerworkshop')
+                ->with('success', 'Workshop application submitted successfully.');
+        } catch (\Throwable $exception) {
+            if ($fileWritten && !$created) {
+                try {
+                    Storage::disk('public')->delete($path);
+                } catch (\Throwable $cleanupException) {
+                    report($cleanupException);
+                }
+            }
+
+            report($exception);
+
+            return back()->withErrors(['submission' => 'We could not save your application. Your information has been preserved. Please sign again and try submitting.'])
+                ->withInput($request->except('signature', '_token'));
+        } finally {
+            if ($acquired && $lock) {
+                try {
+                    $lock->release();
+                } catch (\Throwable $lockException) {
+                    report($lockException);
+                }
+            }
         }
-
-        // nombre archivo
-        $fileName = Str::uuid() . '.png';
-
-        // carpeta destino
-        $folderPath = public_path('storage/uploads/workshops');
-
-        // crear carpeta si no existe
-        if (!is_dir($folderPath)) {
-            mkdir($folderPath, 0777, true);
-        }
-
-        // ruta completa
-        $fullPath = $folderPath . '/' . $fileName;
-
-        // guardar archivo
-        if (file_put_contents($fullPath, $imageData) === false) {
-
-            dd([
-                'folderPath' => $folderPath,
-                'fullPath' => $fullPath,
-                'folder_exists' => is_dir($folderPath),
-                'folder_writable' => is_writable($folderPath),
-            ]);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Crear workshop
-        |--------------------------------------------------------------------------
-        */
-
-        Workshop::create([
-
-            // Lead
-            'lead_name' => $request->lead_name,
-            'lead_institution' => $request->lead_institution,
-            'lead_title' => $request->lead_title,
-            'lead_email' => $request->lead_email,
-            'lead_phone' => $request->lead_phone,
-            'lead_cell' => $request->lead_cell,
-
-            // Workshop
-            'workshop_title' => $request->workshop_title,
-            'workshop_desc' => $request->workshop_desc,
-            'workshop_objectives' => $request->workshop_objectives,
-            'workshop_speakers' => $request->workshop_speakers,
-
-            // Room
-            'time_slot' => $request->time_slot,
-            'day_length' => $request->day_length,
-            'room_setup' => $request->room_setup,
-            'attendees' => $request->attendees,
-            'notes' => $request->notes,
-
-            // Payment
-            'payment_lead_same' => $request->payment_lead_same === 'Yes',
-
-            'payment_name' => $request->payment_name,
-            'payment_institution' => $request->payment_institution,
-            'payment_title' => $request->payment_title,
-            'payment_email' => $request->payment_email,
-            'payment_phone' => $request->payment_phone,
-            'payment_cell' => $request->payment_cell,
-
-            // Signature
-            'signature_path' => $fileName,
-
-            'place_date' => $request->place_date,
-        ]);
-
-        return redirect()
-            ->back()
-            ->with('success', 'Workshop application submitted successfully.');
-
     }
 
 

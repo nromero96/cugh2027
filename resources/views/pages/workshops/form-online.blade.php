@@ -88,6 +88,7 @@
       <div class="alert alert-danger alert-dismissible fade show" role="alert">
 
           <strong>Please correct the following errors:</strong>
+          <p class="mb-0">Your information has been preserved. Please sign again before submitting.</p>
 
           <ul class="mb-0 mt-2">
               @foreach ($errors->all() as $error)
@@ -104,33 +105,35 @@
 
   <form id="workshopForm" action="{{ route('workshops.storeworkshop') }}" method="POST" enctype="multipart/form-data">
     @csrf
+    <input type="hidden" name="submission_token" value="{{ old('submission_token', $submissionToken) }}">
+    <div id="workshopClientErrors" class="alert alert-danger d-none" role="alert"></div>
     <!-- 1. Lead Contact Person -->
     <div class="card section-card">
       <h6 class="card-header bg-primary text-white fw-bold py-3">Lead Contact Person</h6>
       <div class="card-body">
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Name<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="lead_name" required>
+          <input type="text" class="form-control" name="lead_name" required value="{{ old('lead_name') }}" maxlength="255">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Institution<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="lead_institution" required>
+          <input type="text" class="form-control" name="lead_institution" required value="{{ old('lead_institution') }}" maxlength="255">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Professional Title<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="lead_title" required>
+          <input type="text" class="form-control" name="lead_title" required value="{{ old('lead_title') }}" maxlength="255">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">E-mail<small class="text-danger">⁽*⁾</small></label>
-          <input type="email" class="form-control" name="lead_email" required>
+          <input type="email" class="form-control" name="lead_email" required value="{{ old('lead_email') }}" maxlength="255">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Phone number (with country & area code)<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="lead_phone" required>
+          <input type="text" class="form-control" name="lead_phone" required value="{{ old('lead_phone') }}" maxlength="255">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Cell Phone (with country code)<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="lead_cell" required>
+          <input type="text" class="form-control" name="lead_cell" required value="{{ old('lead_cell') }}" maxlength="255">
         </div>
       </div>
     </div>
@@ -141,7 +144,7 @@
       <div class="card-body">
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Workshop Title<small class="text-danger">⁽*⁾</small></label>
-          <input type="text" class="form-control" name="workshop_title" required>
+          <input type="text" class="form-control" name="workshop_title" required value="{{ old('workshop_title') }}" maxlength="255">
         </div>
         <div class="mb-3">
             <label class="form-label text-muted mb-0">
@@ -155,7 +158,7 @@
                 rows="4"
                 data-max-words="200"
                 required
-            ></textarea>
+            >{{ old('workshop_desc') }}</textarea>
 
             <div class="d-flex justify-content-between">
                 <small class="text-muted">Maximum 200 words allowed</small>
@@ -164,11 +167,11 @@
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Objectives / Skills<small class="text-danger">⁽*⁾</small></label>
-          <textarea class="form-control" name="workshop_objectives" rows="3" maxlength="1000" required></textarea>
+          <textarea class="form-control" name="workshop_objectives" rows="3" maxlength="1000" required>{{ old('workshop_objectives') }}</textarea>
         </div>
         <div class="mb-3">
-          <label class="form-label text-muted mb-0">Speakers and Facilitators<small class="text-danger">⁽*⁾</small></label>
-          <textarea class="form-control" name="workshop_speakers" rows="3" maxlength="1000"></textarea>
+          <label class="form-label text-muted mb-0">Speakers and Facilitators <small>(optional)</small></label>
+          <textarea class="form-control" name="workshop_speakers" rows="3" maxlength="1000">{{ old('workshop_speakers') }}</textarea>
         </div>
       </div>
     </div>
@@ -181,40 +184,40 @@
           <label class="form-label text-muted mb-0">Preferred Time Slot<small class="text-danger">⁽*⁾</small></label>
           <select class="form-select" name="time_slot" required>
             <option value="">Select</option>
-            <option>Morning, 9am-12pm</option>
-            <option>Afternoon, 1pm-4pm</option>
-            <option>Full Day, 9am-4pm</option>
+            <option value="Morning, 9am-12pm" {{ old('time_slot') === 'Morning, 9am-12pm' ? 'selected' : '' }}>Morning, 9am-12pm</option>
+            <option value="Afternoon, 1pm-4pm" {{ old('time_slot') === 'Afternoon, 1pm-4pm' ? 'selected' : '' }}>Afternoon, 1pm-4pm</option>
+            <option value="Full Day, 9am-4pm" {{ old('time_slot') === 'Full Day, 9am-4pm' ? 'selected' : '' }}>Full Day, 9am-4pm</option>
           </select>
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Half or Full Day<small class="text-danger">⁽*⁾</small></label><br>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="day_length" value="Half Day" id="halfDay" required>
+            <input class="form-check-input" type="radio" name="day_length" value="Half Day" id="halfDay" required {{ old('day_length') === 'Half Day' ? 'checked' : '' }}>
             <label class="form-check-label" for="halfDay">Half Day</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="day_length" value="Full Day" id="fullDay">
+            <input class="form-check-input" type="radio" name="day_length" value="Full Day" id="fullDay" {{ old('day_length') === 'Full Day' ? 'checked' : '' }}>
             <label class="form-check-label" for="fullDay">Full Day</label>
           </div>
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Preferred Room Set-up<small class="text-danger">⁽*⁾</small></label><br>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="room_setup" value="theater" id="theater" required>
+            <input class="form-check-input" type="radio" name="room_setup" value="theater" id="theater" required {{ old('room_setup') === 'theater' ? 'checked' : '' }}>
             <label class="form-check-label" for="theater">Theater</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="room_setup" value="rounds" id="rounds">
+            <input class="form-check-input" type="radio" name="room_setup" value="rounds" id="rounds" {{ old('room_setup') === 'rounds' ? 'checked' : '' }}>
             <label class="form-check-label" for="rounds">Rounds</label>
           </div>
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Desired Number of Attendees<small class="text-danger">⁽*⁾</small></label>
-          <input type="number" class="form-control" name="attendees" min="1" required>
+          <input type="number" class="form-control" name="attendees" min="1" required value="{{ old('attendees') }}" max="2147483647">
         </div>
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Notes or Comments</label>
-          <textarea class="form-control" name="notes" rows="2"></textarea>
+          <textarea class="form-control" name="notes" rows="2" maxlength="5000">{{ old('notes') }}</textarea>
         </div>
       </div>
     </div>
@@ -226,11 +229,11 @@
         <div class="mb-3">
           <label class="form-label text-muted mb-0">Will the applying party be the lead contact person for payment?</label><br>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_lead_same" value="Yes" checked>
+            <input class="form-check-input" type="radio" name="payment_lead_same" value="Yes" {{ old('payment_lead_same', 'Yes') === 'Yes' ? 'checked' : '' }}>
             <label class="form-check-label">Yes</label>
           </div>
           <div class="form-check form-check-inline">
-            <input class="form-check-input" type="radio" name="payment_lead_same" value="No">
+            <input class="form-check-input" type="radio" name="payment_lead_same" value="No" {{ old('payment_lead_same', 'Yes') === 'No' ? 'checked' : '' }}>
             <label class="form-check-label">No</label>
           </div>
         </div>
@@ -238,27 +241,27 @@
         <div id="paymentLeadFields" style="display: none;">
           <div class="mb-3">
             <label class="form-label text-muted mb-0">Payment Lead Name</label>
-            <input type="text" class="form-control" name="payment_name">
+            <input type="text" class="form-control" name="payment_name" value="{{ old('payment_name') }}" maxlength="255">
           </div>
           <div class="mb-3">
             <label class="form-label text-muted mb-0">Institution</label>
-            <input type="text" class="form-control" name="payment_institution">
+            <input type="text" class="form-control" name="payment_institution" value="{{ old('payment_institution') }}" maxlength="255">
           </div>
           <div class="mb-3">
             <label class="form-label text-muted mb-0">Professional Title</label>
-            <input type="text" class="form-control" name="payment_title">
+            <input type="text" class="form-control" name="payment_title" value="{{ old('payment_title') }}" maxlength="255">
           </div>
           <div class="mb-3">
             <label class="form-label text-muted mb-0">E-mail</label>
-            <input type="email" class="form-control" name="payment_email">
+            <input type="email" class="form-control" name="payment_email" value="{{ old('payment_email') }}" maxlength="255">
           </div>
           <div class="mb-3">
             <label class="form-label text-muted mb-0">Phone</label>
-            <input type="tel" class="form-control" name="payment_phone">
+            <input type="tel" class="form-control" name="payment_phone" value="{{ old('payment_phone') }}" maxlength="255">
           </div>
           <div class="mb-3">
             <label class="form-label text-muted mb-0">Cell Phone</label>
-            <input type="tel" class="form-control" name="payment_cell">
+            <input type="tel" class="form-control" name="payment_cell" value="{{ old('payment_cell') }}" maxlength="255">
           </div>
         </div>
       </div>
@@ -299,7 +302,7 @@
             </div>
 
         <div class="mb-3 mt-3 form-check">
-          <input type="checkbox" class="form-check-input" name="terms" id="terms" required>
+          <input type="checkbox" class="form-check-input" name="terms" id="terms" required {{ old('terms') ? 'checked' : '' }}>
           <label class="form-check-label" for="terms">I have read, understood, and agree to the above terms and conditions</label>
         </div>
       </div>
@@ -340,97 +343,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.1/dist/signature_pad.umd.min.js"></script>
 
-<script>
-  // Mostrar campos de Payment Lead si es distinto del lead
-  document.querySelectorAll('input[name="payment_lead_same"]').forEach(el => {
-    el.addEventListener('change', function() {
-      document.getElementById('paymentLeadFields').style.display = this.value === 'No' ? 'block' : 'none';
-    });
-  });
-
-  
-</script>
-
-<script>
-  const canvas = document.getElementById('signatureCanvas');
-  const signaturePad = new SignaturePad(canvas, {
-    backgroundColor: 'rgb(255, 255, 255)',
-    penColor: 'rgb(0, 0, 0)',
-    minWidth: 1,
-    maxWidth: 3,
-    velocityFilterWeight: 0.7
-  });
-
-  // Ajustar canvas al tamaño del contenedor
-  function resizeCanvas() {
-    const ratio = Math.max(window.devicePixelRatio || 1, 1);
-    canvas.width = canvas.offsetWidth * ratio;
-    canvas.height = canvas.offsetHeight * ratio;
-    canvas.getContext('2d').scale(ratio, ratio);
-    signaturePad.clear(); // borra si se redimensiona
-  }
-  window.addEventListener('resize', resizeCanvas);
-  resizeCanvas();
-
-  // Botón limpiar
-  document.getElementById('clearSig').addEventListener('click', () => {
-    signaturePad.clear();
-  });
-
-  // Ejemplo: obtener la firma como imagen al enviar el formulario
-  document.getElementById('workshopForm').addEventListener('submit', function(e) {
-    if (signaturePad.isEmpty()) {
-      alert("Please provide a signature.");
-      e.preventDefault();
-    } else {
-      const dataURL = signaturePad.toDataURL(); // PNG de la firma
-      console.log("Firma en base64:", dataURL);
-      // Aquí puedes guardarla en un input hidden si quieres enviarla al servidor
-
-      // guardar firma en hidden input
-      document.getElementById('signatureInput').value = signaturePad.toDataURL('image/png');
-    }
-  });
-</script>
-
-<script>
-    function initWordCounter() {
-  const textareas = document.querySelectorAll('.word-limit');
-
-  textareas.forEach(function(textarea) {
-    const maxWords = parseInt(textarea.dataset.maxWords);
-    const counter = textarea.parentElement.querySelector('.word-count');
-
-    textarea.addEventListener('input', function () {
-      let words = this.value
-        .trim()
-        .split(/\s+/)
-        .filter(word => word.length > 0);
-
-      if (words.length > maxWords) {
-        words = words.slice(0, maxWords);
-        this.value = words.join(' ');
-      }
-
-      counter.textContent = words.length + " / " + maxWords + " words";
-
-      // Cambiar color
-      if (words.length >= maxWords) {
-        counter.classList.remove('text-muted');
-        counter.classList.add('text-danger');
-      } else {
-        counter.classList.remove('text-danger');
-        counter.classList.add('text-muted');
-      }
-    });
-  });
-}
-
-// Inicializar cuando cargue la página
-document.addEventListener('DOMContentLoaded', function () {
-  initWordCounter();
-});
-</script>
+<script src="{{ asset('assets/js/apps/workshops/form-online.js') }}?v={{ filemtime(public_path('assets/js/apps/workshops/form-online.js')) }}"></script>
 
 </body>
 </html>
