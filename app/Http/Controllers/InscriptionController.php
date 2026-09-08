@@ -64,8 +64,8 @@ class InscriptionController extends Controller
             $inscriptionsQuery = Inscription::with('user')
                 ->leftJoin('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
                 ->join('users', 'inscriptions.user_id', '=', 'users.id')
-                ->leftJoin('countries', 'users.country', '=', 'countries.id')
-                ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_country', 'users.email as user_email')
+                ->leftJoin('countries', 'users.nationality', '=', 'countries.id')
+                ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name', 'users.name as user_name', 'users.lastname as user_lastname', 'users.second_lastname as user_second_lastname', 'countries.name as user_nationality', 'users.email as user_email')
                 ->where('inscriptions.status', '!=', 'Refused')
                 ->where(function ($query) use ($search) {
                     if(strcasecmp($search, 'pendiente pagar') === 0){

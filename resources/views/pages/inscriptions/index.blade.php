@@ -199,7 +199,7 @@
                                             <tr>
                                                 <th scope="col">{{__("ID")}}</th>
                                                 <th scope="col">{{__("Participant")}}</th>
-                                                <th scope="col">{{__("Country")}}</th>
+                                                <th scope="col">{{__("Nationality")}}</th>
                                                 <th scope="col">{{__("Category")}}</th>
                                                 <th scope="col">{{__("Payment")}}</th>
                                                 <th scope="col">{{__("Status")}}</th>
@@ -248,7 +248,7 @@
                                                             <small class="text-info" style="font-size: 10px;">{{ $inscription->user_email }}</small>
                                                         </td>
                                                         <td>
-                                                            {{$inscription->user_country}}
+                                                            {{$inscription->user_nationality}}
                                                         </td>
                                                         <td class="pt-0 pb-0">
                                                             {{ strlen($inscription->category_inscription_name) > 13 ? substr($inscription->category_inscription_name, 0, 14) . '...' : $inscription->category_inscription_name }}
