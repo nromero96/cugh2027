@@ -5,6 +5,12 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\HotelReservation;
 use App\Models\User;
+use App\Models\Inscription;
+use App\Http\Requests\StoreHotelierReservationRequest;
+use App\Http\Requests\StoreHotelReservationRequest;
+use App\Http\Requests\UpdateHotelReservationRequest;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class HotelReservationController extends Controller
 {
@@ -64,26 +70,89 @@ class HotelReservationController extends Controller
         return view('pages.hotelreservations.create')->with($data)->with('user', $user);
     }
 
+    public function createByHotelier()
+    {
+        abort_unless(auth()->user()->hasRole('Hotelero'), 403);
+
+        $participants = User::query()
+            ->select('users.id', 'users.name', 'users.lastname', 'users.second_lastname', 'users.email')
+            ->join('model_has_roles', function ($join) {
+                $join->on('model_has_roles.model_id', '=', 'users.id')
+                    ->where('model_has_roles.model_type', User::class);
+            })
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('roles.name', 'Participante')
+            ->whereExists(function ($query) {
+                $query->select(DB::raw(1))
+                    ->from('inscriptions')
+                    ->whereColumn('inscriptions.user_id', 'users.id')
+                    ->where('inscriptions.status', 'Confirmed');
+            })
+            ->distinct()
+            ->orderBy('users.name')
+            ->orderBy('users.lastname')
+            ->get();
+
+        return view('pages.hotelreservations.create-hotelier', [
+            'category_name' => 'hotelreservations',
+            'page_name' => 'hotelreservations_create',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+            'participants' => $participants,
+            'hotels' => StoreHotelierReservationRequest::hotels(),
+            'roomTypes' => $this->roomTypes(),
+        ]);
+    }
+
+    public function storeByHotelier(StoreHotelierReservationRequest $request)
+    {
+        $data = $request->validated();
+
+        $reservation = DB::transaction(function () use ($data) {
+            $acceptedInscription = Inscription::where('user_id', $data['user_id'])
+                ->where('status', 'Confirmed')
+                ->lockForUpdate()
+                ->first();
+
+            if (!$acceptedInscription || !User::whereKey($data['user_id'])->whereHas('roles', function ($query) {
+                $query->where('name', 'Participante');
+            })->exists()) {
+                throw ValidationException::withMessages([
+                    'user_id' => 'The selected participant does not have a confirmed registration.',
+                ]);
+            }
+
+            return HotelReservation::create([
+                'user_id' => $data['user_id'],
+                'hotel_name' => $data['hotel_name'],
+                'habitacion_type' => $data['habitacion_type'],
+                'number_guests' => $data['number_guests'],
+                'check_in' => $data['check_in'],
+                'check_out' => $data['check_out'],
+                'comment' => $data['comment'] ?? null,
+                'status' => 'Pendiente',
+            ]);
+        });
+
+        return redirect()->route('hotelreservations.show', $reservation->id)
+            ->with('success', 'Hotel reservation created successfully.');
+    }
+
+    private function roomTypes(): array
+    {
+        return ['Simple', 'Matrimonial', 'Doble dos camas'];
+    }
+
     /**
      * Store a newly created resource in storage.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreHotelReservationRequest $request)
     {
                 //get logged in user id
                 $user_id = \Auth::user()->id;
-
-                //validate form data
-                $this->validate($request, [
-                    'hotel_name' => 'required',
-                    'habitacion_type' => 'required',
-                    'number_guests' => 'required',
-                    'check_in' => 'required',
-                    'check_out' => 'required',
-                    'comment' => 'required',
-                ]);
 
                 //store form data
                 $hotelreservation = new HotelReservation;
@@ -99,7 +168,7 @@ class HotelReservationController extends Controller
                 $hotelreservation->save();
 
                 //flash success message redirect route hotelreservations.index
-                return redirect()->route('hotelreservations.index')->with('success', 'Reserva de hotel creada con éxito');
+                return redirect()->route('hotelreservations.index')->with('success', 'Hotel reservation created successfully.');
     }
 
     /**
@@ -111,11 +180,12 @@ class HotelReservationController extends Controller
     public function show($id)
     {
 
+        $reservationOwner = HotelReservation::findOrFail($id);
+
         //solo puede ver la reserva el hotelero o Administrador o Secretaria o el usuario que la creo
         if (!\Auth::user()->hasRole('Hotelero') && !\Auth::user()->hasRole('Administrador') && !\Auth::user()->hasRole('Secretaria')) {
             $userid = \Auth::user()->id;
-            $hotelreservation = HotelReservation::find($id);
-            if ($hotelreservation->user_id != $userid) {
+            if ($reservationOwner->user_id != $userid) {
                 return redirect()->route('hotelreservations.index')->with('error', 'No tienes permiso para ver esta reserva de hotel');
             } 
 
@@ -129,14 +199,13 @@ class HotelReservationController extends Controller
                 'users.lastname as user_lastname',
                 'users.second_lastname as user_second_lastname',
                 'users.phone_code as user_phone_code',
-                'users.phone_code_city as user_phone_code_city',
                 'users.phone_number as user_phone_number',
                 'users.whatsapp_code as user_whatsapp_code',
                 'users.whatsapp_number as user_whatsapp_number',
                 'users.email as user_email',
             )
             ->where('hotel_reservations.id', $id)
-            ->first();
+            ->firstOrFail();
 
         $data = [
             'category_name' => 'hotelreservations',
@@ -156,7 +225,19 @@ class HotelReservationController extends Controller
      */
     public function edit($id)
     {
-        //
+        abort_unless(auth()->user()->hasRole('Hotelero'), 403);
+
+        $hotelreservation = HotelReservation::with('user')->whereHas('user')->findOrFail($id);
+
+        return view('pages.hotelreservations.edit', [
+            'category_name' => 'hotelreservations',
+            'page_name' => 'hotelreservations_create',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+            'hotelreservation' => $hotelreservation,
+            'hotels' => StoreHotelierReservationRequest::hotels(),
+            'roomTypes' => $this->roomTypes(),
+        ]);
     }
 
     /**
@@ -166,19 +247,13 @@ class HotelReservationController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateHotelReservationRequest $request, $id)
     {
+        $hotelreservation = HotelReservation::findOrFail($id);
+        $hotelreservation->fill($request->validated())->save();
 
-        //actualizar solo la nota y status
-        $hotelreservation = HotelReservation::find($id);
-
-        $hotelreservation->note = $request->input('note');
-        $hotelreservation->status = $request->input('status');
-
-        $hotelreservation->save();
-
-        //flash success message refresh this reservation
-        return redirect()->route('hotelreservations.show', $id)->with('success', 'Reserva de hotel actualizada con éxito');
+        return redirect()->route('hotelreservations.show', $id)
+            ->with('success', 'Hotel reservation updated successfully.');
 
     }
 

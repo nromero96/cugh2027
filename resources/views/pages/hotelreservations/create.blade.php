@@ -21,6 +21,16 @@
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
+                        @if($errors->any())
+                            <div class="alert alert-danger" role="alert">
+                                <strong>Please correct the following errors:</strong>
+                                <ul class="mb-0 mt-2">
+                                    @foreach($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+                        @endif
                         <form class="row g-3" action="{{ route('hotelreservations.store') }}" method="POST" enctype="multipart/form-data">
                             @csrf
                             <div class="col-md-4">
@@ -85,11 +95,11 @@
                             </div>
                             <div class="col-md-4">
                                 <label for="check_in" class="form-label fw-bold">Check in <span class="text-danger">*</span></label>
-                                <input type="date" name="check_in" class="form-control" id="check_in">
+                                <input type="date" name="check_in" class="form-control" id="check_in" min="{{ \App\Models\HotelReservation::BOOKING_CHECK_IN_MIN }}" max="{{ \App\Models\HotelReservation::BOOKING_CHECK_IN_MAX }}" value="{{ old('check_in') }}" required>
                             </div>
                             <div class="col-md-4">
                                 <label for="check_out" class="form-label fw-bold">Check out <span class="text-danger">*</span></label>
-                                <input type="date" name="check_out" class="form-control" id="check_out">
+                                <input type="date" name="check_out" class="form-control" id="check_out" min="{{ \App\Models\HotelReservation::BOOKING_CHECK_OUT_MIN }}" max="{{ \App\Models\HotelReservation::BOOKING_CHECK_OUT_MAX }}" value="{{ old('check_out') }}" required>
                             </div>
                             <div class="col-md-12">
                                 <label for="comment" class="form-label fw-bold">Anotations</label>
@@ -97,7 +107,7 @@
                             </div>
 
                             <div class="col-12 text-end">
-                                <button type="submit" class="btn btn-primary" disabled>{{__("Request Reservation")}}</button>
+                                <button type="submit" class="btn btn-primary">{{__("Request Reservation")}}</button>
                             </div>
                         </form>
                     </div>
@@ -109,4 +119,31 @@
 
 </div>
 
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const checkIn = document.getElementById('check_in');
+    const checkOut = document.getElementById('check_out');
+    if (!checkIn || !checkOut) return;
+
+    function updateMinimumCheckout() {
+        if (checkIn.value) {
+            const nextDay = new Date(checkIn.value + 'T00:00:00Z');
+            nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+            checkOut.min = nextDay.toISOString().slice(0, 10);
+        } else {
+            checkOut.min = '{{ \App\Models\HotelReservation::BOOKING_CHECK_OUT_MIN }}';
+        }
+
+        if (checkIn.value && checkOut.value && checkOut.value <= checkIn.value) {
+            checkOut.value = '';
+        }
+    }
+
+    checkIn.addEventListener('change', updateMinimumCheckout);
+    updateMinimumCheckout();
+});
+</script>
 @endsection

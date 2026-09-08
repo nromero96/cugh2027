@@ -195,6 +195,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //HotelReservations
+    Route::get('hotelreservations-hotelier/create', [HotelReservationController::class, 'createByHotelier'])->name('hotelreservations.hotelier.create');
+    Route::post('hotelreservations-hotelier', [HotelReservationController::class, 'storeByHotelier'])->name('hotelreservations.hotelier.store');
     Route::resource('hotelreservations', HotelReservationController::class)->names('hotelreservations');
 
 

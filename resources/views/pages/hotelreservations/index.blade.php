@@ -37,7 +37,7 @@
                     <div class="widget-header pt-4">
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 col-12 text-end">
-                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
+                                <a href="{{ Auth::user()->hasRole('Hotelero') ? route('hotelreservations.hotelier.create') : route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
                             </div>
                         </div>
                     </div>
@@ -63,7 +63,7 @@
                                         <tr>
                                             <td colspan="9" class="text-center">
                                                 <h6 class="mt-2">{{__("There are no reservations registered")}}</h6>
-                                                <a href="{{ route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
+                                                <a href="{{ Auth::user()->hasRole('Hotelero') ? route('hotelreservations.hotelier.create') : route('hotelreservations.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Reservation")}}</a>
                                             </td>
                                         </tr>
                                     @else
