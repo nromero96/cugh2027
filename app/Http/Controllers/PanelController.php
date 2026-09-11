@@ -16,6 +16,7 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class PanelController extends Controller
 {
+    private const SUBMISSIONS_CLOSED_MESSAGE = 'PANEL SUBMISSION IS NOW CLOSED';
     /**
      * Display a listing of the resource.
      *
@@ -231,6 +232,11 @@ class PanelController extends Controller
 
     public function formOnline()
     {
+        return view('pages.submissions.closed', [
+            'message' => self::SUBMISSIONS_CLOSED_MESSAGE,
+        ]);
+
+        /* Submission form retained for a future reopening.
         $data = [
             'category_name' => 'panels',
             'page_name' => 'panels_create',
@@ -241,10 +247,16 @@ class PanelController extends Controller
         $countries = Country::all();
 
         return view('pages.panels.form-online', $data)->with('countries', $countries);
+        */
     }
 
     public function storeOnline(Request $request)
     {
+        return response()->view('pages.submissions.closed', [
+            'message' => self::SUBMISSIONS_CLOSED_MESSAGE,
+        ], 410);
+
+        /* Submission storage retained for a future reopening.
         $this->validatePanelRequest($request);
 
         $speakers = $this->cleanSpeakers($request->input('speakers', []));
@@ -280,6 +292,7 @@ class PanelController extends Controller
 
         return redirect()->route('panels.formonline')
             ->with('success', 'Panel submitted successfully.');
+        */
     }
 
     private function validatePanelRequest(Request $request): void

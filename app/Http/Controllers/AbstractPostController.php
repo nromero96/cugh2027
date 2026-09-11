@@ -18,6 +18,7 @@ use TCPDF;
 class AbstractPostController extends Controller
 {
     private const MAX_ABSTRACTS_PER_PARTICIPANT = 3;
+    private const SUBMISSIONS_CLOSED_MESSAGE = 'ABSTRACT SUBMISSION IS NOW CLOSED';
 
     /**
      * Display a listing of the resource.
@@ -164,6 +165,11 @@ class AbstractPostController extends Controller
      */
     public function create()
     {
+        return view('pages.submissions.closed', [
+            'message' => self::SUBMISSIONS_CLOSED_MESSAGE,
+        ]);
+
+        /* Submission form retained for a future reopening.
         $id = \Auth::user()->id;
 
         if ($this->participantAbstractLimitReached($id)) {
@@ -186,6 +192,7 @@ class AbstractPostController extends Controller
             ->with($data)
             ->with('user', $user)
             ->with('countries', $countries);
+        */
     }
 
     /**
@@ -196,6 +203,11 @@ class AbstractPostController extends Controller
      */
     public function store(Request $request)
     {
+        return response()->view('pages.submissions.closed', [
+            'message' => self::SUBMISSIONS_CLOSED_MESSAGE,
+        ], 410);
+
+        /* Submission storage retained for a future reopening.
         $id_user = \Auth::user()->id;
 
         $request->validate([
@@ -393,6 +405,7 @@ class AbstractPostController extends Controller
 
         return redirect()->route('abstract_posts.show', $abstractpost->id)
             ->with('success', 'Sent successfully');
+        */
     }
 
     /**
