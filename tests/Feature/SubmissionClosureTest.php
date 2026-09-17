@@ -2,25 +2,40 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class SubmissionClosureTest extends TestCase
 {
-    private const MESSAGE = 'ABSTRACT AND PANEL SUBMISSION IS NOW CLOSED';
+    private const MESSAGE = 'ABSTRACT SUBMISSION IS NOW CLOSED';
 
-    public function test_panel_submission_form_displays_closed_message()
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config(['database.default' => 'submission_testing', 'database.connections.submission_testing' => [
+            'driver' => 'sqlite', 'database' => ':memory:', 'prefix' => '',
+        ]]);
+        Schema::create('countries', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+        });
+    }
+
+    public function test_panel_submission_form_is_open()
     {
         $this->get(route('panels.formonline'))
             ->assertOk()
-            ->assertSeeText(self::MESSAGE);
+            ->assertSee('id="panelForm"', false)
+            ->assertDontSeeText(self::MESSAGE);
     }
 
-    public function test_panel_submission_endpoint_rejects_new_records()
+    public function test_panel_submission_endpoint_accepts_requests_and_validates_them()
     {
-        $this->withoutMiddleware()
+        $this->from(route('panels.formonline'))->withoutMiddleware()
             ->post(route('panels.storeonline'), ['contact_email' => 'test@example.com'])
-            ->assertStatus(410)
-            ->assertSeeText(self::MESSAGE);
+            ->assertRedirect(route('panels.formonline'))
+            ->assertSessionHasErrors(['language', 'subthemes', 'title']);
     }
 
     public function test_abstract_creation_form_displays_closed_message()
