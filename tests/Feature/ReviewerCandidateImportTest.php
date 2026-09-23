@@ -155,6 +155,7 @@ class ReviewerCandidateImportTest extends TestCase
             'status' => 'Draft',
         ]);
         Mail::assertSent(ReviewerAccountCreated::class, function ($mail) use ($user, $email) {
+            $mail->build();
             $html = view('emails.reviewer-account-created', [
                 'user' => $mail->user,
                 'plainPassword' => $mail->plainPassword,
@@ -162,7 +163,8 @@ class ReviewerCandidateImportTest extends TestCase
 
             return $mail->hasTo($email)
                 && $mail->hasBcc('notifications@example.org')
-                && $mail->build()->subject === 'CUGH 2027 - Your reviewer account (Ana Reviewer)'
+                && $mail->hasReplyTo('notifications@example.org')
+                && $mail->subject === 'CUGH 2027 - Your reviewer account (Ana Reviewer)'
                 && $mail->user->is($user)
                 && Hash::check($mail->plainPassword, $user->password)
                 && strlen($mail->plainPassword) === 16

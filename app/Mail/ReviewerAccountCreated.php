@@ -30,6 +30,11 @@ class ReviewerAccountCreated extends Mailable
             return $part !== null && trim($part) !== '';
         })));
 
+        $replyTo = config('services.correonotificacion.copy');
+        if ($replyTo) {
+            $this->replyTo($replyTo);
+        }
+
         return $this
             ->subject('CUGH 2027 - Your reviewer account ('.($name ?: $this->user->email).')')
             ->view('emails.reviewer-account-created');
