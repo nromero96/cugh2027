@@ -52,4 +52,19 @@ class AbstractPost extends Model
             ->orderBy('created_at', 'desc');
     }
 
+    public function reviewers()
+    {
+        return $this->belongsToMany(User::class, 'abstract_post_reviewers', 'abstract_post_id', 'reviewer_id')
+            ->withPivot([
+                'score_1',
+                'score_2',
+                'score_3',
+                'score_4',
+                'score_5',
+                'average_score',
+                'reviewer_note',
+            ])
+            ->withTimestamps();
+    }
+
 }

@@ -8,7 +8,11 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Country;
+use App\Models\ReviewerCandidate;
+use App\Http\Requests\AssignAbstractReviewersRequest;
+use App\Http\Requests\SubmitAbstractReviewRequest;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 use App\Exports\AbstractPostExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -38,7 +42,8 @@ class AbstractPostController extends Controller
 
         $search = trim($request->input('search', ''));
         $status = $request->input('status');
-        $isStaff = auth()->user()->hasRole('Administrador') || auth()->user()->hasRole('Secretaria');
+        $isAdministrator = auth()->user()->hasRole('Administrador');
+        $isStaff = $isAdministrator || auth()->user()->hasRole('Secretaria');
         $rejectedPage = $request->attributes->get('rejected_listing', false);
 
         if ($rejectedPage) {
@@ -46,21 +51,20 @@ class AbstractPostController extends Controller
         }
 
         $query = AbstractPost::with('user');
+        if ($isAdministrator && !$rejectedPage) {
+            $query->with('reviewers:id,name,lastname,second_lastname,email');
+        }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Restricción por rol
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            !$isStaff
-        ) {
-            $query->where('user_id', $userid);
-        } elseif ($rejectedPage) {
+        if ($rejectedPage && $isStaff) {
             $query->where('status', 'rejected');
-        } else {
+        } elseif ($isAdministrator) {
+            // Administrators manage all active abstracts from the main listing.
             $query->where('status', '!=', 'rejected');
+        } else {
+            $query->where('user_id', $userid);
+            if ($rejectedPage) {
+                $query->where('status', 'rejected');
+            }
         }
 
         /*
@@ -116,9 +120,9 @@ class AbstractPostController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $allowedStatuses = $isStaff
-            ? ['draft', 'submitted', 'accepted']
-            : ['draft', 'submitted', 'accepted', 'rejected'];
+        $allowedStatuses = $isAdministrator
+            ? ['draft', 'submitted', 'qualified', 'accepted']
+            : ['draft', 'submitted', 'qualified', 'accepted', 'rejected'];
 
         if (!$rejectedPage && in_array($status, $allowedStatuses, true)) {
             $query->where('status', $status);
@@ -136,9 +140,13 @@ class AbstractPostController extends Controller
         $abstractReport = null;
         if ($isStaff) {
             $abstractReport = AbstractPost::query()
+                ->when(!$isAdministrator, function ($reportQuery) use ($userid) {
+                    $reportQuery->where('user_id', $userid);
+                })
                 ->selectRaw('COUNT(*) as total')
                 ->selectRaw("SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft")
                 ->selectRaw("SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) as submitted")
+                ->selectRaw("SUM(CASE WHEN status = 'qualified' THEN 1 ELSE 0 END) as qualified")
                 ->selectRaw("SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted")
                 ->selectRaw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected")
                 ->first();
@@ -416,9 +424,7 @@ class AbstractPostController extends Controller
      */
     public function show(AbstractPost $abstractPost)
     {
-
-        // 🔒 Validar que sea el dueño o Admistrador
-        if ($abstractPost->user_id != \Auth::id() && !\Auth::user()->hasRole('Administrador')) {
+        if (!$this->canViewAbstract($abstractPost)) {
             abort(403);
         }
 
@@ -432,16 +438,18 @@ class AbstractPostController extends Controller
         $user = User::find($abstractPost->user_id);
 
 
-        // ✅ validar que sea del usuario
-        if ($abstractPost->user_id !== auth()->id() && !auth()->user()->hasRole(['Administrador', 'Calificador'])) {
-            return redirect()->route('abstract_posts.index')
-                ->with('error', 'Permission denied, you do not have permission to view this abstract post.');
+        // 🔥 cargar relación
+        $abstractPost->load(['user', 'mainAuthorCountry', 'notes.user', 'reviewers']);
+        $reviewAssignment = $abstractPost->reviewers->firstWhere('id', auth()->id());
+        if (request('from') === 'assigned' && $reviewAssignment) {
+            $data['category_name'] = 'assigned_abstracts';
         }
 
-        // 🔥 cargar relación
-        $abstractPost->load(['user', 'mainAuthorCountry', 'notes.user']);
-
-        return view('pages.abstract_posts.show')->with($data)->with('abstract_post', $abstractPost)->with('user', $user);
+        return view('pages.abstract_posts.show')
+            ->with($data)
+            ->with('abstract_post', $abstractPost)
+            ->with('user', $user)
+            ->with('reviewAssignment', $reviewAssignment);
     }
 
     /**
@@ -705,7 +713,7 @@ class AbstractPostController extends Controller
 
         $request->validate([
             'comment' => 'nullable|string|max:1000',
-            'status' => 'required|in:draft,submitted,accepted,rejected',
+            'status' => 'required|in:draft,submitted,qualified,accepted,rejected',
         ]);
 
         $oldStatus = $abstractPost->status;
@@ -741,12 +749,151 @@ class AbstractPostController extends Controller
         );
     }
 
+    public function reviewerAssignments(Request $request)
+    {
+        $this->ensureAdministrator();
+
+        $search = trim((string) $request->input('search', ''));
+        $abstracts = AbstractPost::query()
+            ->with(['user', 'reviewers:id,name,lastname,second_lastname,email'])
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($searchQuery) use ($search) {
+                    $id = ltrim($search, '#');
+                    if (ctype_digit($id)) {
+                        $searchQuery->orWhere('abstract_posts.id', (int) $id);
+                    }
+
+                    $searchQuery->orWhere('title', 'like', '%'.$search.'%')
+                        ->orWhereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('email', 'like', '%'.$search.'%');
+                        });
+                });
+            })
+            ->orderByDesc('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        $reviewers = User::query()
+            ->whereIn('email', ReviewerCandidate::query()->select('email'))
+            ->withCount('assignedAbstracts')
+            ->orderBy('name')
+            ->orderBy('lastname')
+            ->get(['id', 'name', 'lastname', 'second_lastname', 'email']);
+
+        return view('pages.abstract_posts.reviewer-assignments', [
+            'category_name' => 'abstract_posts',
+            'page_name' => 'abstract_posts',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+            'abstracts' => $abstracts,
+            'reviewers' => $reviewers,
+            'search' => $search,
+        ]);
+    }
+
+    public function assignedAbstracts()
+    {
+        $user = auth()->user();
+        abort_unless($user && $user->assignedAbstracts()->exists(), 403);
+
+        $abstracts = $user->assignedAbstracts()
+            ->with('user')
+            ->orderByDesc('abstract_posts.id')
+            ->paginate(20);
+
+        return view('pages.abstract_posts.assigned', [
+            'category_name' => 'assigned_abstracts',
+            'page_name' => 'assigned_abstracts',
+            'has_scrollspy' => 0,
+            'scrollspy_offset' => '',
+            'abstracts' => $abstracts,
+        ]);
+    }
+
+    public function updateReviewerAssignments(AssignAbstractReviewersRequest $request, AbstractPost $abstractPost)
+    {
+        $reviewerIds = collect($request->validated()['reviewer_ids'] ?? [])
+            ->map(function ($id) {
+                return (int) $id;
+            })
+            ->unique()
+            ->values()
+            ->all();
+
+        DB::transaction(function () use ($abstractPost, $reviewerIds) {
+            $lockedAbstract = AbstractPost::whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
+            $hasSubmittedReviews = DB::table('abstract_post_reviewers')
+                ->where('abstract_post_id', $abstractPost->id)
+                ->whereNotNull('average_score')
+                ->exists();
+
+            if ($lockedAbstract->status === 'qualified' || $hasSubmittedReviews) {
+                throw ValidationException::withMessages([
+                    'reviewer_ids' => 'Reviewer assignments cannot be changed after an evaluation has been submitted.',
+                ]);
+            }
+
+            $abstractPost->reviewers()->sync($reviewerIds);
+        });
+
+        return back()->with('success', 'Reviewers assigned successfully.');
+    }
+
+    public function submitReview(SubmitAbstractReviewRequest $request, AbstractPost $abstractPost)
+    {
+        $validated = $request->validated();
+        $scores = collect(range(1, 5))->map(function ($number) use ($validated) {
+            return (int) $validated['score_'.$number];
+        });
+
+        DB::transaction(function () use ($abstractPost, $validated, $scores) {
+            $lockedAbstract = AbstractPost::whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
+            $assignment = DB::table('abstract_post_reviewers')
+                ->where('abstract_post_id', $abstractPost->id)
+                ->where('reviewer_id', auth()->id())
+                ->lockForUpdate()
+                ->first();
+
+            abort_unless($assignment, 403);
+
+            if ($lockedAbstract->status === 'qualified' || $assignment->average_score !== null) {
+                throw ValidationException::withMessages([
+                    'review' => 'This evaluation has already been submitted and cannot be changed.',
+                ]);
+            }
+
+            DB::table('abstract_post_reviewers')
+                ->where('id', $assignment->id)
+                ->update([
+                    'score_1' => $scores[0],
+                    'score_2' => $scores[1],
+                    'score_3' => $scores[2],
+                    'score_4' => $scores[3],
+                    'score_5' => $scores[4],
+                    'average_score' => round($scores->average(), 2),
+                    'reviewer_note' => $validated['reviewer_note'] ?? null,
+                    'updated_at' => now(),
+                ]);
+
+            $hasPendingReviews = DB::table('abstract_post_reviewers')
+                ->where('abstract_post_id', $abstractPost->id)
+                ->whereNull('average_score')
+                ->exists();
+
+            if (!$hasPendingReviews) {
+                $lockedAbstract->status = 'qualified';
+                $lockedAbstract->save();
+            }
+        });
+
+        return back()->with('success', 'Your evaluation was submitted successfully and can no longer be changed.');
+    }
+
 
     public function pdf(AbstractPost $abstractPost)
     {
 
-        // 🔒 Validar que sea el dueño o Admistrador
-        if ($abstractPost->user_id != \Auth::id() && !\Auth::user()->hasRole('Administrador')) {
+        if (!$this->canViewAbstract($abstractPost)) {
             abort(403);
         }
 
@@ -982,6 +1129,26 @@ class AbstractPostController extends Controller
     private function abstractLimitMessage(): string
     {
         return 'You have reached the maximum limit of 3 abstracts per participant.';
+    }
+
+    private function ensureAdministrator(): void
+    {
+        if (!auth()->check() || !auth()->user()->hasRole('Administrador')) {
+            abort(403);
+        }
+    }
+
+    private function canViewAbstract(AbstractPost $abstractPost): bool
+    {
+        if ($abstractPost->user_id === auth()->id()) {
+            return true;
+        }
+
+        if (auth()->user()->hasRole(['Administrador', 'Secretaria'])) {
+            return true;
+        }
+
+        return $abstractPost->reviewers()->where('users.id', auth()->id())->exists();
     }
 
 

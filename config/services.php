@@ -38,6 +38,7 @@ return [
         'trabajoaceptado' => env('CORREO_NOTIFICACION_TRABAJO_ACEPTADO'),
         'panel' => env('CORREO_NOTIFICACION_PANEL'),
         'passwordreset' => env('CORREO_NOTIFICACION_PASSWORDRESET'),
+        'copy' => env('CORREO_NOTIFICACION_COPY'),
     ],
 
     'niubiz' => [

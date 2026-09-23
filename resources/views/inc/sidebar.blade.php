@@ -171,6 +171,37 @@
                 </li>
             @endcan
 
+            @if(Auth::user()->assignedAbstracts()->exists())
+                <li class="menu {{ ($category_name === 'assigned_abstracts') ? 'active' : '' }}">
+                    <a href="{{ route('abstract_posts.assigned') }}" aria-expanded="false" class="dropdown-toggle">
+                        <div class="">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M8 3h9l4 4v14H8z"></path>
+                                <path d="M17 3v5h4"></path>
+                                <path d="M3 8h7M3 12h7M3 16h5"></path>
+                                <path d="m12 15 2 2 4-4"></path>
+                            </svg>
+                            <span>Assigned Abstracts</span>
+                        </div>
+                    </a>
+                </li>
+            @endif
+
+            @if(Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Secretaria'))
+                <li class="menu {{ ($category_name === 'reviewer_candidates') ? 'active' : '' }}">
+                    <a href="{{ route('reviewer_candidates.index') }}" aria-expanded="false" class="dropdown-toggle">
+                        <div class="">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="m16 11 2 2 4-4"></path>
+                            </svg>
+                            <span>Reviewer Directory</span>
+                        </div>
+                    </a>
+                </li>
+            @endif
+
             
             
             @can('workshops.index')

@@ -33,6 +33,7 @@ use App\Http\Controllers\CategoryInscriptionController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\MemberInstitutionController;
 use App\Http\Controllers\PanelController;
+use App\Http\Controllers\ReviewerCandidateController;
 
 
 use Illuminate\Support\Facades\Artisan;
@@ -149,6 +150,15 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Users
     Route::resource('users', UserController::class)->names('users');
+
+    //Reviewer candidate directory
+    Route::get('/reviewer-candidates', [ReviewerCandidateController::class, 'index'])->name('reviewer_candidates.index');
+    Route::post('/reviewer-candidates/import', [ReviewerCandidateController::class, 'import'])->name('reviewer_candidates.import');
+    Route::post('/reviewer-candidates/{reviewerCandidate}/create-user', [ReviewerCandidateController::class, 'createUser'])->name('reviewer_candidates.create_user');
+    Route::get('/reviewer-candidates/import-errors/{token}', [ReviewerCandidateController::class, 'downloadImportErrors'])
+        ->where('token', '[0-9a-fA-F-]{36}')
+        ->name('reviewer_candidates.import_errors');
+    Route::get('/reviewer-candidates/template', [ReviewerCandidateController::class, 'template'])->name('reviewer_candidates.template');
     
     //Roles
     Route::resource('roles', RoleController::class)->names('roles');
@@ -201,7 +211,11 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Abstracts
+    Route::get('/assigned-abstracts', [AbstractPostController::class, 'assignedAbstracts'])->name('abstract_posts.assigned');
     Route::get('/abstract-posts-rejected', [AbstractPostController::class, 'rejected'])->name('abstract_posts.rejected');
+    Route::get('/abstract-post-reviewer-assignments', [AbstractPostController::class, 'reviewerAssignments'])->name('abstract_posts.assignments');
+    Route::put('/abstract-post-reviewer-assignments/{abstractPost}', [AbstractPostController::class, 'updateReviewerAssignments'])->name('abstract_posts.assignments.update');
+    Route::put('/abstract-posts/{abstractPost}/review', [AbstractPostController::class, 'submitReview'])->name('abstract_posts.review');
     Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');
     Route::get('/exportar-excel-abstracts', [AbstractPostController::class, 'exportExcelAbstracts'])->name('abstract_posts.exportexcel');
     Route::post('/update-abstract-status/{abstractPost}', [AbstractPostController::class, 'updateStatus'])->name('abstract_posts.updatestatus');

@@ -3,6 +3,17 @@
 
 @section('content')
 
+<style>
+    .abstract-reviewer-stack { display: inline-flex; align-items: center; padding: 4px 8px 4px 0; vertical-align: middle; }
+    .abstract-reviewer-avatar { position: relative; display: inline-flex; flex: 0 0 32px; width: 32px; height: 32px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; cursor: help; }
+    .abstract-reviewer-avatar + .abstract-reviewer-avatar { margin-left: -9px; }
+    .abstract-reviewer-avatar:nth-child(1) { z-index: 3; }
+    .abstract-reviewer-avatar:nth-child(2) { z-index: 2; }
+    .abstract-reviewer-avatar:nth-child(3) { z-index: 1; }
+    .abstract-reviewer-avatar:hover, .abstract-reviewer-avatar:focus { z-index: 5; }
+    .abstract-reviewer-check { position: absolute; top: -6px; right: -5px; display: inline-flex; width: 16px; height: 16px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; font-size: 10px; line-height: 1; }
+</style>
+
 
 <div class="layout-px-spacing">
 
@@ -27,8 +38,6 @@
 
                     @php
                         $user = Auth::user();
-                        //get user logged role
-                        $userRole = $user->roles->pluck('name')->toArray();
                     @endphp
                     
                     
@@ -81,12 +90,22 @@
                                                     Submitted
                                                 </option>
 
+                                                <option value="qualified" {{ request('status') === 'qualified' ? 'selected' : '' }}>
+                                                    Qualified
+                                                </option>
+
                                                 <option
                                                     value="accepted"
                                                     {{ request('status') === 'accepted' ? 'selected' : '' }}
                                                 >
                                                     Accepted
                                                 </option>
+
+                                                @unless(\Auth::user()->hasRole('Administrador'))
+                                                    <option value="rejected" {{ request('status') === 'rejected' ? 'selected' : '' }}>
+                                                        Rejected
+                                                    </option>
+                                                @endunless
 
                                             </select>
                                         </div>
@@ -115,6 +134,9 @@
                             </div>
                             <div class="col-4 text-end">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                    @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
+                                        <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign Reviewers</a>
+                                    @endif
                                     @if($rejectedPage)
                                         <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary mb-3" title="Back to Abstracts" aria-label="Back to Abstracts">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
@@ -161,6 +183,9 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("#") }}</th>
+                                        @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
+                                            <th scope="col" class="px-1 text-center">Reviewers</th>
+                                        @endif
                                         <th scope="col">{{__("Main Author")}}</th>
                                         <th scope="col">{{__("Type")}}</th>
                                         <th scope="col">{{__("Title")}}</th>
@@ -172,32 +197,45 @@
                                 <tbody>
                                     @if ($abstract_posts->isEmpty())
 
-                                        @if( $userRole[0] == 'Calificador')
-                                            <tr>
-                                                <td colspan="8" class="text-center">
-                                                    <h6 class="mt-2">{{__("He does not yet have any jobs assigned to him to qualify.")}}</h6>
-                                                </td>
-                                            </tr>
-                                        @else
-                                            <tr>
-                                                <td colspan="8" class="text-center">
-                                                    <h6 class="mt-2">{{__("There are no registered abstract")}}</h6>
-                                                    @if($abstractLimitReached)
-                                                        <button type="button" class="btn btn-primary mb-4 ms-3 me-3" disabled title="{{ $maxAbstracts }} abstracts maximum">
-                                                            {{__("New Abstract")}}
-                                                        </button>
-                                                    @else
-                                                        <a href="{{ route('abstract_posts.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("New Abstract")}}</a>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @endif
+                                        <tr>
+                                            <td colspan="{{ \Auth::user()->hasRole('Administrador') && !$rejectedPage ? 8 : 7 }}" class="text-center">
+                                                <h6 class="mt-2">No abstracts found.</h6>
+                                            </td>
+                                        </tr>
                                     @else
                                         @foreach ($abstract_posts as $abstrpost)
                                             <tr>
                                                 <td>
                                                     <a href="{{ route('abstract_posts.show', $abstrpost->id) }}" class="text-primary text-decoration-underline"> <b>{{$abstrpost->id}}</b> </a>
                                                 </td>
+                                                @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
+                                                    <td class="text-center px-1">
+                                                        @if($abstrpost->reviewers->isNotEmpty())
+                                                            <div class="abstract-reviewer-stack">
+                                                            @foreach($abstrpost->reviewers as $reviewer)
+                                                            @php
+                                                                $reviewerName = trim($reviewer->name.' '.$reviewer->lastname.' '.$reviewer->second_lastname);
+                                                                $initial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($reviewerName ?: $reviewer->email, 0, 1));
+                                                                $hasReviewed = $reviewer->pivot->average_score !== null;
+                                                                $reviewerTooltip = ($reviewerName ?: $reviewer->email).' — '.$reviewer->email.' — '.($hasReviewed ? 'Reviewed' : 'Pending');
+                                                            @endphp
+                                                            <span class="abstract-reviewer-avatar bg-primary text-white fw-bold"
+                                                                  title="{{ $reviewerTooltip }}"
+                                                                  aria-label="{{ $reviewerTooltip }}"
+                                                                  tabindex="0">
+                                                                {{ $initial }}
+                                                                @if($hasReviewed)
+                                                                    <span class="abstract-reviewer-check bg-success text-white"
+                                                                          aria-hidden="true">✓</span>
+                                                                @endif
+                                                            </span>
+                                                            @endforeach
+                                                            </div>
+                                                        @else
+                                                            <span class="text-muted">—</span>
+                                                        @endif
+                                                    </td>
+                                                @endif
                                                 <td>
                                                     <span class="d-block">
                                                         {{ $abstrpost->main_author['name'] ?? '' }}
@@ -217,6 +255,8 @@
                                                         <span class="badge badge-light-warning text-capitalize">In progress</span>
                                                     @elseif ($abstrpost->status == 'submitted')
                                                         <span class="badge badge-light-info text-capitalize">{{ $abstrpost->status }}</span>
+                                                    @elseif ($abstrpost->status == 'qualified')
+                                                        <span class="badge badge-light-primary text-capitalize">Qualified</span>
                                                     @elseif ($abstrpost->status == 'accepted')
                                                         <span class="badge badge-light-success text-capitalize">{{ $abstrpost->status }}</span>
                                                     @elseif ($abstrpost->status == 'rejected')
@@ -267,7 +307,7 @@
                 @if($abstractReport && !$rejectedPage)
                     <div class="card mt-4 mb-4">
                         <div class="card-header">
-                            <h5 class="mb-0">Abstract Report</h5>
+                            <h5 class="mb-0">{{ \Auth::user()->hasRole('Administrador') ? 'Abstract Report' : 'My Abstract Report' }}</h5>
                         </div>
                         <div class="card-body">
                             <div class="row g-3 text-center">
@@ -287,6 +327,12 @@
                                     <div class="border border-info rounded p-3 h-100">
                                         <div class="text-info small text-uppercase">Submitted</div>
                                         <div class="fs-3 fw-bold">{{ (int) $abstractReport->submitted }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-primary rounded p-3 h-100">
+                                        <div class="text-primary small text-uppercase">Qualified</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->qualified }}</div>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md">

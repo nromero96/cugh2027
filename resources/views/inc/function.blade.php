@@ -18,6 +18,10 @@ if (!function_exists('setTitle')) :
             echo __('Add User') . $admin_name;
         elseif ($page_name === 'usersedit'):
             echo __('Edit User') . $admin_name;
+        elseif ($page_name === 'reviewer_candidates'):
+            echo __('Reviewer Directory') . $admin_name;
+        elseif ($page_name === 'assigned_abstracts'):
+            echo __('Assigned Abstracts') . $admin_name;
 
         elseif ($page_name === 'roles'):
             echo __('Roles') . $admin_name;

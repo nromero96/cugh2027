@@ -122,6 +122,21 @@ class User extends Authenticatable
         return $this->hasOne(Inscription::class);
     }
 
+    public function assignedAbstracts()
+    {
+        return $this->belongsToMany(AbstractPost::class, 'abstract_post_reviewers', 'reviewer_id', 'abstract_post_id')
+            ->withPivot([
+                'score_1',
+                'score_2',
+                'score_3',
+                'score_4',
+                'score_5',
+                'average_score',
+                'reviewer_note',
+            ])
+            ->withTimestamps();
+    }
+
     // Nacionalidad (opcional)
     public function nationalityCountry()
     {
