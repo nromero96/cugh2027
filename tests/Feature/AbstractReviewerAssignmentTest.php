@@ -5,16 +5,22 @@ namespace Tests\Feature;
 use App\Http\Controllers\AbstractPostController;
 use App\Models\AbstractPost;
 use App\Models\User;
+use App\Services\AbstractReviewerAssignmentImportService;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class AbstractReviewerAssignmentTest extends TestCase
 {
     private const FORM_MIDDLEWARE = [
+        \App\Http\Middleware\VerifyCsrfToken::class,
         \App\Http\Middleware\CheckInscription::class,
         \App\Http\Middleware\EnsureStatusActive::class,
     ];
@@ -484,6 +490,123 @@ class AbstractReviewerAssignmentTest extends TestCase
         $this->withoutMiddleware(self::FORM_MIDDLEWARE)
             ->get(route('abstract_posts.assigned'))
             ->assertForbidden();
+    }
+
+    public function test_import_matches_uppercase_emails_and_returns_rejected_rows_without_partial_assignments()
+    {
+        $owner = $this->user(1, 3);
+        $reviewer = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $file = $this->assignmentCsv(
+            "abstract_post_id,Revisor 1,Revisor 2,Revisor 3\n"
+            ."1,USER2@EXAMPLE.COM,,\n"
+            ."2,user2@example.com,missing@example.com,\n"
+            ."1,user2@example.com,,\n"
+        );
+
+        try {
+            $service = app(AbstractReviewerAssignmentImportService::class);
+            $result = $service->import($file);
+
+            $this->assertSame(1, $result['added']);
+            $this->assertCount(2, $result['rejected_rows']);
+            $this->assertSame([$reviewer->id], $abstract->fresh()->reviewers->pluck('id')->all());
+            $this->assertStringContainsString('missing@example.com', $service->rejectedRowsCsv($result['rejected_rows']));
+            $this->assertStringContainsString('Duplicate abstract_post_id', $service->rejectedRowsCsv($result['rejected_rows']));
+
+            $secondImport = $service->import($file);
+            $this->assertSame(0, $secondImport['added']);
+            $this->assertSame(1, $secondImport['unchanged']);
+            $this->assertCount(1, $abstract->fresh()->reviewers);
+        } finally {
+            @unlink($file->getRealPath());
+        }
+    }
+
+    public function test_import_preserves_submitted_reviews_and_reports_over_capacity_rows()
+    {
+        $owner = $this->user(1, 3);
+        $first = $this->user(2, 3);
+        $second = $this->user(3, 3);
+        $third = $this->user(4, 3);
+        $fourth = $this->user(5, 3);
+        $locked = $this->abstract(1, $owner->id);
+        $full = $this->abstract(2, $owner->id);
+        $locked->reviewers()->attach($first->id, ['average_score' => 7]);
+        $full->reviewers()->attach([$first->id, $second->id, $third->id]);
+        $file = $this->assignmentCsv(
+            "abstract_post_id,Revisor 1,Revisor 2,Revisor 3\n"
+            ."1,user5@example.com,,\n"
+            ."2,user5@example.com,,\n"
+        );
+
+        try {
+            $result = app(AbstractReviewerAssignmentImportService::class)->import($file);
+            $this->assertSame(0, $result['added']);
+            $this->assertCount(2, $result['rejected_rows']);
+            $this->assertCount(1, $locked->fresh()->reviewers);
+            $this->assertCount(3, $full->fresh()->reviewers);
+        } finally {
+            @unlink($file->getRealPath());
+        }
+    }
+
+    public function test_import_page_saves_a_downloadable_error_report_for_administrators()
+    {
+        Storage::fake('local');
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $this->abstract(1, $owner->id);
+        $file = $this->assignmentXlsx();
+        $this->actingAs($admin);
+
+        try {
+            $response = $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+                ->post(route('abstract_posts.assignments.import'), ['assignment_file' => $file]);
+            $response->assertSessionHasNoErrors();
+            $response->assertRedirect(route('abstract_posts.assignments'));
+            $response->assertSessionHas('abstract_assignment_import_report');
+            $report = session('abstract_assignment_import_report');
+            Storage::disk('local')->assertExists($report['path']);
+
+            $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+                ->get(route('abstract_posts.assignments.import_errors', $report['token']))
+                ->assertOk();
+        } finally {
+            @unlink($file->getRealPath());
+        }
+    }
+
+    public function test_non_administrator_cannot_import_assignments()
+    {
+        $participant = $this->user(1, 3);
+        $this->actingAs($participant);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.assignments.import'))
+            ->assertForbidden();
+    }
+
+    private function assignmentCsv(string $contents): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'abstract_assign_');
+        file_put_contents($path, $contents);
+        return new UploadedFile($path, 'assignments.csv', 'text/csv', null, true);
+    }
+
+    private function assignmentXlsx(): UploadedFile
+    {
+        $path = tempnam(sys_get_temp_dir(), 'abstract_assign_');
+        $xlsxPath = $path.'.xlsx';
+        rename($path, $xlsxPath);
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->getActiveSheet()->fromArray([
+            ['abstract_post_id', 'Revisor 1', 'Revisor 2', 'Revisor 3'],
+            [1, 'missing@example.com', null, null],
+        ]);
+        (new Xlsx($spreadsheet))->save($xlsxPath);
+        $spreadsheet->disconnectWorksheets();
+        return new UploadedFile($xlsxPath, 'assignments.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', null, true);
     }
 
 }

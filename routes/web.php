@@ -214,6 +214,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::get('/assigned-abstracts', [AbstractPostController::class, 'assignedAbstracts'])->name('abstract_posts.assigned');
     Route::get('/abstract-posts-rejected', [AbstractPostController::class, 'rejected'])->name('abstract_posts.rejected');
     Route::get('/abstract-post-reviewer-assignments', [AbstractPostController::class, 'reviewerAssignments'])->name('abstract_posts.assignments');
+    Route::post('/abstract-post-reviewer-assignments/import', [AbstractPostController::class, 'importReviewerAssignments'])->name('abstract_posts.assignments.import');
+    Route::get('/abstract-post-reviewer-assignments/import-errors/{token}', [AbstractPostController::class, 'downloadReviewerAssignmentErrors'])->name('abstract_posts.assignments.import_errors');
     Route::put('/abstract-post-reviewer-assignments/{abstractPost}', [AbstractPostController::class, 'updateReviewerAssignments'])->name('abstract_posts.assignments.update');
     Route::put('/abstract-posts/{abstractPost}/review', [AbstractPostController::class, 'submitReview'])->name('abstract_posts.review');
     Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');

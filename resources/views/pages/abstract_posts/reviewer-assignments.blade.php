@@ -23,6 +23,33 @@
                     </div>
                 @endif
 
+                @if(session('abstract_assignment_import_report'))
+                    <div class="alert alert-warning d-flex flex-wrap justify-content-between align-items-center gap-2" role="alert">
+                        <span><strong>{{ number_format(session('abstract_assignment_import_report.count')) }} rows were not imported.</strong> Download the errors, correct those rows and import them again.</span>
+                        <a href="{{ route('abstract_posts.assignments.import_errors', session('abstract_assignment_import_report.token')) }}" class="btn btn-warning btn-sm">Download rejected rows</a>
+                    </div>
+                @endif
+
+                <div class="statbox widget box box-shadow mb-3">
+                    <div class="widget-header pt-3 px-3">
+                        <h4 class="px-0 mb-1">Import Reviewer Assignments</h4>
+                        <p class="text-muted mb-2">Upload an XLSX, XLS or CSV file with abstract_post_id, Revisor 1, Revisor 2 and Revisor 3. Email matching ignores case. Existing assignments and submitted evaluations are preserved.</p>
+                    </div>
+                    <div class="widget-content widget-content-area pt-0">
+                        <form method="POST" action="{{ route('abstract_posts.assignments.import') }}" enctype="multipart/form-data" class="row g-2 align-items-end">
+                            @csrf
+                            <div class="col-md-9">
+                                <label for="assignment_file" class="form-label">Assignment spreadsheet</label>
+                                <input type="file" id="assignment_file" name="assignment_file" class="form-control" accept=".xlsx,.xls,.csv" required>
+                                <small class="text-muted">Maximum size: 10 MB and 10,000 data rows.</small>
+                            </div>
+                            <div class="col-md-3">
+                                <button type="submit" class="btn btn-primary w-100">Import Assignments</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-3 px-3">
                         <div class="row align-items-center">

@@ -11,8 +11,12 @@ use App\Models\Country;
 use App\Models\ReviewerCandidate;
 use App\Http\Requests\AssignAbstractReviewersRequest;
 use App\Http\Requests\SubmitAbstractReviewRequest;
+use App\Services\AbstractReviewerAssignmentImportService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
+use DomainException;
 
 use App\Exports\AbstractPostExport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -789,6 +793,67 @@ class AbstractPostController extends Controller
             'reviewers' => $reviewers,
             'search' => $search,
         ]);
+    }
+
+    public function importReviewerAssignments(Request $request, AbstractReviewerAssignmentImportService $importer)
+    {
+        $this->ensureAdministrator();
+        $request->validate([
+            'assignment_file' => ['required', 'file', 'max:10240', 'mimes:xlsx,xls,csv'],
+        ], [
+            'assignment_file.required' => 'Select an Excel or CSV file to import.',
+            'assignment_file.mimes' => 'The file must be XLSX, XLS or CSV.',
+            'assignment_file.max' => 'The file may not be larger than 10 MB.',
+        ]);
+
+        try {
+            $result = $importer->import($request->file('assignment_file'));
+        } catch (DomainException $exception) {
+            return back()->withErrors(['assignment_file' => $exception->getMessage()]);
+        } catch (\Throwable $exception) {
+            report($exception);
+            return back()->withErrors(['assignment_file' => 'The file could not be imported. Verify that it is a valid, readable spreadsheet.']);
+        }
+
+        $previous = $request->session()->pull('abstract_assignment_import_report');
+        if (is_array($previous) && !empty($previous['path'])) {
+            Storage::disk('local')->delete($previous['path']);
+        }
+
+        if ($result['rejected_rows']) {
+            $token = (string) Str::uuid();
+            $path = 'abstract-assignment-import-errors/'.$token.'.csv';
+            Storage::disk('local')->put($path, $importer->rejectedRowsCsv($result['rejected_rows']));
+            $request->session()->put('abstract_assignment_import_report', [
+                'token' => $token,
+                'path' => $path,
+                'count' => count($result['rejected_rows']),
+            ]);
+        }
+
+        return redirect()->route('abstract_posts.assignments')->with('success',
+            $result['added'].' reviewer assignments added, '.$result['unchanged'].' rows unchanged, and '
+            .count($result['rejected_rows']).' rows rejected.'
+        );
+    }
+
+    public function downloadReviewerAssignmentErrors(Request $request, $token)
+    {
+        $this->ensureAdministrator();
+        $report = $request->session()->get('abstract_assignment_import_report');
+        abort_unless(
+            is_array($report)
+            && hash_equals((string) ($report['token'] ?? ''), (string) $token)
+            && Storage::disk('local')->exists($report['path'] ?? ''),
+            404
+        );
+
+        $request->session()->forget('abstract_assignment_import_report');
+        return response()->download(
+            Storage::disk('local')->path($report['path']),
+            'abstract-assignment-import-errors-'.now()->format('Y-m-d-His').'.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        )->deleteFileAfterSend(true);
     }
 
     public function assignedAbstracts()
