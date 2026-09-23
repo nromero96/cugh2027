@@ -935,7 +935,7 @@ class AbstractPostController extends Controller
                     'score_3' => $scores[2],
                     'score_4' => $scores[3],
                     'score_5' => $scores[4],
-                    'average_score' => round($scores->average(), 2),
+                    'average_score' => $scores->sum() / 5,
                     'reviewer_note' => $validated['reviewer_note'] ?? null,
                     'updated_at' => now(),
                 ]);

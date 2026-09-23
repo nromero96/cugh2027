@@ -447,11 +447,16 @@
                         });
                         $reviewsComplete = $abstract_post->reviewers->isNotEmpty()
                             && $completedReviews->count() === $abstract_post->reviewers->count();
-                        $overallAverage = $completedReviews->isNotEmpty()
-                            ? $completedReviews->avg(function ($reviewer) {
-                                return (float) $reviewer->pivot->average_score;
-                            })
-                            : null;
+                        $completedCount = $completedReviews->count();
+                        $combinedScore = $completedReviews->sum(function ($reviewer) {
+                            return (int) $reviewer->pivot->score_1 + (int) $reviewer->pivot->score_2
+                                + (int) $reviewer->pivot->score_3 + (int) $reviewer->pivot->score_4
+                                + (int) $reviewer->pivot->score_5;
+                        });
+                        $overallAverage = $completedCount ? $combinedScore / ($completedCount * 5) : null;
+                        // Truncate only the display to two decimals; keep the exact score calculation intact.
+                        $averageHundredths = $completedCount ? intdiv($combinedScore * 100, $completedCount * 5) : null;
+                        $totalHundredths = $completedCount ? intdiv($combinedScore * 100, $completedCount) : null;
                     @endphp
                     <div class="statbox widget box box-shadow mt-3 no-print">
                         <div class="widget-header py-3 px-3">
@@ -467,8 +472,8 @@
                                         {{ $reviewsComplete ? 'Complete' : 'Pending' }}: {{ $completedReviews->count() }} / {{ $abstract_post->reviewers->count() }} evaluations
                                     </span>
                                     @if($overallAverage !== null)
-                                        <strong>{{ $reviewsComplete ? 'Overall average' : 'Partial average' }}: {{ number_format($overallAverage, 2) }} / 10</strong>
-                                        <span class="text-muted">Equivalent total: {{ number_format($overallAverage * 5, 2) }} / 50</span>
+                                        <strong>{{ $reviewsComplete ? 'Overall average' : 'Partial average' }}: {{ sprintf('%d.%02d', intdiv($averageHundredths, 100), $averageHundredths % 100) }} / 10</strong>
+                                        <span class="text-muted">Equivalent total: {{ sprintf('%d.%02d', intdiv($totalHundredths, 100), $totalHundredths % 100) }} / 50</span>
                                     @endif
                                 </div>
                                 <div class="table-responsive">
@@ -709,7 +714,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const totalScore = scores.reduce(function (sum, score) { return sum + score; }, 0);
         total.textContent = totalScore + ' / 50';
-        average.textContent = (totalScore / 5).toFixed(2);
+        const averageHundredths = totalScore * 20;
+        average.textContent = Math.trunc(averageHundredths / 100) + '.' + String(averageHundredths % 100).padStart(2, '0');
     }
 
     scoreInputs.forEach(function (input) {

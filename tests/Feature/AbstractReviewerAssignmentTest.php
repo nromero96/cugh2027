@@ -270,7 +270,7 @@ class AbstractReviewerAssignmentTest extends TestCase
             'score_2' => 9,
             'score_3' => 7,
             'score_4' => 10,
-            'score_5' => 6,
+            'score_5' => 7,
             'reviewer_note' => 'Clear and relevant abstract.',
         ])->assertRedirect()->assertSessionHasNoErrors()->assertSessionHas('success');
 
@@ -278,8 +278,8 @@ class AbstractReviewerAssignmentTest extends TestCase
             'abstract_post_id' => $abstract->id,
             'reviewer_id' => $reviewer->id,
             'score_1' => 8,
-            'score_5' => 6,
-            'average_score' => 8,
+            'score_5' => 7,
+            'average_score' => 8.2,
             'reviewer_note' => 'Clear and relevant abstract.',
         ]);
         $this->assertSame('qualified', $abstract->fresh()->status);
