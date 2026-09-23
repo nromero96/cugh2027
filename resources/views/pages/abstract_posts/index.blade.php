@@ -135,7 +135,7 @@
                             <div class="col-4 text-end">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                     @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
-                                        <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign Reviewers</a>
+                                        {{-- <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign Reviewers</a> --}}
                                     @endif
                                     @if($rejectedPage)
                                         <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary mb-3" title="Back to Abstracts" aria-label="Back to Abstracts">

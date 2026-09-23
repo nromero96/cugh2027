@@ -61,20 +61,14 @@
                         </div>
                     </div>
                     <div class="col-md-4">
-                        <div class="statbox widget box box-shadow h-100 p-3">
-                            <span class="text-muted d-block">Countries</span>
-                            <strong class="fs-3">{{ number_format($countriesCount) }}</strong>
-                        </div>
+                        
                     </div>
                     <div class="col-md-4">
-                        <div class="statbox widget box box-shadow h-100 p-3">
-                            <span class="text-muted d-block">Institutions</span>
-                            <strong class="fs-3">{{ number_format($institutionsCount) }}</strong>
-                        </div>
+                        
                     </div>
                 </div>
 
-                <div class="statbox widget box box-shadow mb-3">
+                {{-- <div class="statbox widget box box-shadow mb-3">
                     <div class="widget-header pt-3 px-3">
                         <h4 class="px-0 mb-1">Import reviewer list</h4>
                         <small class="text-muted mb-3">Upload an XLSX, XLS or CSV file. Existing records are updated by email, so importing the same file will not create duplicates.</small>
@@ -93,7 +87,7 @@
                             </div>
                         </form>
                     </div>
-                </div>
+                </div> --}}
 
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-3 px-3">
