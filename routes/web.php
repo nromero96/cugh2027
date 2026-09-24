@@ -153,6 +153,8 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Reviewer candidate directory
     Route::get('/reviewer-candidates', [ReviewerCandidateController::class, 'index'])->name('reviewer_candidates.index');
+    Route::get('/reviewer-candidates/review-instructions/preview', [ReviewerCandidateController::class, 'previewReviewInstructions'])->name('reviewer_candidates.review_instructions.preview');
+    Route::post('/reviewer-candidates/review-instructions/send', [ReviewerCandidateController::class, 'sendReviewInstructions'])->name('reviewer_candidates.review_instructions.send');
     Route::post('/reviewer-candidates/import', [ReviewerCandidateController::class, 'import'])->name('reviewer_candidates.import');
     Route::post('/reviewer-candidates/{reviewerCandidate}/create-user', [ReviewerCandidateController::class, 'createUser'])->name('reviewer_candidates.create_user');
     Route::get('/reviewer-candidates/import-errors/{token}', [ReviewerCandidateController::class, 'downloadImportErrors'])

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Mail\ReviewerAccountCreated;
+use App\Mail\AbstractReviewInstructions;
 use App\Models\ReviewerCandidate;
 use App\Models\User;
 use App\Services\ReviewerCandidateImportService;
@@ -21,6 +22,7 @@ class ReviewerCandidateController extends Controller
     {
         $this->authorizeManagement();
         $search = trim((string) $request->input('search', ''));
+        $notification = $request->input('notification');
 
         $reviewers = ReviewerCandidate::query()
             ->with('registeredUser:id,email')
@@ -32,6 +34,12 @@ class ReviewerCandidateController extends Controller
                         ->orWhere('institution', 'like', '%'.$search.'%')
                         ->orWhere('country', 'like', '%'.$search.'%');
                 });
+            })
+            ->when($notification === 'sent', function ($query) {
+                $query->whereNotNull('review_instructions_sent_at');
+            })
+            ->when($notification === 'pending', function ($query) {
+                $query->whereNull('review_instructions_sent_at');
             })
             ->orderBy('last_name')
             ->orderBy('first_name')
@@ -45,10 +53,70 @@ class ReviewerCandidateController extends Controller
             'scrollspy_offset' => '',
             'reviewers' => $reviewers,
             'search' => $search,
+            'notification' => $notification,
             'totalReviewers' => ReviewerCandidate::count(),
             'countriesCount' => ReviewerCandidate::whereNotNull('country')->distinct('country')->count('country'),
             'institutionsCount' => ReviewerCandidate::whereNotNull('institution')->distinct('institution')->count('institution'),
         ]);
+    }
+
+    public function previewReviewInstructions()
+    {
+        $this->authorizeNotifications();
+
+        return response()->view('emails.abstract-review-instructions', ['preview' => true]);
+    }
+
+    public function sendReviewInstructions(Request $request)
+    {
+        $this->authorizeNotifications();
+        $validated = $request->validate([
+            'reviewer_ids' => ['required', 'array', 'min:1', 'max:30'],
+            'reviewer_ids.*' => ['required', 'integer', 'distinct', 'exists:reviewer_candidates,id'],
+        ], [
+            'reviewer_ids.required' => 'Select at least one reviewer.',
+            'reviewer_ids.max' => 'Select no more than 30 reviewers at a time.',
+        ]);
+
+        $sent = 0;
+        $alreadySent = 0;
+        $failed = 0;
+        foreach ($validated['reviewer_ids'] as $reviewerId) {
+            try {
+                $outcome = DB::transaction(function () use ($reviewerId) {
+                    $candidate = ReviewerCandidate::query()->whereKey($reviewerId)->lockForUpdate()->firstOrFail();
+                    if ($candidate->review_instructions_sent_at !== null) {
+                        return 'already_sent';
+                    }
+                    if (!filter_var($candidate->email, FILTER_VALIDATE_EMAIL)) {
+                        return 'invalid_email';
+                    }
+
+                    $reviewerName = trim($candidate->first_name.' '.$candidate->last_name) ?: $candidate->email;
+                    Mail::to($candidate->email)->send(new AbstractReviewInstructions($reviewerName));
+                    $candidate->review_instructions_sent_at = now();
+                    $candidate->save();
+
+                    return 'sent';
+                });
+                if ($outcome === 'sent') {
+                    $sent++;
+                } elseif ($outcome === 'already_sent') {
+                    $alreadySent++;
+                } else {
+                    $failed++;
+                }
+            } catch (\Throwable $exception) {
+                report($exception);
+                $failed++;
+            }
+        }
+
+        $response = back()->with('success', $sent.' instruction emails sent; '.$alreadySent.' already sent; '.$failed.' failed.');
+        if ($failed) {
+            $response->with('error', 'Some messages could not be sent. Check the mail logs before retrying to avoid duplicates.');
+        }
+        return $response;
     }
 
     public function import(Request $request, ReviewerCandidateImportService $importer)
@@ -185,6 +253,11 @@ class ReviewerCandidateController extends Controller
     {
         $user = auth()->user();
         abort_unless($user && ($user->hasRole('Administrador') || $user->hasRole('Secretaria')), 403);
+    }
+
+    private function authorizeNotifications()
+    {
+        abort_unless(auth()->user() && auth()->user()->hasRole('Administrador'), 403);
     }
 
     private function removePreviousRejectedReport(Request $request)
