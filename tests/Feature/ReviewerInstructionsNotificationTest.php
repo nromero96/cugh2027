@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Mail\AbstractReviewInstructions;
+use App\Http\Controllers\ReviewerCandidateController;
 use App\Models\ReviewerCandidate;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
@@ -53,6 +55,14 @@ class ReviewerInstructionsNotificationTest extends TestCase
             $table->timestamp('review_instructions_sent_at')->nullable();
             $table->timestamps();
         });
+        Schema::create('abstract_posts', function (Blueprint $table) {
+            $table->id();
+        });
+        Schema::create('abstract_post_reviewers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('abstract_post_id');
+            $table->unsignedBigInteger('reviewer_id');
+        });
 
         DB::table('roles')->insert([
             ['id' => 1, 'name' => 'Administrador', 'guard_name' => 'web'],
@@ -77,6 +87,26 @@ class ReviewerInstructionsNotificationTest extends TestCase
             'model_id' => $id,
         ]);
         return User::findOrFail($id);
+    }
+
+    public function test_directory_shows_assigned_abstract_count_for_registered_reviewers()
+    {
+        $this->actingAs($this->user(1, 1));
+        $this->user(2, 2);
+
+        ReviewerCandidate::create(['first_name' => 'Ana', 'last_name' => 'Reviewer', 'email' => 'user2@example.org']);
+        ReviewerCandidate::create(['first_name' => 'No', 'last_name' => 'Account', 'email' => 'missing@example.org']);
+        DB::table('abstract_posts')->insert([['id' => 10], ['id' => 11]]);
+        DB::table('abstract_post_reviewers')->insert([
+            ['abstract_post_id' => 10, 'reviewer_id' => 2],
+            ['abstract_post_id' => 11, 'reviewer_id' => 2],
+        ]);
+
+        $response = app(ReviewerCandidateController::class)->index(Request::create('/reviewer-candidates'));
+        $reviewers = collect($response->getData()['reviewers']->items())->keyBy('email');
+
+        $this->assertSame(2, $reviewers['user2@example.org']->registeredUser->assigned_abstracts_count);
+        $this->assertNull($reviewers['missing@example.org']->registeredUser);
     }
 
     public function test_administrator_can_send_selected_instruction_email_only_once()

@@ -63,7 +63,7 @@
                     </div>
                 </div>
 
-                <div class="statbox widget box box-shadow mb-3">
+                {{-- <div class="statbox widget box box-shadow mb-3">
                     <div class="widget-header pt-3 px-3">
                         <h4 class="px-0 mb-1">Import reviewer list</h4>
                         <small class="text-muted mb-3">Upload an XLSX, XLS or CSV file. Existing records are updated by email, so importing the same file will not create duplicates.</small>
@@ -82,7 +82,7 @@
                             </div>
                         </form>
                     </div>
-                </div>
+                </div> --}}
 
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-3 px-3">
@@ -133,6 +133,7 @@
                                         <th>Reviewer</th>
                                         <th>Affiliation</th>
                                         <th>Expertise</th>
+                                        <th class="text-center">Assigned Abstracts</th>
                                         <th>Account</th>
                                     </tr>
                                 </thead>
@@ -170,6 +171,9 @@
                                                     </div>
                                                 </details>
                                             </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-light-primary">{{ $reviewer->registeredUser->assigned_abstracts_count ?? 0 }}</span>
+                                            </td>
                                             <td class="text-center" style="min-width: 130px;">
                                                 @if($reviewer->registeredUser)
                                                     <span class="badge badge-light-success">Registered</span>
@@ -190,7 +194,7 @@
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center py-5">
+                                            <td colspan="5" class="text-center py-5">
                                                 {{ $search !== '' ? 'No reviewers matched your search.' : 'No reviewers have been imported yet.' }}
                                             </td>
                                         </tr>

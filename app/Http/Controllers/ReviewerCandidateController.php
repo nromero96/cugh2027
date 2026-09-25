@@ -25,7 +25,9 @@ class ReviewerCandidateController extends Controller
         $notification = $request->input('notification');
 
         $reviewers = ReviewerCandidate::query()
-            ->with('registeredUser:id,email')
+            ->with(['registeredUser' => function ($query) {
+                $query->select('id', 'email')->withCount('assignedAbstracts');
+            }])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $searchQuery->where('first_name', 'like', '%'.$search.'%')
