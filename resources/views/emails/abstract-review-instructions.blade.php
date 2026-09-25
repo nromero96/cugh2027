@@ -22,11 +22,11 @@
                     </tr>
                     <tr>
                         <td style="padding:28px 30px;font-size:15px;line-height:1.65;">
-                            <p style="margin:0 0 18px;">Dear SPAC member:</p>
+                            <p style="margin:0 0 18px;">Dear CUGH Education Committee member:</p>
                             <p style="margin:0 0 18px;">
                                 We would like to thank you for accepting to serve as a reviewer of the abstracts submitted to the 18th CUGH Annual Conference, which will take place in Lima, Peru, from February 25 to 28, 2027, under the theme <strong><em>Transforming Global Health: Partnerships, Power, Leadership, and Technology in a Rapidly Changing World</em></strong>.
                             </p>
-                            <p style="margin:0 0 14px;">Please find below the instructions for scoring the abstracts:</p>
+                            <p style="margin:0 0 14px;">Please find below the instructions for scoring the GLOBAL HEALTH EDUCATION abstracts:</p>
 
                             <ol style="margin:0 0 20px;padding-left:24px;">
                                 <li style="padding-left:4px;margin-bottom:14px;">
@@ -50,7 +50,7 @@
                                         <li>Structure of the abstract</li>
                                         <li>Clarity of the writing</li>
                                         <li>Degree of innovation of the program/initiative</li>
-                                        <li>Does the abstract address an important global health challenge (human, environmental, social, political, etc.)?</li>
+                                        <li>Does the abstract address an important global health challenge (human, environmental, social, political, etc.)</li>
                                         <li>The degree to which solutions/recommendations proposed could impact policy or a global health challenge</li>
                                     </ol>
                                 </li>
