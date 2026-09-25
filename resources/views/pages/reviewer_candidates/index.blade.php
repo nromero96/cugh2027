@@ -63,7 +63,7 @@
                     </div>
                 </div>
 
-                {{-- <div class="statbox widget box box-shadow mb-3">
+                <div class="statbox widget box box-shadow mb-3">
                     <div class="widget-header pt-3 px-3">
                         <h4 class="px-0 mb-1">Import reviewer list</h4>
                         <small class="text-muted mb-3">Upload an XLSX, XLS or CSV file. Existing records are updated by email, so importing the same file will not create duplicates.</small>
@@ -82,7 +82,7 @@
                             </div>
                         </form>
                     </div>
-                </div> --}}
+                </div>
 
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-3 px-3">
