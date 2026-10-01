@@ -150,11 +150,13 @@
                                         
                                     @endif
                                 {{-- Export --}}
-                                    <a href="{{ route('abstract_posts.exportexcel') }}" class="btn btn-success mb-3">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
+                                    <a href="{{ route('abstract_posts.exportexcel') }}" id="abstract-export-link" class="btn btn-success mb-3" aria-label="Export abstracts to Excel">
+                                        <svg id="abstract-export-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-spreadsheet" viewBox="0 0 16 16">
                                         <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2M9.5 3A1.5 1.5 0 0 0 11 4.5h2V9H3V2a1 1 0 0 1 1-1h5.5zM3 12v-2h2v2zm0 1h2v2H4a1 1 0 0 1-1-1zm3 2v-2h3v2zm4 0v-2h3v1a1 1 0 0 1-1 1zm3-3h-3v-2h3zm-7 0v-2h3v2z"/>
                                         </svg> 
-                                        Export</a>
+                                        <span id="abstract-export-spinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <span id="abstract-export-label">Export</span></a>
+                                    <small id="abstract-export-message" class="d-none text-danger" role="alert"></small>
                                  @endif
 
                                 @unless($rejectedPage)
@@ -381,3 +383,66 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 </script>
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const link = document.getElementById('abstract-export-link');
+    if (!link) return;
+
+    const icon = document.getElementById('abstract-export-icon');
+    const spinner = document.getElementById('abstract-export-spinner');
+    const label = document.getElementById('abstract-export-label');
+    const message = document.getElementById('abstract-export-message');
+    let active = false;
+    let pollId = null;
+    let timeoutId = null;
+
+    function reset() {
+        active = false;
+        clearInterval(pollId);
+        clearTimeout(timeoutId);
+        icon.classList.remove('d-none');
+        spinner.classList.add('d-none');
+        label.textContent = 'Export';
+        link.removeAttribute('aria-disabled');
+    }
+
+    link.addEventListener('click', function (event) {
+        event.preventDefault();
+        if (active) return;
+
+        active = true;
+        message.classList.add('d-none');
+        const bytes = new Uint8Array(16);
+        window.crypto.getRandomValues(bytes);
+        const token = Array.from(bytes, function (byte) { return byte.toString(16).padStart(2, '0'); }).join('');
+        const cookieName = 'abstract_export_ready';
+        const url = new URL(link.href, window.location.href);
+        url.searchParams.set('export_token', token);
+
+        icon.classList.add('d-none');
+        spinner.classList.remove('d-none');
+        label.textContent = 'Preparing...';
+        link.setAttribute('aria-disabled', 'true');
+
+        pollId = setInterval(function () {
+            const ready = document.cookie.split('; ').some(function (entry) {
+                return entry === cookieName + '=' + token;
+            });
+            if (ready) {
+                document.cookie = cookieName + '=; Max-Age=0; Path=/; SameSite=Lax';
+                reset();
+            }
+        }, 300);
+        timeoutId = setTimeout(function () {
+            reset();
+            message.textContent = 'Download not confirmed. Check your downloads or try again.';
+            message.classList.remove('d-none');
+        }, 180000);
+
+        window.location.href = url.toString();
+    });
+});
+</script>
+@endsection

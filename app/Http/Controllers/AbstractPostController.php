@@ -739,7 +739,7 @@ class AbstractPostController extends Controller
             ->with('success', 'Status changed successfully');
     }
 
-    public function exportExcelAbstracts(){
+    public function exportExcelAbstracts(Request $request){
 
         if (!auth()->user()->hasRole('Administrador')) {
             abort(403, 'Unauthorized action.');
@@ -747,10 +747,17 @@ class AbstractPostController extends Controller
 
         $filename = 'Abstracts_' . now()->format('Ymd_His') . '.xlsx';
 
-        return Excel::download(
+        $response = Excel::download(
             new AbstractPostExport(),
             $filename
         );
+
+        $token = (string) $request->query('export_token', '');
+        if (preg_match('/\A[a-f0-9]{32}\z/', $token)) {
+            $response->headers->setCookie(cookie('abstract_export_ready', $token, 5, '/', null, $request->isSecure(), false, false, 'lax'));
+        }
+
+        return $response;
     }
 
     public function reviewerAssignments(Request $request)

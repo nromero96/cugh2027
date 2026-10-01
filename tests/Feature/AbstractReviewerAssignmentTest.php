@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\AbstractPostController;
+use App\Exports\AbstractPostExport;
 use App\Models\AbstractPost;
 use App\Models\User;
 use App\Services\AbstractReviewerAssignmentImportService;
@@ -14,6 +15,9 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -56,12 +60,22 @@ class AbstractReviewerAssignmentTest extends TestCase
         Schema::create('abstract_posts', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('main_author_country_id')->nullable();
             $table->string('presentation_type')->nullable();
             $table->string('title')->nullable();
             $table->text('main_author')->nullable();
+            $table->text('co_authors')->nullable();
+            $table->text('institutions')->nullable();
             $table->string('abstract_type')->nullable();
+            $table->string('subtopic')->nullable();
+            $table->text('body')->nullable();
+            $table->text('keywords')->nullable();
             $table->string('status')->default('draft');
             $table->timestamps();
+        });
+        Schema::create('countries', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
         });
         Schema::create('abstract_post_reviewers', function (Blueprint $table) {
             $table->id();
@@ -592,6 +606,80 @@ class AbstractReviewerAssignmentTest extends TestCase
         $path = tempnam(sys_get_temp_dir(), 'abstract_assign_');
         file_put_contents($path, $contents);
         return new UploadedFile($path, 'assignments.csv', 'text/csv', null, true);
+    }
+
+    public function test_abstract_export_appends_review_scores_and_final_average()
+    {
+        $owner = $this->user(1, 3);
+        foreach (range(2, 4) as $id) {
+            $this->user($id, 2);
+        }
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->reviewers()->attach(2, [
+            'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 7,
+            'average_score' => 7.8,
+        ]);
+        $abstract->reviewers()->attach(3, [
+            'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 8,
+            'average_score' => 8.0,
+        ]);
+        $abstract->reviewers()->attach(4);
+
+        $export = new AbstractPostExport();
+        $exported = $export->collection()->first();
+        $pendingRow = $export->map($exported);
+        $this->assertCount(37, $export->headings());
+        $this->assertCount(37, $pendingRow);
+        $this->assertSame('Reviewer 1 Email', $export->headings()[15]);
+        $this->assertSame('Final Average', $export->headings()[36]);
+        $this->assertSame('user2@example.com', $pendingRow[15]);
+        $this->assertSame(8, $pendingRow[16]);
+        $this->assertSame(7.8, $pendingRow[21]);
+        $this->assertSame('user4@example.com', $pendingRow[29]);
+        $this->assertNull($pendingRow[30]);
+        $this->assertNull($pendingRow[36]);
+
+        $abstract->reviewers()->updateExistingPivot(4, [
+            'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 7,
+            'average_score' => 7.8,
+        ]);
+        $completedRow = $export->map($export->collection()->first());
+        $this->assertSame(7.86, $completedRow[36]);
+
+        $path = tempnam(sys_get_temp_dir(), 'abstract_export_').'.xlsx';
+        try {
+            file_put_contents($path, Excel::raw($export, ExcelFormat::XLSX));
+            $book = IOFactory::load($path);
+            $sheet = $book->getActiveSheet();
+            $this->assertSame('Reviewer 1 Email', $sheet->getCell('P1')->getValue());
+            $this->assertSame('Final Average', $sheet->getCell('AK1')->getValue());
+            $this->assertSame(7.86, (float) $sheet->getCell('AK2')->getValue());
+            $this->assertSame('0.00', $sheet->getStyle('AK2')->getNumberFormat()->getFormatCode());
+            foreach (['P' => ['FF28539A', 'FFEDF3FC'], 'W' => ['FF087F8C', 'FFEAF7F7'], 'AD' => ['FFA05A00', 'FFFFF4E3']] as $column => $colors) {
+                $this->assertSame($colors[0], $sheet->getStyle($column.'1')->getFill()->getStartColor()->getARGB());
+                $this->assertSame($colors[1], $sheet->getStyle($column.'2')->getFill()->getStartColor()->getARGB());
+                $this->assertSame('FFFFFFFF', $sheet->getStyle($column.'1')->getFont()->getColor()->getARGB());
+            }
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AK1')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AK2')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFFFFFFF', $sheet->getStyle('AK2')->getFont()->getColor()->getARGB());
+            $book->disconnectWorksheets();
+        } finally {
+            @unlink($path);
+        }
+    }
+
+    public function test_abstract_export_marks_download_ready_for_the_button()
+    {
+        $admin = $this->user(1, 1);
+        $this->abstract(1, $admin->id);
+        $this->actingAs($admin);
+        $token = str_repeat('a', 32);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.exportexcel', ['export_token' => $token]))
+            ->assertOk()
+            ->assertPlainCookie('abstract_export_ready', $token);
     }
 
     private function assignmentXlsx(): UploadedFile
