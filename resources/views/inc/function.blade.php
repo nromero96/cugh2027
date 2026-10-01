@@ -22,6 +22,8 @@ if (!function_exists('setTitle')) :
             echo __('Reviewer Directory') . $admin_name;
         elseif ($page_name === 'assigned_abstracts'):
             echo __('Assigned Abstracts') . $admin_name;
+        elseif ($page_name === 'assigned_panels'):
+            echo __('Assigned Panels') . $admin_name;
 
         elseif ($page_name === 'roles'):
             echo __('Roles') . $admin_name;

@@ -187,6 +187,17 @@
                 </li>
             @endif
 
+            @if(Auth::user()->assignedPanels()->exists())
+                <li class="menu {{ ($category_name === 'assigned_panels') ? 'active' : '' }}">
+                    <a href="{{ route('panels.assigned') }}" aria-expanded="false" class="dropdown-toggle">
+                        <div class="">
+                            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.7" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16v16H4z"></path><path d="M8 9h8M8 13h8M8 17h5"></path></svg>
+                            <span>Assigned Panels</span>
+                        </div>
+                    </a>
+                </li>
+            @endif
+
             @if(Auth::user()->hasRole('Administrador') || Auth::user()->hasRole('Secretaria'))
                 <li class="menu {{ ($category_name === 'reviewer_candidates') ? 'active' : '' }}">
                     <a href="{{ route('reviewer_candidates.index') }}" aria-expanded="false" class="dropdown-toggle">

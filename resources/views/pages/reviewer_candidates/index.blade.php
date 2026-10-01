@@ -63,7 +63,7 @@
                     </div>
                 </div>
 
-                {{-- <div class="statbox widget box box-shadow mb-3">
+                <div class="statbox widget box box-shadow mb-3">
                     <div class="widget-header pt-3 px-3">
                         <h4 class="px-0 mb-1">Import reviewer list</h4>
                         <small class="text-muted mb-3">Upload an XLSX, XLS or CSV file. Existing records are updated by email, so importing the same file will not create duplicates.</small>
@@ -82,7 +82,7 @@
                             </div>
                         </form>
                     </div>
-                </div> --}}
+                </div>
 
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-3 px-3">
@@ -125,6 +125,15 @@
                                 <a href="{{ route('reviewer_candidates.review_instructions.preview') }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm">Preview email</a>
                             </div>
                             <p class="text-muted small mb-3">Only selected reviewers on this page will receive the email. Already-sent messages cannot be sent again from here.</p>
+                            <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                                <form id="panel-review-instructions-form" method="POST" action="{{ route('reviewer_candidates.panel_review_instructions.send') }}">
+                                    @csrf
+                                    <button type="submit" id="send-panel-review-instructions" class="btn btn-primary btn-sm" disabled>Send panel instructions (<span id="selected-panel-reviewer-count">0</span>)</button>
+                                </form>
+                                <label class="d-inline-flex align-items-center gap-2 mb-0"><input type="checkbox" id="select-page-panel-reviewers" class="form-check-input mt-0"><span>Select all assigned panel reviewers with unsent instructions</span></label>
+                                <a href="{{ route('reviewer_candidates.panel_review_instructions.preview') }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm">Preview panel email</a>
+                            </div>
+                            <p class="text-muted small mb-3">Panel instructions are tracked separately from abstract instructions. Only registered reviewers with assigned panels can receive them.</p>
                         @endif
                         <div class="table-responsive">
                             <table class="table table-hover table-bordered align-middle mb-0">
@@ -134,6 +143,7 @@
                                         <th>Affiliation</th>
                                         <th>Expertise</th>
                                         <th class="text-center">Assigned Abstracts</th>
+                                        <th class="text-center">Assigned Panels</th>
                                         <th>Account</th>
                                     </tr>
                                 </thead>
@@ -144,6 +154,9 @@
                                                 <div class="d-flex align-items-start gap-2">
                                                     @if($canSendReviewInstructions && !$reviewer->review_instructions_sent_at)
                                                         <input type="checkbox" name="reviewer_ids[]" value="{{ $reviewer->id }}" form="review-instructions-form" class="form-check-input reviewer-notification-checkbox mt-1" aria-label="Select {{ $reviewer->email }} for review instructions">
+                                                    @endif
+                                                    @if($canSendReviewInstructions && !$reviewer->panel_review_instructions_sent_at && ($reviewer->registeredUser->assigned_panels_count ?? 0) > 0)
+                                                        <input type="checkbox" name="reviewer_ids[]" value="{{ $reviewer->id }}" form="panel-review-instructions-form" class="form-check-input panel-reviewer-notification-checkbox mt-1" aria-label="Select {{ $reviewer->email }} for panel review instructions">
                                                     @endif
                                                     <strong>{{ trim($reviewer->salutation.' '.$reviewer->first_name.' '.$reviewer->last_name) ?: '—' }}</strong>
                                                 </div>
@@ -174,6 +187,9 @@
                                             <td class="text-center">
                                                 <span class="badge badge-light-primary">{{ $reviewer->registeredUser->assigned_abstracts_count ?? 0 }}</span>
                                             </td>
+                                            <td class="text-center">
+                                                <span class="badge badge-light-primary">{{ $reviewer->registeredUser->assigned_panels_count ?? 0 }}</span>
+                                            </td>
                                             <td class="text-center" style="min-width: 130px;">
                                                 @if($reviewer->registeredUser)
                                                     <span class="badge badge-light-success">Registered</span>
@@ -183,6 +199,10 @@
                                                         @csrf
                                                         <button type="submit" class="btn btn-primary btn-sm text-nowrap">Create user</button>
                                                     </form>
+                                                    <form method="POST" action="{{ route('reviewer_candidates.create_panel_user', $reviewer) }}" class="mt-1" onsubmit="return confirm('Create a panel reviewer account and email the login credentials to {{ addslashes($reviewer->email) }}?');">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-outline-primary btn-sm text-nowrap">Create panel account</button>
+                                                    </form>
                                                 @endif
                                                 @if($reviewer->review_instructions_sent_at)
                                                     <span class="badge badge-light-success d-block mt-2">Instructions sent</span>
@@ -190,11 +210,19 @@
                                                 @else
                                                     <span class="badge badge-light-warning d-block mt-2">Instructions not sent</span>
                                                 @endif
+                                                @if(($reviewer->registeredUser->assigned_panels_count ?? 0) > 0)
+                                                    @if($reviewer->panel_review_instructions_sent_at)
+                                                        <span class="badge badge-light-success d-block mt-2">Panel instructions sent</span>
+                                                        <small class="text-muted">{{ $reviewer->panel_review_instructions_sent_at->format('Y-m-d H:i') }}</small>
+                                                    @else
+                                                        <span class="badge badge-light-warning d-block mt-2">Panel instructions not sent</span>
+                                                    @endif
+                                                @endif
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center py-5">
+                                            <td colspan="6" class="text-center py-5">
                                                 {{ $search !== '' ? 'No reviewers matched your search.' : 'No reviewers have been imported yet.' }}
                                             </td>
                                         </tr>
@@ -217,32 +245,31 @@
 @section('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const form = document.getElementById('review-instructions-form');
-    if (!form) return;
-
-    const checkboxes = Array.from(document.querySelectorAll('.reviewer-notification-checkbox'));
-    const selectAll = document.getElementById('select-page-reviewers');
-    const button = document.getElementById('send-review-instructions');
-    const count = document.getElementById('selected-reviewer-count');
-
-    function updateSelection() {
-        const selected = checkboxes.filter(function (checkbox) { return checkbox.checked; }).length;
-        count.textContent = selected;
-        button.disabled = selected === 0;
-        selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
-        selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
-    }
-
-    selectAll.addEventListener('change', function () {
-        checkboxes.forEach(function (checkbox) { checkbox.checked = selectAll.checked; });
-        updateSelection();
-    });
-    checkboxes.forEach(function (checkbox) { checkbox.addEventListener('change', updateSelection); });
-    form.addEventListener('submit', function (event) {
-        if (!window.confirm('Send abstract review instructions to ' + count.textContent + ' selected reviewer(s)? This action sends real emails.')) {
-            event.preventDefault();
+    function setupSelection(formId, checkboxClass, selectAllId, buttonId, countId, type) {
+        const form = document.getElementById(formId);
+        if (!form) return;
+        const checkboxes = Array.from(document.querySelectorAll('.' + checkboxClass));
+        const selectAll = document.getElementById(selectAllId);
+        const button = document.getElementById(buttonId);
+        const count = document.getElementById(countId);
+        function updateSelection() {
+            const selected = checkboxes.filter(function (checkbox) { return checkbox.checked; }).length;
+            count.textContent = selected;
+            button.disabled = selected === 0;
+            selectAll.checked = checkboxes.length > 0 && selected === checkboxes.length;
+            selectAll.indeterminate = selected > 0 && selected < checkboxes.length;
         }
-    });
+        selectAll.addEventListener('change', function () {
+            checkboxes.forEach(function (checkbox) { checkbox.checked = selectAll.checked; });
+            updateSelection();
+        });
+        checkboxes.forEach(function (checkbox) { checkbox.addEventListener('change', updateSelection); });
+        form.addEventListener('submit', function (event) {
+            if (!window.confirm('Send ' + type + ' review instructions to ' + count.textContent + ' selected reviewer(s)? This action sends real emails.')) event.preventDefault();
+        });
+    }
+    setupSelection('review-instructions-form', 'reviewer-notification-checkbox', 'select-page-reviewers', 'send-review-instructions', 'selected-reviewer-count', 'abstract');
+    setupSelection('panel-review-instructions-form', 'panel-reviewer-notification-checkbox', 'select-page-panel-reviewers', 'send-panel-review-instructions', 'selected-panel-reviewer-count', 'panel');
 });
 </script>
 @endsection

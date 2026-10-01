@@ -3,6 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Panel;
+use App\Models\ReviewerCandidate;
+use App\Models\User;
+use App\Http\Requests\AssignPanelReviewersRequest;
+use App\Http\Requests\SubmitPanelReviewRequest;
+use App\Services\PanelReviewerAssignmentImportService;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Country;
@@ -13,6 +18,11 @@ use Illuminate\Validation\Rule;
 use App\Mail\PanelSubmissionMail;
 use App\Exports\PanelExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use DomainException;
 
 class PanelController extends Controller
 {
@@ -32,6 +42,9 @@ class PanelController extends Controller
 
         $search = trim((string) $request->input('search', ''));
         $panelsQuery = Panel::query()->latest('created_at');
+        if (auth()->user()->hasRole('Administrador')) {
+            $panelsQuery->with('reviewers:id,name,lastname,second_lastname,email');
+        }
         $rejectedPage = $request->attributes->get('rejected_listing', false);
 
         if ($rejectedPage) {
@@ -153,6 +166,10 @@ class PanelController extends Controller
      */
     public function show(Panel $panel)
     {
+        $isAdministrator = auth()->user()->hasRole('Administrador');
+        $isAssigned = $panel->reviewers()->where('users.id', auth()->id())->exists();
+        abort_unless($isAdministrator || auth()->user()->hasRole('Secretaria') || $isAssigned || auth()->user()->can('panels.show'), 403);
+
         $data = [
             'category_name' => 'panels',
             'page_name' => 'panels_show',
@@ -160,9 +177,161 @@ class PanelController extends Controller
             'scrollspy_offset' => '',
         ];
 
-        $panel = Panel::find($panel->id);
+        $panel->load('reviewers');
+        $reviewAssignment = $panel->reviewers->firstWhere('id', auth()->id());
+        if (request('from') === 'assigned' && $reviewAssignment) {
+            $data['category_name'] = 'assigned_panels';
+        }
 
-        return view('pages.panels.show', $data)->with('panel', $panel);
+        return view('pages.panels.show', $data)->with('panel', $panel)->with('reviewAssignment', $reviewAssignment);
+    }
+
+    public function reviewerAssignments(Request $request)
+    {
+        $this->ensureAdministrator();
+        $search = trim((string) $request->input('search', ''));
+        $panels = Panel::with('reviewers:id,name,lastname,second_lastname,email')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $id = ltrim($search, '#');
+                    if (ctype_digit($id)) {
+                        $query->orWhere('id', (int) $id);
+                    }
+                    $query->orWhere('title', 'like', '%'.$search.'%')
+                        ->orWhere('contact_email', 'like', '%'.$search.'%');
+                });
+            })->orderByDesc('id')->paginate(20)->withQueryString();
+
+        $reviewers = User::whereIn('email', ReviewerCandidate::select('email'))
+            ->withCount('assignedPanels')
+            ->orderBy('name')->orderBy('lastname')
+            ->get(['id', 'name', 'lastname', 'second_lastname', 'email']);
+
+        return view('pages.panels.reviewer-assignments', [
+            'category_name' => 'panels', 'page_name' => 'panels',
+            'has_scrollspy' => 0, 'scrollspy_offset' => '',
+            'panels' => $panels, 'reviewers' => $reviewers, 'search' => $search,
+        ]);
+    }
+
+    public function importReviewerAssignments(Request $request, PanelReviewerAssignmentImportService $importer)
+    {
+        $this->ensureAdministrator();
+        $request->validate([
+            'assignment_file' => ['required', 'file', 'max:10240', 'mimes:xlsx,xls,csv'],
+        ], [
+            'assignment_file.required' => 'Select an Excel or CSV file to import.',
+            'assignment_file.mimes' => 'The file must be XLSX, XLS or CSV.',
+            'assignment_file.max' => 'The file may not be larger than 10 MB.',
+        ]);
+
+        try {
+            $result = $importer->import($request->file('assignment_file'));
+        } catch (DomainException $exception) {
+            return back()->withErrors(['assignment_file' => $exception->getMessage()]);
+        } catch (\Throwable $exception) {
+            report($exception);
+            return back()->withErrors(['assignment_file' => 'The file could not be imported. Verify that it is a valid, readable spreadsheet.']);
+        }
+
+        $previous = $request->session()->pull('panel_assignment_import_report');
+        if (is_array($previous) && !empty($previous['path'])) {
+            Storage::disk('local')->delete($previous['path']);
+        }
+        if ($result['rejected_rows']) {
+            $token = (string) Str::uuid();
+            $path = 'panel-assignment-import-errors/'.$token.'.csv';
+            Storage::disk('local')->put($path, $importer->rejectedRowsCsv($result['rejected_rows']));
+            $request->session()->put('panel_assignment_import_report', [
+                'token' => $token, 'path' => $path, 'count' => count($result['rejected_rows']),
+            ]);
+        }
+
+        return redirect()->route('panels.assignments')->with('success',
+            $result['added'].' reviewer assignments added, '.$result['unchanged'].' rows unchanged, and '
+            .count($result['rejected_rows']).' rows rejected.'
+        );
+    }
+
+    public function downloadReviewerAssignmentErrors(Request $request, $token)
+    {
+        $this->ensureAdministrator();
+        $report = $request->session()->get('panel_assignment_import_report');
+        abort_unless(
+            is_array($report)
+            && hash_equals((string) ($report['token'] ?? ''), (string) $token)
+            && Storage::disk('local')->exists($report['path'] ?? ''),
+            404
+        );
+
+        $request->session()->forget('panel_assignment_import_report');
+        return response()->download(
+            Storage::disk('local')->path($report['path']),
+            'panel-assignment-import-errors-'.now()->format('Y-m-d-His').'.csv',
+            ['Content-Type' => 'text/csv; charset=UTF-8']
+        )->deleteFileAfterSend(true);
+    }
+
+    public function updateReviewerAssignments(AssignPanelReviewersRequest $request, Panel $panel)
+    {
+        $ids = collect($request->validated()['reviewer_ids'] ?? [])->map(function ($id) {
+            return (int) $id;
+        })->unique()->values()->all();
+
+        DB::transaction(function () use ($panel, $ids) {
+            $lockedPanel = Panel::whereKey($panel->id)->lockForUpdate()->firstOrFail();
+            if ($lockedPanel->status === 'Qualified' || DB::table('panel_reviewers')
+                ->where('panel_id', $panel->id)->whereNotNull('average_score')->exists()) {
+                throw ValidationException::withMessages(['reviewer_ids' => 'Reviewer assignments cannot be changed after an evaluation has been submitted.']);
+            }
+            $lockedPanel->reviewers()->sync($ids);
+        });
+
+        return back()->with('success', 'Reviewers assigned successfully.');
+    }
+
+    public function assignedPanels()
+    {
+        $user = auth()->user();
+        abort_unless($user && $user->assignedPanels()->exists(), 403);
+
+        return view('pages.panels.assigned', [
+            'category_name' => 'assigned_panels', 'page_name' => 'assigned_panels',
+            'has_scrollspy' => 0, 'scrollspy_offset' => '',
+            'panels' => $user->assignedPanels()->orderByDesc('panels.id')->paginate(20),
+        ]);
+    }
+
+    public function submitReview(SubmitPanelReviewRequest $request, Panel $panel)
+    {
+        $validated = $request->validated();
+        $scores = collect(range(1, 8))->map(function ($number) use ($validated) {
+            return (int) $validated['score_'.$number];
+        });
+
+        DB::transaction(function () use ($panel, $validated, $scores) {
+            $lockedPanel = Panel::whereKey($panel->id)->lockForUpdate()->firstOrFail();
+            $assignment = DB::table('panel_reviewers')->where('panel_id', $panel->id)
+                ->where('reviewer_id', auth()->id())->lockForUpdate()->first();
+            abort_unless($assignment, 403);
+            if ($lockedPanel->status === 'Qualified' || $lockedPanel->status === 'Rejected' || $assignment->average_score !== null) {
+                throw ValidationException::withMessages(['review' => 'This evaluation is closed and cannot be changed.']);
+            }
+
+            $values = ['average_score' => $scores->sum() / 8,
+                'reviewer_note' => $validated['reviewer_note'] ?? null, 'updated_at' => now()];
+            foreach (range(1, 8) as $number) {
+                $values['score_'.$number] = $scores[$number - 1];
+            }
+            DB::table('panel_reviewers')->where('id', $assignment->id)->update($values);
+
+            if (!DB::table('panel_reviewers')->where('panel_id', $panel->id)->whereNull('average_score')->exists()) {
+                $lockedPanel->status = 'Qualified';
+                $lockedPanel->save();
+            }
+        });
+
+        return back()->with('success', 'Your evaluation was submitted successfully and can no longer be changed.');
     }
 
     /**

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\ReviewerCandidateController;
 use App\Mail\ReviewerAccountCreated;
+use App\Mail\PanelReviewerAccountCreated;
 use App\Models\ReviewerCandidate;
 use App\Models\User;
 use App\Services\ReviewerCandidateImportService;
@@ -191,5 +192,32 @@ class ReviewerCandidateImportTest extends TestCase
         $this->assertTrue($response->isRedirect());
         $this->assertSame($userCount, User::count());
         Mail::assertNothingSent();
+    }
+
+    public function test_administrator_can_create_panel_reviewer_account_with_panel_email()
+    {
+        Mail::fake();
+        config(['services.correonotificacion.copy' => 'notifications@example.org']);
+        $this->actingAsAdministrator();
+        $email = 'panel-reviewer-'.uniqid().'@example.org';
+        $candidate = ReviewerCandidate::create([
+            'first_name' => 'Ana', 'last_name' => 'Panel', 'email' => $email,
+        ]);
+
+        $response = app(ReviewerCandidateController::class)->createPanelReviewerUser($candidate);
+        $user = User::where('email', $email)->firstOrFail();
+
+        $this->assertTrue($response->isRedirect());
+        $this->assertTrue($user->hasRole('Participante'));
+        $this->assertDatabaseHas('inscriptions', ['user_id' => $user->id, 'status' => 'Draft']);
+        Mail::assertSent(PanelReviewerAccountCreated::class, function ($mail) use ($user, $email) {
+            $mail->build();
+            return $mail->hasTo($email)
+                && $mail->hasBcc('notifications@example.org')
+                && $mail->hasReplyTo('notifications@example.org')
+                && $mail->user->is($user)
+                && Hash::check($mail->plainPassword, $user->password)
+                && $mail->subject === 'CUGH LIMA 2027 Panel Reviewer Account - (Ana Panel)';
+        });
     }
 }

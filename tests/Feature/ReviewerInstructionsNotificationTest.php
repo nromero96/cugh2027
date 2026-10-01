@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Mail\AbstractReviewInstructions;
+use App\Mail\PanelReviewInstructions;
+use App\Mail\PanelReviewerAccountCreated;
 use App\Http\Controllers\ReviewerCandidateController;
 use App\Models\ReviewerCandidate;
 use App\Models\User;
@@ -53,6 +55,7 @@ class ReviewerInstructionsNotificationTest extends TestCase
             $table->string('last_name')->nullable();
             $table->string('email')->unique();
             $table->timestamp('review_instructions_sent_at')->nullable();
+            $table->timestamp('panel_review_instructions_sent_at')->nullable();
             $table->timestamps();
         });
         Schema::create('abstract_posts', function (Blueprint $table) {
@@ -61,6 +64,14 @@ class ReviewerInstructionsNotificationTest extends TestCase
         Schema::create('abstract_post_reviewers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('abstract_post_id');
+            $table->unsignedBigInteger('reviewer_id');
+        });
+        Schema::create('panels', function (Blueprint $table) {
+            $table->id();
+        });
+        Schema::create('panel_reviewers', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('panel_id');
             $table->unsignedBigInteger('reviewer_id');
         });
 
@@ -101,12 +112,65 @@ class ReviewerInstructionsNotificationTest extends TestCase
             ['abstract_post_id' => 10, 'reviewer_id' => 2],
             ['abstract_post_id' => 11, 'reviewer_id' => 2],
         ]);
+        DB::table('panels')->insert(['id' => 20]);
+        DB::table('panel_reviewers')->insert(['panel_id' => 20, 'reviewer_id' => 2]);
 
         $response = app(ReviewerCandidateController::class)->index(Request::create('/reviewer-candidates'));
         $reviewers = collect($response->getData()['reviewers']->items())->keyBy('email');
 
         $this->assertSame(2, $reviewers['user2@example.org']->registeredUser->assigned_abstracts_count);
+        $this->assertSame(1, $reviewers['user2@example.org']->registeredUser->assigned_panels_count);
         $this->assertNull($reviewers['missing@example.org']->registeredUser);
+    }
+
+    public function test_panel_instructions_are_sent_once_only_to_assigned_users()
+    {
+        Mail::fake();
+        config(['services.correonotificacion.copy' => 'notifications@example.org']);
+        $this->actingAs($this->user(1, 1));
+        $this->user(2, 2);
+        $assigned = ReviewerCandidate::create(['first_name' => 'Ana', 'email' => 'user2@example.org']);
+        $unassigned = ReviewerCandidate::create(['first_name' => 'No', 'email' => 'missing@example.org']);
+        DB::table('panels')->insert(['id' => 20]);
+        DB::table('panel_reviewers')->insert(['panel_id' => 20, 'reviewer_id' => 2]);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('reviewer_candidates.panel_review_instructions.send'), ['reviewer_ids' => [$assigned->id, $unassigned->id]])
+            ->assertSessionHasNoErrors();
+
+        Mail::assertSent(PanelReviewInstructions::class, 1);
+        Mail::assertSent(PanelReviewInstructions::class, function ($mail) {
+            return $mail->hasTo('user2@example.org')
+                && $mail->build()->subject === 'CUGH LIMA 2027 Panel Review Process - (Ana)'
+                && $mail->hasReplyTo('notifications@example.org')
+                && $mail->hasBcc('notifications@example.org');
+        });
+        $this->assertNotNull($assigned->fresh()->panel_review_instructions_sent_at);
+        $this->assertNull($unassigned->fresh()->panel_review_instructions_sent_at);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('reviewer_candidates.panel_review_instructions.send'), ['reviewer_ids' => [$assigned->id]])
+            ->assertSessionHasNoErrors();
+        Mail::assertSent(PanelReviewInstructions::class, 1);
+    }
+
+    public function test_panel_email_templates_show_the_correct_process_and_account_credentials()
+    {
+        config(['services.correonotificacion.copy' => 'notifications@example.org']);
+        $user = new User(['name' => 'Ana', 'email' => 'ana@example.org']);
+        $accountMail = new PanelReviewerAccountCreated($user, 'sample-password');
+        $accountHtml = $accountMail->render();
+        $instructionsMail = new PanelReviewInstructions('Ana');
+        $instructionsHtml = $instructionsMail->render();
+
+        $this->assertStringContainsString('sample-password', $accountHtml);
+        $this->assertStringContainsString('Panel Reviewer Account', $accountHtml);
+        $this->assertTrue($accountMail->hasReplyTo('notifications@example.org'));
+        $this->assertTrue($accountMail->hasBcc('notifications@example.org'));
+        $this->assertStringContainsString('Dear EPC Member,', $instructionsHtml);
+        $this->assertStringContainsString('1 to 10', $instructionsHtml);
+        $this->assertStringContainsString('75-minute', $instructionsHtml);
+        $this->assertStringContainsString('my.cughlima2027.org', $instructionsHtml);
     }
 
     public function test_administrator_can_send_selected_instruction_email_only_once()

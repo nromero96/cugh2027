@@ -28,6 +28,7 @@ class ReviewerCandidate extends Model
     protected $casts = [
         'imported_at' => 'datetime',
         'review_instructions_sent_at' => 'datetime',
+        'panel_review_instructions_sent_at' => 'datetime',
     ];
 
     public function registeredUser()

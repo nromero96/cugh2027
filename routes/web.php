@@ -155,8 +155,11 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::get('/reviewer-candidates', [ReviewerCandidateController::class, 'index'])->name('reviewer_candidates.index');
     Route::get('/reviewer-candidates/review-instructions/preview', [ReviewerCandidateController::class, 'previewReviewInstructions'])->name('reviewer_candidates.review_instructions.preview');
     Route::post('/reviewer-candidates/review-instructions/send', [ReviewerCandidateController::class, 'sendReviewInstructions'])->name('reviewer_candidates.review_instructions.send');
+    Route::get('/reviewer-candidates/panel-review-instructions/preview', [ReviewerCandidateController::class, 'previewPanelReviewInstructions'])->name('reviewer_candidates.panel_review_instructions.preview');
+    Route::post('/reviewer-candidates/panel-review-instructions/send', [ReviewerCandidateController::class, 'sendPanelReviewInstructions'])->name('reviewer_candidates.panel_review_instructions.send');
     Route::post('/reviewer-candidates/import', [ReviewerCandidateController::class, 'import'])->name('reviewer_candidates.import');
     Route::post('/reviewer-candidates/{reviewerCandidate}/create-user', [ReviewerCandidateController::class, 'createUser'])->name('reviewer_candidates.create_user');
+    Route::post('/reviewer-candidates/{reviewerCandidate}/create-panel-user', [ReviewerCandidateController::class, 'createPanelReviewerUser'])->name('reviewer_candidates.create_panel_user');
     Route::get('/reviewer-candidates/import-errors/{token}', [ReviewerCandidateController::class, 'downloadImportErrors'])
         ->where('token', '[0-9a-fA-F-]{36}')
         ->name('reviewer_candidates.import_errors');
@@ -262,6 +265,12 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Panel
+    Route::get('/assigned-panels', [PanelController::class, 'assignedPanels'])->name('panels.assigned');
+    Route::get('/panel-reviewer-assignments', [PanelController::class, 'reviewerAssignments'])->name('panels.assignments');
+    Route::post('/panel-reviewer-assignments/import', [PanelController::class, 'importReviewerAssignments'])->name('panels.assignments.import');
+    Route::get('/panel-reviewer-assignments/import-errors/{token}', [PanelController::class, 'downloadReviewerAssignmentErrors'])->name('panels.assignments.import_errors');
+    Route::put('/panel-reviewer-assignments/{panel}', [PanelController::class, 'updateReviewerAssignments'])->name('panels.assignments.update');
+    Route::put('/panels/{panel}/review', [PanelController::class, 'submitReview'])->name('panels.review');
     Route::get('/panels-rejected', [PanelController::class, 'rejected'])->name('panels.rejected');
     Route::put('/panels/{panel}/reject', [PanelController::class, 'reject'])->name('panels.reject');
     Route::resource('panels', PanelController::class)->names('panels');

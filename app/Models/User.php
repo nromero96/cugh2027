@@ -137,6 +137,15 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    public function assignedPanels()
+    {
+        return $this->belongsToMany(Panel::class, 'panel_reviewers', 'reviewer_id', 'panel_id')
+            ->withPivot(array_merge(['average_score', 'reviewer_note'], array_map(function ($number) {
+                return 'score_'.$number;
+            }, range(1, 8))))
+            ->withTimestamps();
+    }
+
     // Nacionalidad (opcional)
     public function nationalityCountry()
     {

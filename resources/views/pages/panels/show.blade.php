@@ -17,6 +17,10 @@
                     </div>
                 @endif
 
+                @if($errors->any())
+                    <div class="alert alert-danger"><strong>Please correct the following errors:</strong><ul class="mb-0 mt-2">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>
+                @endif
+
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header">
                         <div class="row">
@@ -195,6 +199,7 @@
                     </div>
                 </div>
             </div>
+            @include('pages.panels.review', ['panel' => $panel, 'reviewAssignment' => $reviewAssignment])
         </div>
 
     </div>

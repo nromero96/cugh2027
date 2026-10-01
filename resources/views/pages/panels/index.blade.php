@@ -7,6 +7,14 @@
     .panels-table { table-layout: fixed; width: 100%; }
     .panels-table td { vertical-align: middle; overflow-wrap: anywhere; }
     .panels-table .action-btns .btn-show svg { color: #4c8df5 !important; }
+    .panel-reviewer-stack { display: inline-flex; align-items: center; padding: 4px 8px 4px 0; vertical-align: middle; }
+    .panel-reviewer-avatar { position: relative; display: inline-flex; flex: 0 0 32px; width: 32px; height: 32px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; background: #CC1F2F; color: #fff; font-weight: 700; cursor: help; }
+    .panel-reviewer-avatar + .panel-reviewer-avatar { margin-left: -9px; }
+    .panel-reviewer-avatar:nth-child(1) { z-index: 3; }
+    .panel-reviewer-avatar:nth-child(2) { z-index: 2; }
+    .panel-reviewer-avatar:nth-child(3) { z-index: 1; }
+    .panel-reviewer-avatar:hover, .panel-reviewer-avatar:focus { z-index: 5; }
+    .panel-reviewer-check { position: absolute; top: -6px; right: -5px; display: inline-flex; width: 16px; height: 16px; align-items: center; justify-content: center; border: 2px solid #fff; border-radius: 50%; background: #198754; color: #fff; font-size: 10px; line-height: 1; }
     .panel-search-row { display: flex; flex-wrap: nowrap; width: 100%; }
     .panel-search-row .form-control { min-width: 0; }
     .panel-search-row .btn { flex: 0 0 auto; }
@@ -122,6 +130,7 @@
 
                             <div class="col-md-3 text-end mt-0">
                                 @if(auth()->user()->hasRole('Administrador'))
+                                    <a href="{{ route('panels.assignments') }}" class="btn btn-outline-primary btn-sm" title="Assign panel reviewers">Assign Reviewers</a>
                                     @if($rejectedPage)
                                         <a href="{{ route('panels.index') }}" class="btn btn-outline-secondary btn-sm" title="Back to Panels" aria-label="Back to Panels">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
@@ -157,8 +166,11 @@
                                 <thead>
                                     <tr>
                                         <th class="text-center" style="width: 8%;">ID</th>
-                                        <th style="width: 47%;">Contact</th>
-                                        <th class="text-center" style="width: 25%;">Created At</th>
+                                        @if(auth()->user()->hasRole('Administrador'))
+                                            <th class="text-center" style="width: 14%;">Reviewers</th>
+                                        @endif
+                                        <th style="width: {{ auth()->user()->hasRole('Administrador') ? '35%' : '47%' }};">Contact</th>
+                                        <th class="text-center" style="width: {{ auth()->user()->hasRole('Administrador') ? '23%' : '25%' }};">Created At</th>
                                         <th class="text-center" style="width: 20%;">Action</th>
                                     </tr>
                                 </thead>
@@ -166,6 +178,28 @@
                                     @forelse ($panels as $panel)
                                     <tr>
                                         <td class="text-center" data-label="ID"><a href="{{ route('panels.show', $panel->id) }}"><b class="text-primary">{{ $panel->id }}</b></a></td>
+                                        @if(auth()->user()->hasRole('Administrador'))
+                                            <td class="text-center" data-label="Reviewers">
+                                                @if($panel->reviewers->isNotEmpty())
+                                                    <div class="panel-reviewer-stack">
+                                                        @foreach($panel->reviewers as $reviewer)
+                                                            @php
+                                                                $reviewerName = trim($reviewer->name.' '.$reviewer->lastname.' '.$reviewer->second_lastname);
+                                                                $initial = \Illuminate\Support\Str::upper(\Illuminate\Support\Str::substr($reviewerName ?: $reviewer->email, 0, 1));
+                                                                $reviewed = $reviewer->pivot->average_score !== null;
+                                                                $tooltip = ($reviewerName ?: $reviewer->email).' — '.$reviewer->email.' — '.($reviewed ? 'Reviewed' : 'Pending');
+                                                            @endphp
+                                                            <span class="panel-reviewer-avatar" title="{{ $tooltip }}" aria-label="{{ $tooltip }}" tabindex="0">
+                                                                {{ $initial }}
+                                                                @if($reviewed)<span class="panel-reviewer-check" aria-hidden="true">✓</span>@endif
+                                                            </span>
+                                                        @endforeach
+                                                    </div>
+                                                @else
+                                                    <span class="text-muted">—</span>
+                                                @endif
+                                            </td>
+                                        @endif
                                         <td data-label="Contact">
                                             <strong class="d-block">{{ $panel->contact_name }}</strong>
                                             <a href="mailto:{{ $panel->contact_email }}" class="d-block">{{ $panel->contact_email }}</a>
@@ -207,7 +241,7 @@
                                     </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center text-muted py-4 empty-panels">No panels found.</td>
+                                            <td colspan="{{ auth()->user()->hasRole('Administrador') ? 5 : 4 }}" class="text-center text-muted py-4 empty-panels">No panels found.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

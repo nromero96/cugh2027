@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Mail\ReviewerAccountCreated;
 use App\Mail\AbstractReviewInstructions;
+use App\Mail\PanelReviewInstructions;
+use App\Mail\PanelReviewerAccountCreated;
 use App\Models\ReviewerCandidate;
 use App\Models\User;
 use App\Services\ReviewerCandidateImportService;
@@ -26,7 +28,7 @@ class ReviewerCandidateController extends Controller
 
         $reviewers = ReviewerCandidate::query()
             ->with(['registeredUser' => function ($query) {
-                $query->select('id', 'email')->withCount('assignedAbstracts');
+                $query->select('id', 'email')->withCount(['assignedAbstracts', 'assignedPanels']);
             }])
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($searchQuery) use ($search) {
@@ -67,6 +69,66 @@ class ReviewerCandidateController extends Controller
         $this->authorizeNotifications();
 
         return response()->view('emails.abstract-review-instructions', ['preview' => true]);
+    }
+
+    public function previewPanelReviewInstructions()
+    {
+        $this->authorizeNotifications();
+
+        return response()->view('emails.panel-review-instructions');
+    }
+
+    public function sendPanelReviewInstructions(Request $request)
+    {
+        $this->authorizeNotifications();
+        $validated = $request->validate([
+            'reviewer_ids' => ['required', 'array', 'min:1', 'max:30'],
+            'reviewer_ids.*' => ['required', 'integer', 'distinct', 'exists:reviewer_candidates,id'],
+        ], [
+            'reviewer_ids.required' => 'Select at least one panel reviewer.',
+            'reviewer_ids.max' => 'Select no more than 30 panel reviewers at a time.',
+        ]);
+
+        $sent = 0;
+        $alreadySent = 0;
+        $notAssigned = 0;
+        $failed = 0;
+        foreach ($validated['reviewer_ids'] as $reviewerId) {
+            try {
+                $outcome = DB::transaction(function () use ($reviewerId) {
+                    $candidate = ReviewerCandidate::whereKey($reviewerId)->lockForUpdate()->firstOrFail();
+                    if ($candidate->panel_review_instructions_sent_at !== null) {
+                        return 'already_sent';
+                    }
+                    $user = User::whereRaw('LOWER(email) = ?', [Str::lower(trim($candidate->email))])->first();
+                    if (!$user || !$user->assignedPanels()->exists()) {
+                        return 'not_assigned';
+                    }
+                    if (!filter_var($candidate->email, FILTER_VALIDATE_EMAIL)) {
+                        return 'invalid_email';
+                    }
+
+                    $name = trim($candidate->first_name.' '.$candidate->last_name) ?: $candidate->email;
+                    Mail::to($candidate->email)->send(new PanelReviewInstructions($name));
+                    $candidate->panel_review_instructions_sent_at = now();
+                    $candidate->save();
+                    return 'sent';
+                });
+                if ($outcome === 'sent') $sent++;
+                elseif ($outcome === 'already_sent') $alreadySent++;
+                elseif ($outcome === 'not_assigned') $notAssigned++;
+                else $failed++;
+            } catch (\Throwable $exception) {
+                report($exception);
+                $failed++;
+            }
+        }
+
+        $response = back()->with('success', $sent.' panel instruction emails sent; '.$alreadySent.' already sent; '.$notAssigned.' not assigned; '.$failed.' failed.');
+        if ($failed) {
+            $response->with('error', 'Some messages could not be sent. Check the mail logs before retrying to avoid duplicates.');
+        }
+        return $response;
     }
 
     public function sendReviewInstructions(Request $request)
@@ -182,13 +244,23 @@ class ReviewerCandidateController extends Controller
 
     public function createUser(ReviewerCandidate $reviewerCandidate)
     {
+        return $this->createReviewerUser($reviewerCandidate, false);
+    }
+
+    public function createPanelReviewerUser(ReviewerCandidate $reviewerCandidate)
+    {
+        return $this->createReviewerUser($reviewerCandidate, true);
+    }
+
+    private function createReviewerUser(ReviewerCandidate $reviewerCandidate, bool $forPanel)
+    {
         $this->authorizeManagement();
 
         try {
-            $created = DB::transaction(function () use ($reviewerCandidate) {
+            $created = DB::transaction(function () use ($reviewerCandidate, $forPanel) {
                 $candidate = ReviewerCandidate::query()->lockForUpdate()->findOrFail($reviewerCandidate->id);
 
-                if (User::where('email', $candidate->email)->exists()) {
+                if (User::whereRaw('LOWER(email) = ?', [Str::lower(trim($candidate->email))])->exists()) {
                     return false;
                 }
 
@@ -215,10 +287,12 @@ class ReviewerCandidateController extends Controller
 
                 $mail = Mail::to($user->email);
                 $notificationCopy = config('services.correonotificacion.copy');
-                if ($notificationCopy) {
+                if ($notificationCopy && !$forPanel) {
                     $mail->bcc($notificationCopy);
                 }
-                $mail->send(new ReviewerAccountCreated($user, $plainPassword));
+                $mail->send($forPanel
+                    ? new PanelReviewerAccountCreated($user, $plainPassword)
+                    : new ReviewerAccountCreated($user, $plainPassword));
 
                 return true;
             });
@@ -232,7 +306,7 @@ class ReviewerCandidateController extends Controller
             return back()->with('error', 'A user with this email address already exists.');
         }
 
-        return back()->with('success', 'The participant account was created and the login credentials were emailed successfully.');
+        return back()->with('success', ($forPanel ? 'The panel reviewer' : 'The participant').' account was created and the login credentials were emailed successfully.');
     }
 
     public function template()

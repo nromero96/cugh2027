@@ -38,4 +38,13 @@ class Panel extends Model
         'subthemes' => 'array',
         'speakers' => 'array',
     ];
+
+    public function reviewers()
+    {
+        return $this->belongsToMany(User::class, 'panel_reviewers', 'panel_id', 'reviewer_id')
+            ->withPivot(array_merge(['average_score', 'reviewer_note'], array_map(function ($number) {
+                return 'score_'.$number;
+            }, range(1, 8))))
+            ->withTimestamps();
+    }
 }
