@@ -222,6 +222,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::post('/abstract-post-reviewer-assignments/import', [AbstractPostController::class, 'importReviewerAssignments'])->name('abstract_posts.assignments.import');
     Route::get('/abstract-post-reviewer-assignments/import-errors/{token}', [AbstractPostController::class, 'downloadReviewerAssignmentErrors'])->name('abstract_posts.assignments.import_errors');
     Route::put('/abstract-post-reviewer-assignments/{abstractPost}', [AbstractPostController::class, 'updateReviewerAssignments'])->name('abstract_posts.assignments.update');
+    Route::put('/abstract-post-reviewer-assignments/{abstractPost}/slots/{slot}', [AbstractPostController::class, 'updateReviewerSlot'])->name('abstract_posts.assignments.slot.update');
     Route::put('/abstract-posts/{abstractPost}/review', [AbstractPostController::class, 'submitReview'])->name('abstract_posts.review');
     Route::resource('abstract-posts', AbstractPostController::class)->names('abstract_posts');
     Route::get('/exportar-excel-abstracts', [AbstractPostController::class, 'exportExcelAbstracts'])->name('abstract_posts.exportexcel');

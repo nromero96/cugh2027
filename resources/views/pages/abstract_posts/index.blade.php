@@ -48,7 +48,7 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-8">
+                            <div class="col-7">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                     
                                     <form
@@ -132,10 +132,10 @@
 
                                 @endif
                             </div>
-                            <div class="col-4 text-end">
+                            <div class="col-5 text-end">
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                     @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
-                                        {{-- <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign Reviewers</a> --}}
+                                        <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign</a>
                                     @endif
                                     @if($rejectedPage)
                                         <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary mb-3" title="Back to Abstracts" aria-label="Back to Abstracts">

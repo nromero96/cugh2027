@@ -190,6 +190,102 @@ class AbstractReviewerAssignmentTest extends TestCase
         $this->assertDatabaseCount('abstract_post_reviewers', 0);
     }
 
+    public function test_administrator_can_replace_only_a_pending_reviewer_slot()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $reviewed = $this->user(3, 2);
+        $pending = $this->user(4, 2);
+        $replacement = $this->user(5, 2);
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->reviewers()->attach($reviewed->id, ['average_score' => 8, 'score_1' => 8]);
+        $abstract->reviewers()->attach($pending->id);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 2]), [
+                'current_reviewer_id' => $pending->id,
+                'reviewer_id' => $replacement->id,
+            ])->assertSessionHasNoErrors();
+
+        $this->assertSame([$reviewed->id, $replacement->id], DB::table('abstract_post_reviewers')
+            ->where('abstract_post_id', $abstract->id)->orderBy('id')->pluck('reviewer_id')->all());
+        $this->assertDatabaseHas('abstract_post_reviewers', [
+            'abstract_post_id' => $abstract->id,
+            'reviewer_id' => $reviewed->id,
+            'average_score' => 8,
+        ]);
+    }
+
+    public function test_evaluated_slot_cannot_be_replaced_but_next_empty_slot_can_be_assigned()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $reviewed = $this->user(3, 2);
+        $newReviewer = $this->user(4, 2);
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->reviewers()->attach($reviewed->id, ['score_1' => 8]);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+                'current_reviewer_id' => $reviewed->id,
+                'reviewer_id' => $newReviewer->id,
+            ])->assertSessionHasErrors('reviewer_id');
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 2]), [
+                'reviewer_id' => $newReviewer->id,
+            ])->assertSessionHasNoErrors();
+        $this->assertSame([$reviewed->id, $newReviewer->id], DB::table('abstract_post_reviewers')
+            ->where('abstract_post_id', $abstract->id)->orderBy('id')->pluck('reviewer_id')->all());
+    }
+
+    public function test_slot_change_rejects_duplicates_and_stale_assignments()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $first = $this->user(3, 2);
+        $second = $this->user(4, 2);
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->reviewers()->attach([$first->id, $second->id]);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+                'current_reviewer_id' => $first->id,
+                'reviewer_id' => $second->id,
+            ])->assertSessionHasErrors('reviewer_id');
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+                'current_reviewer_id' => $second->id,
+                'reviewer_id' => $first->id,
+            ])->assertSessionHasErrors('reviewer_id');
+        $this->assertDatabaseCount('abstract_post_reviewers', 2);
+    }
+
+    public function test_slot_change_rejects_ineligible_reviewer_and_qualified_abstract()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $reviewer = $this->user(3, 2);
+        $abstract = $this->abstract(1, $owner->id);
+        $this->actingAs($admin);
+        DB::table('reviewer_candidates')->where('email', $reviewer->email)->delete();
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+                'reviewer_id' => $reviewer->id,
+            ])->assertSessionHasErrors('reviewer_id');
+
+        DB::table('reviewer_candidates')->insert(['email' => $reviewer->email]);
+        $abstract->update(['status' => 'qualified']);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+                'reviewer_id' => $reviewer->id,
+            ])->assertSessionHasErrors('reviewer_id');
+        $this->assertDatabaseCount('abstract_post_reviewers', 0);
+    }
+
     public function test_participant_can_be_assigned_without_the_reviewer_role()
     {
         $admin = $this->user(1, 1);
@@ -218,6 +314,9 @@ class AbstractReviewerAssignmentTest extends TestCase
         $this->withoutMiddleware(self::FORM_MIDDLEWARE)->put(route('abstract_posts.assignments.update', $abstract), [
             'reviewer_ids' => [$reviewer->id],
         ])->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)->put(route('abstract_posts.assignments.slot.update', [$abstract, 1]), [
+            'reviewer_id' => $reviewer->id,
+        ])->assertForbidden();
     }
 
     public function test_assignment_page_lists_only_users_matching_reviewer_candidate_emails()
@@ -233,6 +332,31 @@ class AbstractReviewerAssignmentTest extends TestCase
 
         $this->assertContains($matchingUser->id, $reviewerIds);
         $this->assertNotContains($nonMatchingUser->id, $reviewerIds);
+    }
+
+    public function test_assignment_page_can_filter_a_reviewers_editable_abstracts()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $unavailableReviewer = $this->user(3, 2);
+        $otherReviewer = $this->user(4, 2);
+        $editable = $this->abstract(1, $owner->id);
+        $locked = $this->abstract(2, $owner->id);
+        $unrelated = $this->abstract(3, $owner->id);
+        $editable->reviewers()->attach($unavailableReviewer->id);
+        $editable->reviewers()->attach($otherReviewer->id, ['average_score' => 8]);
+        $locked->reviewers()->attach($unavailableReviewer->id, ['average_score' => 8]);
+        $unrelated->reviewers()->attach($otherReviewer->id);
+        $this->actingAs($admin);
+
+        $request = Request::create('/abstract-post-reviewer-assignments', 'GET', [
+            'reviewer_id' => $unavailableReviewer->id,
+            'assignment_state' => 'editable',
+        ]);
+        $response = app(AbstractPostController::class)->reviewerAssignments($request);
+        $this->assertSame([$editable->id], $response->getData()['abstracts']->pluck('id')->all());
+        $this->assertSame($unavailableReviewer->id, $response->getData()['assignedReviewerId']);
+
     }
 
     public function test_user_without_matching_reviewer_candidate_email_cannot_be_assigned()

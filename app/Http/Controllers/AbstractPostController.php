@@ -765,8 +765,68 @@ class AbstractPostController extends Controller
         $this->ensureAdministrator();
 
         $search = trim((string) $request->input('search', ''));
+        $assignedReviewerId = (int) $request->input('reviewer_id', 0);
+        $assignmentState = (string) $request->input('assignment_state', '');
+        if (!in_array($assignmentState, ['', 'editable', 'locked', 'unassigned'], true)) {
+            $assignmentState = '';
+        }
+        $pendingReview = function ($reviewerQuery) {
+            $reviewerQuery->whereNull('average_score');
+            foreach (range(1, 5) as $number) {
+                $reviewerQuery->whereNull('score_'.$number);
+            }
+        };
+        $startedReview = function ($reviewerQuery) {
+            $reviewerQuery->where(function ($scoreQuery) {
+                $scoreQuery->whereNotNull('average_score');
+                foreach (range(1, 5) as $number) {
+                    $scoreQuery->orWhereNotNull('score_'.$number);
+                }
+            });
+        };
         $abstracts = AbstractPost::query()
-            ->with(['user', 'reviewers:id,name,lastname,second_lastname,email'])
+            ->with(['user', 'reviewers' => function ($query) {
+                $query->select('users.id', 'name', 'lastname', 'second_lastname', 'email')
+                    ->orderBy('abstract_post_reviewers.id');
+            }])
+            ->when($assignedReviewerId > 0, function ($query) use ($assignedReviewerId) {
+                $query->whereHas('reviewers', function ($reviewerQuery) use ($assignedReviewerId) {
+                    $reviewerQuery->where('users.id', $assignedReviewerId);
+                });
+            })
+            ->when($assignmentState === 'unassigned', function ($query) {
+                $query->doesntHave('reviewers');
+            })
+            ->when($assignmentState === 'locked', function ($query) use ($assignedReviewerId, $pendingReview, $startedReview) {
+                $query->where(function ($lockedQuery) use ($assignedReviewerId, $pendingReview, $startedReview) {
+                    $lockedQuery->where('status', 'qualified');
+                    if ($assignedReviewerId > 0) {
+                        $lockedQuery->orWhereHas('reviewers', function ($reviewerQuery) use ($assignedReviewerId, $startedReview) {
+                            $reviewerQuery->where('users.id', $assignedReviewerId);
+                            $startedReview($reviewerQuery);
+                        });
+                    } else {
+                        $lockedQuery->orWhere(function ($fullyReviewedQuery) use ($pendingReview) {
+                            $fullyReviewedQuery->has('reviewers', '>=', 3)
+                                ->whereDoesntHave('reviewers', $pendingReview);
+                        });
+                    }
+                });
+            })
+            ->when($assignmentState === 'editable', function ($query) use ($assignedReviewerId, $pendingReview) {
+                $query->where('status', '!=', 'qualified')
+                    ->where(function ($editableQuery) use ($assignedReviewerId, $pendingReview) {
+                        if ($assignedReviewerId > 0) {
+                            $editableQuery->whereHas('reviewers', function ($reviewerQuery) use ($assignedReviewerId, $pendingReview) {
+                                $reviewerQuery->where('users.id', $assignedReviewerId);
+                                $pendingReview($reviewerQuery);
+                            });
+                        } else {
+                            $editableQuery->has('reviewers', '<', 3)
+                                ->orWhereHas('reviewers', $pendingReview);
+                        }
+                    });
+            })
             ->when($search !== '', function ($query) use ($search) {
                 $query->where(function ($searchQuery) use ($search) {
                     $id = ltrim($search, '#');
@@ -799,6 +859,8 @@ class AbstractPostController extends Controller
             'abstracts' => $abstracts,
             'reviewers' => $reviewers,
             'search' => $search,
+            'assignedReviewerId' => $assignedReviewerId,
+            'assignmentState' => $assignmentState,
         ]);
     }
 
@@ -909,6 +971,58 @@ class AbstractPostController extends Controller
         });
 
         return back()->with('success', 'Reviewers assigned successfully.');
+    }
+
+    public function updateReviewerSlot(Request $request, AbstractPost $abstractPost, $slot)
+    {
+        $this->ensureAdministrator();
+        abort_unless(ctype_digit((string) $slot) && (int) $slot >= 1 && (int) $slot <= 3, 404);
+        $validated = $request->validate([
+            'reviewer_id' => ['required', 'integer', 'exists:users,id'],
+            'current_reviewer_id' => ['nullable', 'integer'],
+        ]);
+        $reviewerId = (int) $validated['reviewer_id'];
+        $eligible = User::query()->whereKey($reviewerId)
+            ->whereIn('email', ReviewerCandidate::query()->select('email'))->exists();
+        if (!$eligible) {
+            throw ValidationException::withMessages(['reviewer_id' => 'Select a registered user from Reviewer Candidates.']);
+        }
+
+        DB::transaction(function () use ($abstractPost, $slot, $reviewerId, $validated) {
+            $abstract = AbstractPost::query()->whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
+            if ($abstract->status === 'qualified') {
+                throw ValidationException::withMessages(['reviewer_id' => 'This abstract is qualified; its reviewer assignments are locked.']);
+            }
+
+            $assignments = DB::table('abstract_post_reviewers')
+                ->where('abstract_post_id', $abstract->id)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+            $current = $assignments->get((int) $slot - 1);
+            $expectedReviewerId = (int) ($validated['current_reviewer_id'] ?? 0);
+            if (($current ? (int) $current->reviewer_id : 0) !== $expectedReviewerId || (int) $slot > $assignments->count() + 1) {
+                throw ValidationException::withMessages(['reviewer_id' => 'Assignments changed. Refresh the page and try again.']);
+            }
+            if ($current && ($current->average_score !== null || collect(range(1, 5))->contains(function ($number) use ($current) {
+                return $current->{'score_'.$number} !== null;
+            }))) {
+                throw ValidationException::withMessages(['reviewer_id' => 'This reviewer has already submitted an evaluation and cannot be changed.']);
+            }
+            if ($assignments->contains(function ($assignment) use ($reviewerId, $current) {
+                return (int) $assignment->reviewer_id === $reviewerId && (!$current || $assignment->id !== $current->id);
+            })) {
+                throw ValidationException::withMessages(['reviewer_id' => 'This reviewer is already assigned to the abstract.']);
+            }
+            if (!$current) {
+                $abstract->reviewers()->attach($reviewerId);
+            } elseif ((int) $current->reviewer_id !== $reviewerId) {
+                DB::table('abstract_post_reviewers')->where('id', $current->id)
+                    ->update(['reviewer_id' => $reviewerId, 'reviewer_note' => null, 'updated_at' => now()]);
+            }
+        });
+
+        return back()->with('success', 'Reviewer assignment updated successfully.');
     }
 
     public function submitReview(SubmitAbstractReviewRequest $request, AbstractPost $abstractPost)
