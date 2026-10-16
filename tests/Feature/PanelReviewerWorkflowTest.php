@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\PanelController;
+use App\Exports\PanelExport;
 use App\Models\Panel;
 use App\Models\User;
 use App\Services\PanelReviewerAssignmentImportService;
@@ -13,7 +14,10 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
@@ -96,6 +100,58 @@ class PanelReviewerWorkflowTest extends TestCase
         $this->assertSame('Qualified', $panel->fresh()->status);
         $this->actingAs($admin)->put(route('panels.assignments.update', $panel), ['reviewer_ids' => [2]])->assertSessionHasErrors('reviewer_ids');
         $this->assertSame(2, $panel->reviewers()->count());
+    }
+
+    public function test_panel_export_appends_two_reviewers_scores_and_averages()
+    {
+        $this->user(1, 1);
+        $first = $this->user(2, 2);
+        $second = $this->user(3, 2);
+        $panel = $this->panel();
+        DB::table('panels')->insert(['id' => 2, 'title' => 'Rejected panel', 'status' => 'Rejected']);
+        $firstScores = array_fill_keys(array_map(function ($number) { return 'score_'.$number; }, range(1, 8)), 7);
+        $firstScores['score_1'] = 8;
+        $panel->reviewers()->attach($first->id, array_merge($firstScores, ['average_score' => 7.13]));
+        $panel->reviewers()->attach($second->id);
+
+        $export = new PanelExport();
+        $this->assertSame([1], $export->collection()->pluck('id')->all());
+        $this->assertSame([2], (new PanelExport(true))->collection()->pluck('id')->all());
+        $this->assertCount(42, $export->headings());
+        $this->assertSame('Reviewer 1 Email', $export->headings()[21]);
+        $this->assertSame('Reviewer 2 Score 8', $export->headings()[39]);
+        $this->assertSame('Final Average', $export->headings()[41]);
+        $pendingRow = $export->map($export->collection()->first());
+        $this->assertSame($first->email, $pendingRow[21]);
+        $this->assertSame(8, $pendingRow[22]);
+        $this->assertSame(7.13, $pendingRow[30]);
+        $this->assertSame($second->email, $pendingRow[31]);
+        $this->assertNull($pendingRow[32]);
+        $this->assertNull($pendingRow[41]);
+
+        $secondScores = array_fill_keys(array_map(function ($number) { return 'score_'.$number; }, range(1, 8)), 8);
+        $panel->reviewers()->updateExistingPivot($second->id, array_merge($secondScores, ['average_score' => 8]));
+        $completedRow = $export->map($export->collection()->first());
+        $this->assertSame(7.5625, $completedRow[41]);
+
+        $path = tempnam(sys_get_temp_dir(), 'panel_export_');
+        $xlsxPath = $path.'.xlsx';
+        rename($path, $xlsxPath);
+        try {
+            file_put_contents($xlsxPath, Excel::raw($export, ExcelFormat::XLSX));
+            $book = IOFactory::load($xlsxPath);
+            $sheet = $book->getActiveSheet();
+            $this->assertSame('Reviewer 1 Email', $sheet->getCell('V1')->getValue());
+            $this->assertSame('Final Average', $sheet->getCell('AP1')->getValue());
+            $this->assertSame(7.5625, (float) $sheet->getCell('AP2')->getValue());
+            $this->assertSame('0.00', $sheet->getStyle('AP2')->getNumberFormat()->getFormatCode());
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AP2')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFFFFFFF', $sheet->getStyle('AP2')->getFont()->getColor()->getARGB());
+            $this->assertSame('A1:AP1', $sheet->getAutoFilter()->getRange());
+            $book->disconnectWorksheets();
+        } finally {
+            @unlink($xlsxPath);
+        }
     }
 
     public function test_only_eligible_reviewers_can_be_assigned_and_scores_must_be_complete()

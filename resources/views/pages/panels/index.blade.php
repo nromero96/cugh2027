@@ -130,7 +130,7 @@
 
                             <div class="col-md-3 text-end mt-0">
                                 @if(auth()->user()->hasRole('Administrador'))
-                                    <a href="{{ route('panels.assignments') }}" class="btn btn-outline-primary btn-sm" title="Assign panel reviewers">Assign Reviewers</a>
+                                    {{-- <a href="{{ route('panels.assignments') }}" class="btn btn-outline-primary btn-sm" title="Assign panel reviewers">Assign Reviewers</a> --}}
                                     @if($rejectedPage)
                                         <a href="{{ route('panels.index') }}" class="btn btn-outline-secondary btn-sm" title="Back to Panels" aria-label="Back to Panels">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-90deg-left" viewBox="0 0 16 16">
