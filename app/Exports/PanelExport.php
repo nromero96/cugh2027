@@ -7,12 +7,16 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class PanelExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithStyles, WithCustomValueBinder
 {
     private $rejectedOnly;
 
@@ -59,6 +63,7 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 $headings[] = 'Reviewer '.$reviewerNumber.' Score '.$scoreNumber;
             }
             $headings[] = 'Reviewer '.$reviewerNumber.' Average';
+            $headings[] = 'Reviewer '.$reviewerNumber.' Note';
         }
         $headings[] = 'Final Average';
 
@@ -127,6 +132,7 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                 }
             }
             $row[] = $submitted ? (float) $reviewer->pivot->average_score : null;
+            $row[] = $reviewer ? $reviewer->pivot->reviewer_note : null;
             if ($submitted) {
                 $submittedCount++;
             }
@@ -137,6 +143,16 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
             : null;
 
         return $row;
+    }
+
+    public function bindValue(Cell $cell, $value)
+    {
+        if ($cell->getRow() > 1 && in_array($cell->getColumn(), ['AF', 'AQ'], true) && is_string($value)) {
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
     }
 
     public function styles(Worksheet $sheet)
@@ -155,8 +171,8 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         ]);
 
         foreach ([
-            ['start' => 'V', 'end' => 'AE', 'header' => 'FF28539A', 'body' => 'FFEDF3FC'],
-            ['start' => 'AF', 'end' => 'AO', 'header' => 'FF087F8C', 'body' => 'FFEAF7F7'],
+            ['start' => 'V', 'end' => 'AF', 'header' => 'FF28539A', 'body' => 'FFEDF3FC'],
+            ['start' => 'AG', 'end' => 'AQ', 'header' => 'FF087F8C', 'body' => 'FFEAF7F7'],
         ] as $colors) {
             $sheet->getStyle($colors['start'].'1:'.$colors['end'].'1')->applyFromArray([
                 'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
@@ -168,7 +184,7 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
                     ->getStartColor()->setARGB($colors['body']);
             }
         }
-        $sheet->getStyle('AP1:AP'.$lastRow)->applyFromArray([
+        $sheet->getStyle('AR1:AR'.$lastRow)->applyFromArray([
             'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['argb' => 'FFCC1F2F']],
         ]);
@@ -178,6 +194,8 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         $sheet->getStyle('A:'.$lastColumn)->getAlignment()->setVertical(Alignment::VERTICAL_TOP);
         $sheet->getStyle('C:R')->getAlignment()->setWrapText(true);
         $sheet->getStyle('V1:'.$lastColumn.'1')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('AF:AF')->getAlignment()->setWrapText(true);
+        $sheet->getStyle('AQ:AQ')->getAlignment()->setWrapText(true);
         $sheet->getRowDimension(1)->setRowHeight(32);
 
         for ($columnIndex = 1; $columnIndex <= count($this->headings()); $columnIndex++) {
@@ -193,21 +211,23 @@ class PanelExport implements FromCollection, WithHeadings, WithMapping, WithStyl
         $sheet->getColumnDimension('T')->setWidth(20);
         $sheet->getColumnDimension('U')->setWidth(20);
         foreach (range(0, 1) as $slot) {
-            $emailColumnIndex = 22 + $slot * 10;
+            $emailColumnIndex = 22 + $slot * 11;
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($emailColumnIndex))->setWidth(30);
             foreach (range(1, 8) as $scoreNumber) {
                 $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($emailColumnIndex + $scoreNumber))->setWidth(19);
             }
             $averageColumn = Coordinate::stringFromColumnIndex($emailColumnIndex + 9);
             $sheet->getColumnDimension($averageColumn)->setWidth(20);
+            $noteColumn = Coordinate::stringFromColumnIndex($emailColumnIndex + 10);
+            $sheet->getColumnDimension($noteColumn)->setWidth(60);
             if ($lastRow >= 2) {
                 $sheet->getStyle($averageColumn.'2:'.$averageColumn.$lastRow)
                     ->getNumberFormat()->setFormatCode('0.00');
             }
         }
-        $sheet->getColumnDimension('AP')->setWidth(20);
+        $sheet->getColumnDimension('AR')->setWidth(20);
         if ($lastRow >= 2) {
-            $sheet->getStyle('AP2:AP'.$lastRow)->getNumberFormat()->setFormatCode('0.00');
+            $sheet->getStyle('AR2:AR'.$lastRow)->getNumberFormat()->setFormatCode('0.00');
         }
 
         return [];

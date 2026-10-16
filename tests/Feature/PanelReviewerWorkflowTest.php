@@ -111,28 +111,41 @@ class PanelReviewerWorkflowTest extends TestCase
         DB::table('panels')->insert(['id' => 2, 'title' => 'Rejected panel', 'status' => 'Rejected']);
         $firstScores = array_fill_keys(array_map(function ($number) { return 'score_'.$number; }, range(1, 8)), 7);
         $firstScores['score_1'] = 8;
-        $panel->reviewers()->attach($first->id, array_merge($firstScores, ['average_score' => 7.13]));
+        $panel->reviewers()->attach($first->id, array_merge($firstScores, [
+            'average_score' => 7.13,
+            'reviewer_note' => 'Strong alignment with the conference track.',
+        ]));
         $panel->reviewers()->attach($second->id);
 
         $export = new PanelExport();
         $this->assertSame([1], $export->collection()->pluck('id')->all());
         $this->assertSame([2], (new PanelExport(true))->collection()->pluck('id')->all());
-        $this->assertCount(42, $export->headings());
+        $this->assertCount(44, $export->headings());
         $this->assertSame('Reviewer 1 Email', $export->headings()[21]);
-        $this->assertSame('Reviewer 2 Score 8', $export->headings()[39]);
-        $this->assertSame('Final Average', $export->headings()[41]);
+        $this->assertSame('Reviewer 1 Note', $export->headings()[31]);
+        $this->assertSame('Reviewer 2 Score 8', $export->headings()[40]);
+        $this->assertSame('Reviewer 2 Note', $export->headings()[42]);
+        $this->assertSame('Final Average', $export->headings()[43]);
         $pendingRow = $export->map($export->collection()->first());
         $this->assertSame($first->email, $pendingRow[21]);
         $this->assertSame(8, $pendingRow[22]);
         $this->assertSame(7.13, $pendingRow[30]);
-        $this->assertSame($second->email, $pendingRow[31]);
-        $this->assertNull($pendingRow[32]);
-        $this->assertNull($pendingRow[41]);
+        $this->assertSame('Strong alignment with the conference track.', $pendingRow[31]);
+        $this->assertSame($second->email, $pendingRow[32]);
+        $this->assertNull($pendingRow[33]);
+        $this->assertNull($pendingRow[42]);
+        $this->assertNull($pendingRow[43]);
 
         $secondScores = array_fill_keys(array_map(function ($number) { return 'score_'.$number; }, range(1, 8)), 8);
-        $panel->reviewers()->updateExistingPivot($second->id, array_merge($secondScores, ['average_score' => 8]));
+        $panel->reviewers()->updateExistingPivot($second->id, array_merge($secondScores, [
+            'average_score' => 8,
+            'reviewer_note' => 'Clear proposal with practical outcomes.',
+        ]));
         $completedRow = $export->map($export->collection()->first());
-        $this->assertSame(7.5625, $completedRow[41]);
+        $this->assertSame('Clear proposal with practical outcomes.', $completedRow[42]);
+        $this->assertSame(7.5625, $completedRow[43]);
+
+        $panel->reviewers()->updateExistingPivot($first->id, ['reviewer_note' => '=1+1']);
 
         $path = tempnam(sys_get_temp_dir(), 'panel_export_');
         $xlsxPath = $path.'.xlsx';
@@ -142,12 +155,17 @@ class PanelReviewerWorkflowTest extends TestCase
             $book = IOFactory::load($xlsxPath);
             $sheet = $book->getActiveSheet();
             $this->assertSame('Reviewer 1 Email', $sheet->getCell('V1')->getValue());
-            $this->assertSame('Final Average', $sheet->getCell('AP1')->getValue());
-            $this->assertSame(7.5625, (float) $sheet->getCell('AP2')->getValue());
-            $this->assertSame('0.00', $sheet->getStyle('AP2')->getNumberFormat()->getFormatCode());
-            $this->assertSame('FFCC1F2F', $sheet->getStyle('AP2')->getFill()->getStartColor()->getARGB());
-            $this->assertSame('FFFFFFFF', $sheet->getStyle('AP2')->getFont()->getColor()->getARGB());
-            $this->assertSame('A1:AP1', $sheet->getAutoFilter()->getRange());
+            $this->assertSame('Reviewer 1 Note', $sheet->getCell('AF1')->getValue());
+            $this->assertSame('=1+1', $sheet->getCell('AF2')->getValue());
+            $this->assertSame('s', $sheet->getCell('AF2')->getDataType());
+            $this->assertSame('Reviewer 2 Note', $sheet->getCell('AQ1')->getValue());
+            $this->assertSame('Clear proposal with practical outcomes.', $sheet->getCell('AQ2')->getValue());
+            $this->assertSame('Final Average', $sheet->getCell('AR1')->getValue());
+            $this->assertSame(7.5625, (float) $sheet->getCell('AR2')->getValue());
+            $this->assertSame('0.00', $sheet->getStyle('AR2')->getNumberFormat()->getFormatCode());
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AR2')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFFFFFFF', $sheet->getStyle('AR2')->getFont()->getColor()->getARGB());
+            $this->assertSame('A1:AR1', $sheet->getAutoFilter()->getRange());
             $book->disconnectWorksheets();
         } finally {
             @unlink($xlsxPath);

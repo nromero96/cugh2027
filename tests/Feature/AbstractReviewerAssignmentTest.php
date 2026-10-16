@@ -742,33 +742,43 @@ class AbstractReviewerAssignmentTest extends TestCase
         $abstract->reviewers()->attach(2, [
             'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 7,
             'average_score' => 7.8,
+            'reviewer_note' => '=1+1',
         ]);
         $abstract->reviewers()->attach(3, [
             'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 8,
             'average_score' => 8.0,
+            'reviewer_note' => 'Well structured abstract.',
         ]);
         $abstract->reviewers()->attach(4);
 
         $export = new AbstractPostExport();
         $exported = $export->collection()->first();
         $pendingRow = $export->map($exported);
-        $this->assertCount(37, $export->headings());
-        $this->assertCount(37, $pendingRow);
+        $this->assertCount(40, $export->headings());
+        $this->assertCount(40, $pendingRow);
         $this->assertSame('Reviewer 1 Email', $export->headings()[15]);
-        $this->assertSame('Final Average', $export->headings()[36]);
+        $this->assertSame('Reviewer 1 Note', $export->headings()[22]);
+        $this->assertSame('Reviewer 2 Note', $export->headings()[30]);
+        $this->assertSame('Reviewer 3 Note', $export->headings()[38]);
+        $this->assertSame('Final Average', $export->headings()[39]);
         $this->assertSame('user2@example.com', $pendingRow[15]);
         $this->assertSame(8, $pendingRow[16]);
         $this->assertSame(7.8, $pendingRow[21]);
-        $this->assertSame('user4@example.com', $pendingRow[29]);
-        $this->assertNull($pendingRow[30]);
-        $this->assertNull($pendingRow[36]);
+        $this->assertSame('=1+1', $pendingRow[22]);
+        $this->assertSame('Well structured abstract.', $pendingRow[30]);
+        $this->assertSame('user4@example.com', $pendingRow[31]);
+        $this->assertNull($pendingRow[32]);
+        $this->assertNull($pendingRow[38]);
+        $this->assertNull($pendingRow[39]);
 
         $abstract->reviewers()->updateExistingPivot(4, [
             'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 7,
             'average_score' => 7.8,
+            'reviewer_note' => 'Practical recommendations.',
         ]);
         $completedRow = $export->map($export->collection()->first());
-        $this->assertSame(7.86, $completedRow[36]);
+        $this->assertSame('Practical recommendations.', $completedRow[38]);
+        $this->assertSame(7.86, $completedRow[39]);
 
         $path = tempnam(sys_get_temp_dir(), 'abstract_export_').'.xlsx';
         try {
@@ -776,17 +786,32 @@ class AbstractReviewerAssignmentTest extends TestCase
             $book = IOFactory::load($path);
             $sheet = $book->getActiveSheet();
             $this->assertSame('Reviewer 1 Email', $sheet->getCell('P1')->getValue());
-            $this->assertSame('Final Average', $sheet->getCell('AK1')->getValue());
-            $this->assertSame(7.86, (float) $sheet->getCell('AK2')->getValue());
-            $this->assertSame('0.00', $sheet->getStyle('AK2')->getNumberFormat()->getFormatCode());
-            foreach (['P' => ['FF28539A', 'FFEDF3FC'], 'W' => ['FF087F8C', 'FFEAF7F7'], 'AD' => ['FFA05A00', 'FFFFF4E3']] as $column => $colors) {
+            $this->assertSame('Reviewer 1 Note', $sheet->getCell('W1')->getValue());
+            $this->assertSame('Reviewer 2 Note', $sheet->getCell('AE1')->getValue());
+            $this->assertSame('Reviewer 3 Note', $sheet->getCell('AM1')->getValue());
+            $this->assertSame('=1+1', $sheet->getCell('W2')->getValue());
+            $this->assertSame('s', $sheet->getCell('W2')->getDataType());
+            $this->assertSame('Well structured abstract.', $sheet->getCell('AE2')->getValue());
+            $this->assertSame('Practical recommendations.', $sheet->getCell('AM2')->getValue());
+            $this->assertSame('Final Average', $sheet->getCell('AN1')->getValue());
+            $this->assertSame(7.86, (float) $sheet->getCell('AN2')->getValue());
+            $this->assertSame('0.00', $sheet->getStyle('AN2')->getNumberFormat()->getFormatCode());
+            foreach (['P' => ['FF28539A', 'FFEDF3FC'], 'X' => ['FF087F8C', 'FFEAF7F7'], 'AF' => ['FFA05A00', 'FFFFF4E3']] as $column => $colors) {
                 $this->assertSame($colors[0], $sheet->getStyle($column.'1')->getFill()->getStartColor()->getARGB());
                 $this->assertSame($colors[1], $sheet->getStyle($column.'2')->getFill()->getStartColor()->getARGB());
                 $this->assertSame('FFFFFFFF', $sheet->getStyle($column.'1')->getFont()->getColor()->getARGB());
             }
-            $this->assertSame('FFCC1F2F', $sheet->getStyle('AK1')->getFill()->getStartColor()->getARGB());
-            $this->assertSame('FFCC1F2F', $sheet->getStyle('AK2')->getFill()->getStartColor()->getARGB());
-            $this->assertSame('FFFFFFFF', $sheet->getStyle('AK2')->getFont()->getColor()->getARGB());
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AN1')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFCC1F2F', $sheet->getStyle('AN2')->getFill()->getStartColor()->getARGB());
+            $this->assertSame('FFFFFFFF', $sheet->getStyle('AN2')->getFont()->getColor()->getARGB());
+            foreach (['A1', 'J2', 'W2', 'AE2', 'AM2', 'AN2'] as $cell) {
+                $borders = $sheet->getStyle($cell)->getBorders();
+                $this->assertSame('thin', $borders->getLeft()->getBorderStyle());
+                $this->assertSame('thin', $borders->getRight()->getBorderStyle());
+                $this->assertSame('thin', $borders->getTop()->getBorderStyle());
+                $this->assertSame('thin', $borders->getBottom()->getBorderStyle());
+                $this->assertSame('FFD0D6DE', $borders->getLeft()->getColor()->getARGB());
+            }
             $book->disconnectWorksheets();
         } finally {
             @unlink($path);

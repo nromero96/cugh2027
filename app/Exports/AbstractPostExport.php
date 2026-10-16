@@ -7,16 +7,31 @@ use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithStyles;
+use Maatwebsite\Excel\Concerns\WithCustomValueBinder;
+use Maatwebsite\Excel\DefaultValueBinder;
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
 use App\Models\AbstractPost;
 use App\Models\User;
 
-class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, WithStyles
+class AbstractPostExport extends DefaultValueBinder implements FromCollection, WithHeadings, WithMapping, WithStyles, WithCustomValueBinder
 {
+    public function bindValue(Cell $cell, $value)
+    {
+        if ($cell->getRow() > 1 && in_array($cell->getColumn(), ['W', 'AE', 'AM'], true) && is_string($value)) {
+            $cell->setValueExplicit($value, DataType::TYPE_STRING);
+            return true;
+        }
+
+        return parent::bindValue($cell, $value);
+    }
+
     /**
     * @return \Illuminate\Support\Collection
     */
@@ -86,6 +101,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
                 $headings[] = 'Reviewer '.$reviewerNumber.' Score '.$scoreNumber;
             }
             $headings[] = 'Reviewer '.$reviewerNumber.' Average';
+            $headings[] = 'Reviewer '.$reviewerNumber.' Note';
         }
         $headings[] = 'Final Average';
 
@@ -236,6 +252,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
                 }
             }
             $row[] = $submitted ? (float) $reviewer->pivot->average_score : null;
+            $row[] = $reviewer ? $reviewer->pivot->reviewer_note : null;
             if ($submitted) {
                 $submittedCount++;
             }
@@ -289,11 +306,11 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
                 ],
             ],
         ],);
-        // Make each reviewer's seven-column block easy to distinguish in Excel.
+        // Make each reviewer's eight-column block easy to distinguish in Excel.
         $reviewerColors = [
-            ['start' => 'P', 'end' => 'V', 'header' => 'FF28539A', 'body' => 'FFEDF3FC'],
-            ['start' => 'W', 'end' => 'AC', 'header' => 'FF087F8C', 'body' => 'FFEAF7F7'],
-            ['start' => 'AD', 'end' => 'AJ', 'header' => 'FFA05A00', 'body' => 'FFFFF4E3'],
+            ['start' => 'P', 'end' => 'W', 'header' => 'FF28539A', 'body' => 'FFEDF3FC'],
+            ['start' => 'X', 'end' => 'AE', 'header' => 'FF087F8C', 'body' => 'FFEAF7F7'],
+            ['start' => 'AF', 'end' => 'AM', 'header' => 'FFA05A00', 'body' => 'FFFFF4E3'],
         ];
         foreach ($reviewerColors as $colors) {
             $sheet->getStyle($colors['start'].'1:'.$colors['end'].'1')->applyFromArray([
@@ -309,7 +326,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
                     ->getStartColor()->setARGB($colors['body']);
             }
         }
-        $sheet->getStyle('AK1:AK'.$lastRow)->applyFromArray([
+        $sheet->getStyle('AN1:AN'.$lastRow)->applyFromArray([
             'font' => ['bold' => true, 'color' => ['argb' => 'FFFFFFFF']],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
@@ -334,7 +351,7 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
         $sheet->getColumnDimension('O')->setWidth(13);
 
         foreach (range(1, 3) as $reviewerNumber) {
-            $emailColumnIndex = 16 + ($reviewerNumber - 1) * 7;
+            $emailColumnIndex = 16 + ($reviewerNumber - 1) * 8;
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($emailColumnIndex))->setWidth(29);
             foreach (range(1, 5) as $scoreNumber) {
                 $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($emailColumnIndex + $scoreNumber))->setWidth(17);
@@ -343,6 +360,9 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
             $sheet->getColumnDimension($averageColumn)->setWidth(19);
             $sheet->getStyle($averageColumn.'2:'.$averageColumn.$sheet->getHighestRow())
                 ->getNumberFormat()->setFormatCode('0.00');
+            $noteColumn = Coordinate::stringFromColumnIndex($emailColumnIndex + 7);
+            $sheet->getColumnDimension($noteColumn)->setWidth(60);
+            $sheet->getStyle($noteColumn.':'.$noteColumn)->getAlignment()->setWrapText(true);
         }
         $sheet->getColumnDimension($lastColumn)->setWidth(18);
         $sheet->getStyle($lastColumn.'2:'.$lastColumn.$sheet->getHighestRow())
@@ -360,6 +380,15 @@ class AbstractPostExport implements FromCollection, WithHeadings, WithMapping, W
         for ($row = 2; $row <= $sheet->getHighestRow(); $row++) {
             $sheet->getRowDimension($row)->setRowHeight(90);
         }
+
+        $sheet->getStyle('A1:'.$lastColumn.$lastRow)->applyFromArray([
+            'borders' => [
+                'allBorders' => [
+                    'borderStyle' => Border::BORDER_THIN,
+                    'color' => ['argb' => 'FFD0D6DE'],
+                ],
+            ],
+        ]);
     }
 
 }
