@@ -739,6 +739,39 @@ class AbstractPostController extends Controller
             ->with('success', 'Status changed successfully');
     }
 
+    public function accept(Request $request, AbstractPost $abstractPost)
+    {
+        $this->ensureAdministrator();
+
+        $validated = $request->validate([
+            'presentation_type' => 'required|in:Oral Presentation,Poster',
+        ]);
+
+        DB::transaction(function () use ($abstractPost, $validated) {
+            $abstractPost = AbstractPost::whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
+            $oldPresentationType = $abstractPost->presentation_type;
+            $oldStatus = $abstractPost->status;
+
+            $abstractPost->presentation_type = $validated['presentation_type'];
+            $abstractPost->status = 'accepted';
+            $abstractPost->save();
+
+            AbstractPostNote::create([
+                'abstract_post_id' => $abstractPost->id,
+                'user_id' => auth()->id(),
+                'comment' => $oldPresentationType === $abstractPost->presentation_type
+                    ? 'Presentation type confirmed as '.$abstractPost->presentation_type.'.'
+                    : 'Changed presentation type from '.($oldPresentationType ?: '(none)').' to '.$abstractPost->presentation_type.'.',
+                'status_change' => $oldStatus === 'accepted'
+                    ? 'Status remains accepted'
+                    : 'Changed status from '.$oldStatus.' to accepted',
+            ]);
+        });
+
+        return redirect()->route('abstract_posts.show', $abstractPost->id)
+            ->with('success', 'Abstract acceptance saved successfully.');
+    }
+
     public function exportExcelAbstracts(Request $request){
 
         if (!auth()->user()->hasRole('Administrador')) {

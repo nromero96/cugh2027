@@ -91,6 +91,14 @@ class AbstractReviewerAssignmentTest extends TestCase
             $table->timestamps();
             $table->unique(['abstract_post_id', 'reviewer_id']);
         });
+        Schema::create('abstract_post_notes', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('abstract_post_id');
+            $table->unsignedBigInteger('user_id');
+            $table->text('comment');
+            $table->string('status_change')->nullable();
+            $table->timestamps();
+        });
         Schema::create('reviewer_candidates', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
@@ -730,6 +738,66 @@ class AbstractReviewerAssignmentTest extends TestCase
         $path = tempnam(sys_get_temp_dir(), 'abstract_assign_');
         file_put_contents($path, $contents);
         return new UploadedFile($path, 'assignments.csv', 'text/csv', null, true);
+    }
+
+    public function test_administrator_can_accept_abstract_and_record_presentation_type_and_status_history()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.accept', $abstract->id), ['presentation_type' => 'Poster'])
+            ->assertRedirect(route('abstract_posts.show', $abstract->id));
+
+        $this->assertDatabaseHas('abstract_posts', [
+            'id' => $abstract->id,
+            'presentation_type' => 'Poster',
+            'status' => 'accepted',
+        ]);
+        $this->assertDatabaseHas('abstract_post_notes', [
+            'abstract_post_id' => $abstract->id,
+            'user_id' => $admin->id,
+            'comment' => 'Changed presentation type from Oral to Poster.',
+            'status_change' => 'Changed status from submitted to accepted',
+        ]);
+        $this->assertDatabaseCount('abstract_post_notes', 1);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.accept', $abstract->id), ['presentation_type' => 'Oral Presentation'])
+            ->assertRedirect(route('abstract_posts.show', $abstract->id));
+        $this->assertDatabaseHas('abstract_post_notes', [
+            'abstract_post_id' => $abstract->id,
+            'user_id' => $admin->id,
+            'comment' => 'Changed presentation type from Poster to Oral Presentation.',
+            'status_change' => 'Status remains accepted',
+        ]);
+        $this->assertDatabaseCount('abstract_post_notes', 2);
+    }
+
+    public function test_acceptance_rejects_invalid_presentation_type_and_non_administrator()
+    {
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.accept', $abstract->id), ['presentation_type' => 'Invalid'])
+            ->assertSessionHasErrors('presentation_type');
+
+        $this->actingAs($owner);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.accept', $abstract->id), ['presentation_type' => 'Poster'])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('abstract_posts', [
+            'id' => $abstract->id,
+            'presentation_type' => 'Oral',
+            'status' => 'submitted',
+        ]);
+        $this->assertDatabaseCount('abstract_post_notes', 0);
     }
 
     public function test_abstract_export_appends_review_scores_and_final_average()

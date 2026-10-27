@@ -386,6 +386,36 @@
                     </div>
                 </div>
 
+                @if(\Auth::user()->hasRole('Administrador') && $abstract_post->status == 'qualified')
+                <div class="statbox widget box box-shadow mt-3 no-print">
+                    <div class="widget-header py-3 px-3">
+                        <h5 class="mb-1">Accept Abstract</h5>
+                        <small class="text-muted">Choose the presentation type. Saving will set the status to Accepted and record the change in the internal history.</small>
+                    </div>
+                    <div class="widget-content widget-content-area pt-0">
+                        <form action="{{ route('abstract_posts.accept', $abstract_post->id) }}" method="POST" class="row g-3 align-items-end">
+                            @csrf
+                            @method('PUT')
+                            <div class="col-12 col-md-5">
+                                <label for="admin-presentation-type" class="form-label">Presentation Type</label>
+                                <select id="admin-presentation-type" name="presentation_type" class="form-select @error('presentation_type') is-invalid @enderror" required>
+                                    <option value="Oral Presentation" {{ old('presentation_type', $abstract_post->presentation_type) === 'Oral Presentation' ? 'selected' : '' }}>Oral Presentation</option>
+                                    <option value="Poster" {{ old('presentation_type', $abstract_post->presentation_type) === 'Poster' ? 'selected' : '' }}>Poster</option>
+                                </select>
+                                @error('presentation_type')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                            </div>
+                            <div class="col-12 col-md-3">
+                                <label class="form-label">Status on save</label>
+                                <div class="form-control bg-light">Accepted</div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Save Acceptance</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                 <div class="statbox widget box box-shadow mt-3">
                     <div class="widget-header py-2 px-3">
@@ -395,7 +425,7 @@
                                 </div>
                             </div>
 
-                            @if($abstract_post->status != 'qualified')
+                            @if($abstract_post->status != 'qualified' && $abstract_post->status != 'accepted' && $abstract_post->status != 'rejected')
                             <form class="row" action="{{ route('abstract_posts.updatestatus', $abstract_post->id) }}" method="POST">
                                 @csrf
                                 <div class="col-7">
