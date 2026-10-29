@@ -386,7 +386,7 @@
                     </div>
                 </div>
 
-                @if(\Auth::user()->hasRole('Administrador') && $abstract_post->status == 'qualified')
+                @if(\Auth::user()->hasRole('Administrador') && in_array($abstract_post->status, ['qualified', 'submitted']))
                 <div class="statbox widget box box-shadow mt-3 no-print">
                     <div class="widget-header py-3 px-3">
                         <h5 class="mb-1">Accept Abstract</h5>
