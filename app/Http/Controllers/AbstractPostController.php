@@ -125,8 +125,8 @@ class AbstractPostController extends Controller
         */
 
         $allowedStatuses = $isAdministrator
-            ? ['draft', 'submitted', 'qualified', 'accepted']
-            : ['draft', 'submitted', 'qualified', 'accepted', 'rejected'];
+            ? ['draft', 'submitted', 'qualified', 'accepted', 'not_accepted']
+            : ['draft', 'submitted', 'qualified', 'accepted', 'not_accepted', 'rejected'];
 
         if (!$rejectedPage && in_array($status, $allowedStatuses, true)) {
             $query->where('status', $status);
@@ -152,6 +152,7 @@ class AbstractPostController extends Controller
                 ->selectRaw("SUM(CASE WHEN status = 'submitted' THEN 1 ELSE 0 END) as submitted")
                 ->selectRaw("SUM(CASE WHEN status = 'qualified' THEN 1 ELSE 0 END) as qualified")
                 ->selectRaw("SUM(CASE WHEN status = 'accepted' THEN 1 ELSE 0 END) as accepted")
+                ->selectRaw("SUM(CASE WHEN status = 'not_accepted' THEN 1 ELSE 0 END) as not_accepted")
                 ->selectRaw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected")
                 ->first();
         }
@@ -444,6 +445,9 @@ class AbstractPostController extends Controller
 
         // 🔥 cargar relación
         $abstractPost->load(['user', 'mainAuthorCountry', 'notes.user', 'reviewers']);
+        if (auth()->user()->hasRole('Administrador')) {
+            $abstractPost->load('emails');
+        }
         $reviewAssignment = $abstractPost->reviewers->firstWhere('id', auth()->id());
         if (request('from') === 'assigned' && $reviewAssignment) {
             $data['category_name'] = 'assigned_abstracts';
@@ -749,6 +753,9 @@ class AbstractPostController extends Controller
 
         DB::transaction(function () use ($abstractPost, $validated) {
             $abstractPost = AbstractPost::whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
+            if (in_array($abstractPost->status, ['rejected', 'not_accepted'], true)) {
+                throw ValidationException::withMessages(['abstract' => 'This abstract is closed and cannot be accepted.']);
+            }
             $oldPresentationType = $abstractPost->presentation_type;
             $oldStatus = $abstractPost->status;
 
@@ -832,7 +839,7 @@ class AbstractPostController extends Controller
             })
             ->when($assignmentState === 'locked', function ($query) use ($assignedReviewerId, $pendingReview, $startedReview) {
                 $query->where(function ($lockedQuery) use ($assignedReviewerId, $pendingReview, $startedReview) {
-                    $lockedQuery->where('status', 'qualified');
+                    $lockedQuery->whereIn('status', ['qualified', 'accepted', 'rejected', 'not_accepted']);
                     if ($assignedReviewerId > 0) {
                         $lockedQuery->orWhereHas('reviewers', function ($reviewerQuery) use ($assignedReviewerId, $startedReview) {
                             $reviewerQuery->where('users.id', $assignedReviewerId);
@@ -847,7 +854,7 @@ class AbstractPostController extends Controller
                 });
             })
             ->when($assignmentState === 'editable', function ($query) use ($assignedReviewerId, $pendingReview) {
-                $query->where('status', '!=', 'qualified')
+                $query->whereNotIn('status', ['qualified', 'accepted', 'rejected', 'not_accepted'])
                     ->where(function ($editableQuery) use ($assignedReviewerId, $pendingReview) {
                         if ($assignedReviewerId > 0) {
                             $editableQuery->whereHas('reviewers', function ($reviewerQuery) use ($assignedReviewerId, $pendingReview) {
@@ -994,7 +1001,7 @@ class AbstractPostController extends Controller
                 ->whereNotNull('average_score')
                 ->exists();
 
-            if ($lockedAbstract->status === 'qualified' || $hasSubmittedReviews) {
+            if (in_array($lockedAbstract->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) || $hasSubmittedReviews) {
                 throw ValidationException::withMessages([
                     'reviewer_ids' => 'Reviewer assignments cannot be changed after an evaluation has been submitted.',
                 ]);
@@ -1023,8 +1030,8 @@ class AbstractPostController extends Controller
 
         DB::transaction(function () use ($abstractPost, $slot, $reviewerId, $validated) {
             $abstract = AbstractPost::query()->whereKey($abstractPost->id)->lockForUpdate()->firstOrFail();
-            if ($abstract->status === 'qualified') {
-                throw ValidationException::withMessages(['reviewer_id' => 'This abstract is qualified; its reviewer assignments are locked.']);
+            if (in_array($abstract->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true)) {
+                throw ValidationException::withMessages(['reviewer_id' => 'This abstract is closed; its reviewer assignments are locked.']);
             }
 
             $assignments = DB::table('abstract_post_reviewers')
@@ -1075,7 +1082,7 @@ class AbstractPostController extends Controller
 
             abort_unless($assignment, 403);
 
-            if ($lockedAbstract->status === 'qualified' || $assignment->average_score !== null) {
+            if (in_array($lockedAbstract->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) || $assignment->average_score !== null) {
                 throw ValidationException::withMessages([
                     'review' => 'This evaluation has already been submitted and cannot be changed.',
                 ]);

@@ -14,6 +14,7 @@ use App\Http\Controllers\ExhibitorController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\SpecialCodeController;
 use App\Http\Controllers\AbstractPostController;
+use App\Http\Controllers\AbstractRejectionController;
 use App\Http\Controllers\WorkshopController;
 
 
@@ -216,6 +217,12 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Abstracts
+    Route::get('/abstract-rejection-emails', [AbstractRejectionController::class, 'index'])->name('abstract_posts.rejection_emails.index');
+    Route::get('/abstract-rejection-emails/{abstractPost}/preview', [AbstractRejectionController::class, 'preview'])->name('abstract_posts.rejection_emails.preview');
+    Route::get('/abstract-rejection-emails/{abstractPost}/letter', [AbstractRejectionController::class, 'previewLetter'])->name('abstract_posts.rejection_emails.letter');
+    Route::post('/abstract-rejection-emails/{abstractPost}/send', [AbstractRejectionController::class, 'send'])->name('abstract_posts.rejection_emails.send');
+    Route::get('/abstract-email-history/{email}', [AbstractRejectionController::class, 'archive'])->name('abstract_posts.emails.show');
+    Route::get('/abstract-email-history/{email}/attachment', [AbstractRejectionController::class, 'downloadAttachment'])->name('abstract_posts.emails.attachment');
     Route::get('/assigned-abstracts', [AbstractPostController::class, 'assignedAbstracts'])->name('abstract_posts.assigned');
     Route::get('/abstract-posts-rejected', [AbstractPostController::class, 'rejected'])->name('abstract_posts.rejected');
     Route::get('/abstract-post-reviewer-assignments', [AbstractPostController::class, 'reviewerAssignments'])->name('abstract_posts.assignments');

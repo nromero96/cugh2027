@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Http\Controllers\AbstractPostController;
+use App\Mail\AbstractRejection;
 use App\Exports\AbstractPostExport;
 use App\Models\AbstractPost;
 use App\Models\User;
@@ -11,6 +12,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -40,6 +42,7 @@ class AbstractReviewerAssignmentTest extends TestCase
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name')->nullable();
+            $table->string('salutation')->nullable();
             $table->string('lastname')->nullable();
             $table->string('second_lastname')->nullable();
             $table->string('email')->unique();
@@ -99,6 +102,25 @@ class AbstractReviewerAssignmentTest extends TestCase
             $table->string('status_change')->nullable();
             $table->timestamps();
         });
+        Schema::create('abstract_post_emails', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('abstract_post_id');
+            $table->unsignedBigInteger('sent_by_user_id')->nullable();
+            $table->string('kind');
+            $table->string('recipient_email');
+            $table->string('from_email')->nullable();
+            $table->string('reply_to_email')->nullable();
+            $table->string('subject');
+            $table->text('body_html');
+            $table->string('attachment_disk')->nullable();
+            $table->string('attachment_path')->nullable();
+            $table->string('attachment_filename')->nullable();
+            $table->string('attachment_mime')->nullable();
+            $table->string('status')->default('pending');
+            $table->timestamp('sent_at')->nullable();
+            $table->text('error_message')->nullable();
+            $table->timestamps();
+        });
         Schema::create('reviewer_candidates', function (Blueprint $table) {
             $table->id();
             $table->string('email')->unique();
@@ -118,6 +140,7 @@ class AbstractReviewerAssignmentTest extends TestCase
         DB::table('users')->insert([
             'id' => $id,
             'name' => 'User '.$id,
+            'salutation' => 'Ms.',
             'lastname' => 'Test',
             'email' => "user{$id}@example.com",
             'password' => bcrypt('password'),
@@ -798,6 +821,250 @@ class AbstractReviewerAssignmentTest extends TestCase
             'status' => 'submitted',
         ]);
         $this->assertDatabaseCount('abstract_post_notes', 0);
+    }
+
+    public function test_rejection_email_is_personalized_logged_once_and_rejects_only_its_abstract()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $first = $this->abstract(1, $owner->id);
+        $second = $this->abstract(2, $owner->id);
+        $first->update(['title' => 'First <abstract>']);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.rejection_emails.preview', $first->id))
+            ->assertOk()
+            ->assertSee('Good morning,')
+            ->assertSee('Rosa Sheen');
+
+        $pdfPreview = $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.rejection_emails.letter', $first->id))
+            ->assertOk()
+            ->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF', $pdfPreview->baseResponse->getContent());
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $first->id))
+            ->assertRedirect(route('abstract_posts.rejection_emails.index'));
+
+        Mail::assertSent(AbstractRejection::class, function ($mail) use ($owner) {
+            $mail->build();
+            return $mail->hasTo($owner->email)
+                && $mail->hasReplyTo(AbstractRejection::REPLY_TO)
+                && $mail->subject === 'NOTIFICATION OF ABSTRACT DECISION N° 1 - Main Author'
+                && count($mail->attachments) === 1
+                && $mail->attachments[0]['options']['as'] === 'Abstract-Rejection-000001.pdf'
+                && is_file($mail->attachments[0]['file']);
+        });
+        Mail::assertSent(AbstractRejection::class, 1);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $first->id, 'status' => 'not_accepted']);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $second->id, 'status' => 'submitted']);
+        $this->assertDatabaseHas('abstract_post_emails', [
+            'abstract_post_id' => $first->id,
+            'recipient_email' => $owner->email,
+            'reply_to_email' => AbstractRejection::REPLY_TO,
+            'subject' => 'NOTIFICATION OF ABSTRACT DECISION N° 1 - Main Author',
+            'attachment_disk' => 'local',
+            'attachment_filename' => 'Abstract-Rejection-000001.pdf',
+            'attachment_mime' => 'application/pdf',
+            'status' => 'sent',
+            'kind' => 'rejection',
+            'sent_by_user_id' => $admin->id,
+        ]);
+        $this->assertStringContainsString('Good morning,', DB::table('abstract_post_emails')->value('body_html'));
+        $attachmentPath = DB::table('abstract_post_emails')->value('attachment_path');
+        Storage::disk('local')->assertExists($attachmentPath);
+        $this->assertStringStartsWith('%PDF', Storage::disk('local')->get($attachmentPath));
+        $this->assertNotNull(DB::table('abstract_post_emails')->value('sent_at'));
+        $emailId = DB::table('abstract_post_emails')->value('id');
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.show', $emailId))
+            ->assertOk()
+            ->assertSee('Rosa Sheen');
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.attachment', $emailId))
+            ->assertOk();
+        $this->assertDatabaseHas('abstract_post_notes', [
+            'abstract_post_id' => $first->id,
+            'status_change' => 'Changed status from submitted to not_accepted',
+        ]);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $first->id))
+            ->assertSessionHasErrors('abstract');
+        Mail::assertSent(AbstractRejection::class, 1);
+        $this->assertDatabaseCount('abstract_post_emails', 1);
+
+        $this->actingAs($owner);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.show', $emailId))
+            ->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.attachment', $emailId))
+            ->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.rejection_emails.letter', $second->id))
+            ->assertForbidden();
+    }
+
+    public function test_rejection_email_allows_missing_recipient_name_but_requires_email_and_administrator()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+
+        $this->actingAs($owner);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $abstract->id))
+            ->assertForbidden();
+
+        $owner->update(['salutation' => null, 'name' => null, 'lastname' => null, 'second_lastname' => null]);
+        $this->actingAs($admin);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.rejection_emails.letter', $abstract->id))
+            ->assertOk();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $abstract->id))
+            ->assertRedirect(route('abstract_posts.rejection_emails.index'));
+
+        Mail::assertSent(AbstractRejection::class, 1);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'not_accepted']);
+        $this->assertDatabaseCount('abstract_post_emails', 1);
+
+        $owner->update(['email' => 'invalid-email']);
+        $second = $this->abstract(2, $owner->id);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $second->id))
+            ->assertSessionHasErrors('abstract');
+
+        Mail::assertSent(AbstractRejection::class, 1);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $second->id, 'status' => 'submitted']);
+        $this->assertDatabaseCount('abstract_post_emails', 1);
+    }
+
+    public function test_rejection_email_can_be_sent_without_presenter_name()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->update(['main_author' => ['name' => '', 'lastname' => '']]);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $abstract->id))
+            ->assertRedirect(route('abstract_posts.rejection_emails.index'));
+
+        Mail::assertSent(AbstractRejection::class, function ($mail) use ($owner) {
+            $mail->build();
+            return $mail->hasTo($owner->email)
+                && $mail->subject === 'NOTIFICATION OF ABSTRACT DECISION N° 1';
+        });
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'not_accepted']);
+        $this->assertDatabaseHas('abstract_post_emails', [
+            'abstract_post_id' => $abstract->id,
+            'subject' => 'NOTIFICATION OF ABSTRACT DECISION N° 1',
+            'status' => 'sent',
+        ]);
+    }
+
+    public function test_draft_and_qualified_abstracts_can_receive_rejection_but_accepted_cannot()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $reviewer = $this->user(3, 2);
+        $draft = $this->abstract(1, $owner->id);
+        $qualified = $this->abstract(2, $owner->id);
+        $accepted = $this->abstract(3, $owner->id);
+        $this->abstract(4, $owner->id);
+        $draft->update(['status' => 'draft']);
+        $draft->reviewers()->attach($reviewer->id);
+        $qualified->update(['status' => 'qualified']);
+        $accepted->update(['status' => 'accepted']);
+        $owner->update(['salutation' => null, 'name' => null, 'lastname' => null, 'second_lastname' => null]);
+        $this->actingAs($admin);
+
+        $listing = app(\App\Http\Controllers\AbstractRejectionController::class)->index(\Illuminate\Http\Request::create('/abstract-rejection-emails'));
+        $this->assertSame([1, 2, 4], $listing->getData()['abstracts']->pluck('id')->all());
+
+        foreach ([$draft, $qualified] as $abstract) {
+            $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+                ->post(route('abstract_posts.rejection_emails.send', $abstract->id))
+                ->assertRedirect(route('abstract_posts.rejection_emails.index'));
+            $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'not_accepted']);
+        }
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $accepted->id))
+            ->assertSessionHasErrors('abstract');
+        Mail::assertSent(AbstractRejection::class, 2);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $accepted->id, 'status' => 'accepted']);
+        $this->assertDatabaseCount('abstract_post_emails', 2);
+
+        $this->actingAs($reviewer);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->put(route('abstract_posts.review', $draft->id), [
+                'score_1' => 8, 'score_2' => 8, 'score_3' => 8, 'score_4' => 8, 'score_5' => 8,
+            ])
+            ->assertSessionHasErrors('review');
+    }
+
+    public function test_rejection_list_search_finds_pending_and_sent_notices_by_id_and_email()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $sentOwner = $this->user(2, 3);
+        $pendingOwner = $this->user(3, 3);
+        $sentAbstract = $this->abstract(1, $sentOwner->id);
+        $this->abstract(2, $pendingOwner->id);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $sentAbstract->id))
+            ->assertRedirect(route('abstract_posts.rejection_emails.index'));
+        $sentOwner->update(['email' => 'new-address@example.com']);
+
+        $controller = app(\App\Http\Controllers\AbstractRejectionController::class);
+        $listing = $controller->index(\Illuminate\Http\Request::create('/abstract-rejection-emails'));
+        $this->assertSame([2], $listing->getData()['abstracts']->pluck('id')->all());
+
+        $byId = $controller->index(\Illuminate\Http\Request::create('/abstract-rejection-emails', 'GET', ['search' => '#1']));
+        $this->assertSame([1], $byId->getData()['abstracts']->pluck('id')->all());
+        $this->assertSame('sent', $byId->getData()['abstracts']->first()->emails->first()->status);
+
+        $byOldEmail = $controller->index(\Illuminate\Http\Request::create('/abstract-rejection-emails', 'GET', ['search' => 'USER2@EXAMPLE.COM']));
+        $this->assertSame([1], $byOldEmail->getData()['abstracts']->pluck('id')->all());
+
+        $byPendingEmail = $controller->index(\Illuminate\Http\Request::create('/abstract-rejection-emails', 'GET', ['search' => 'user3@example.com']));
+        $this->assertSame([2], $byPendingEmail->getData()['abstracts']->pluck('id')->all());
+    }
+
+    public function test_failed_rejection_email_leaves_status_and_history_unchanged()
+    {
+        Storage::fake('local');
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $this->actingAs($admin);
+        Mail::shouldReceive('to')->once()->andThrow(new \RuntimeException('Simulated SMTP failure'));
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.rejection_emails.send', $abstract->id))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'submitted']);
+        $this->assertDatabaseCount('abstract_post_emails', 0);
+        $this->assertDatabaseCount('abstract_post_notes', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('abstract-post-emails/rejection'));
     }
 
     public function test_abstract_export_appends_review_scores_and_final_average()

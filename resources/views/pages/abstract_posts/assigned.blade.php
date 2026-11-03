@@ -55,6 +55,8 @@
                                                     <span class="badge badge-light-success text-capitalize">Accepted</span>
                                                 @elseif($abstract->status === 'rejected')
                                                     <span class="badge badge-light-danger text-capitalize">Rejected</span>
+                                                @elseif($abstract->status === 'not_accepted')
+                                                    <span class="badge badge-light-danger">Not Accepted</span>
                                                 @endif
                                             </td>
                                             <td>{{ $abstract->updated_at->format('Y-m-d H:i') }}</td>

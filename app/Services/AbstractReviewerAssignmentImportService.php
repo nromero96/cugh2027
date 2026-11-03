@@ -134,7 +134,7 @@ class AbstractReviewerAssignmentImportService
                 if (!$missingIds) {
                     return 0;
                 }
-                if ($abstract->status === 'qualified' || $existing->contains(function ($assignment) {
+                if (in_array($abstract->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) || $existing->contains(function ($assignment) {
                     return $assignment->average_score !== null
                         || $assignment->score_1 !== null || $assignment->score_2 !== null
                         || $assignment->score_3 !== null || $assignment->score_4 !== null

@@ -161,8 +161,12 @@
                                         <span class="badge bg-light-info mt-2">Submitted</span>
                                     @elseif ($abstract_post->status == 'qualified')
                                         <span class="badge bg-light-primary mt-2">Qualified</span>
+                                    @elseif ($abstract_post->status == 'accepted')
+                                        <span class="badge bg-light-success mt-2">Accepted</span>
                                     @elseif ($abstract_post->status == 'rejected')
                                         <span class="badge bg-light-danger mt-2">Rejected</span>
+                                    @elseif ($abstract_post->status == 'not_accepted')
+                                        <span class="badge bg-light-danger mt-2">Not Accepted</span>
                                     @endif
 
                                     @if(\Auth::user()->hasRole('Participante') && $abstract_post->status == 'draft')
@@ -425,7 +429,7 @@
                                 </div>
                             </div>
 
-                            @if($abstract_post->status != 'qualified' && $abstract_post->status != 'accepted' && $abstract_post->status != 'rejected')
+                            @if(!in_array($abstract_post->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true))
                             <form class="row" action="{{ route('abstract_posts.updatestatus', $abstract_post->id) }}" method="POST">
                                 @csrf
                                 <div class="col-7">
@@ -468,6 +472,36 @@
 
                 </div>
 
+                @endif
+
+                @if(\Auth::user()->hasRole('Administrador'))
+                    <div class="statbox widget box box-shadow mt-3 no-print">
+                        <div class="widget-header py-3 px-3"><h5 class="mb-0">Email History</h5></div>
+                        <div class="widget-content widget-content-area pt-0 table-responsive">
+                            <table class="table table-bordered align-middle mb-0">
+                                <thead><tr><th>Type</th><th>Recipient</th><th>Sent At</th><th>Attachment</th><th>Copy</th></tr></thead>
+                                <tbody>
+                                    @forelse($abstract_post->emails as $email)
+                                        <tr>
+                                            <td>{{ ucfirst($email->kind) }}</td>
+                                            <td>{{ $email->recipient_email }}</td>
+                                            <td>{{ $email->sent_at ? $email->sent_at->format('Y-m-d H:i:s') : ucfirst($email->status) }}</td>
+                                            <td>
+                                                @if($email->attachment_path)
+                                                    <a href="{{ route('abstract_posts.emails.attachment', $email->id) }}" style="color:#CC1F2F;text-decoration:underline;text-underline-offset:2px;">{{ $email->attachment_filename }}</a>
+                                                @else
+                                                    None
+                                                @endif
+                                            </td>
+                                            <td>@if($email->status === 'sent')<a href="{{ route('abstract_posts.emails.show', $email->id) }}" target="_blank" rel="noopener" style="color:#CC1F2F;text-decoration:underline;text-underline-offset:2px;">View sent email</a>@endif</td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="5" class="text-center text-muted py-3">No emails have been sent for this abstract.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 @endif
 
                 @if(\Auth::user()->hasRole('Administrador'))
@@ -558,7 +592,7 @@
                         </div>
                         <div class="widget-content widget-content-area pt-0">
                             @php
-                                $evaluationLocked = $abstract_post->status === 'qualified' || $reviewAssignment->pivot->average_score !== null;
+                                $evaluationLocked = in_array($abstract_post->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) || $reviewAssignment->pivot->average_score !== null;
                                 $scoringCriteria = [
                                     1 => 'Structure of the abstract',
                                     2 => 'Clarity of the writing',

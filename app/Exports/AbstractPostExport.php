@@ -230,7 +230,7 @@ class AbstractPostExport extends DefaultValueBinder implements FromCollection, W
             $abstractPost->subtopic,
             $abstractPost->body,
             $keywords,
-            $abstractPost->status,
+            $abstractPost->status === 'not_accepted' ? 'Not Accepted' : $abstractPost->status,
             $abstractPost->created_at,
             $abstractPost->updated_at,
             $abstractPost->country_name,

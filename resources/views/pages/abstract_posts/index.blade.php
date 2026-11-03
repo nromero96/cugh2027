@@ -94,6 +94,10 @@
                                                     Qualified
                                                 </option>
 
+                                                <option value="not_accepted" {{ request('status') === 'not_accepted' ? 'selected' : '' }}>
+                                                    Not Accepted
+                                                </option>
+
                                                 <option
                                                     value="accepted"
                                                     {{ request('status') === 'accepted' ? 'selected' : '' }}
@@ -136,6 +140,8 @@
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                     @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
                                         <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign</a>
+
+                                        {{-- <a href="{{ route('abstract_posts.rejection_emails.index') }}" class="btn btn-outline-danger mb-3">Rejection Emails</a> --}}
                                     @endif
                                     @if($rejectedPage)
                                         <a href="{{ route('abstract_posts.index') }}" class="btn btn-outline-secondary mb-3" title="Back to Abstracts" aria-label="Back to Abstracts">
@@ -263,6 +269,8 @@
                                                         <span class="badge badge-light-success text-capitalize">{{ $abstrpost->status }}</span>
                                                     @elseif ($abstrpost->status == 'rejected')
                                                         <span class="badge badge-light-danger text-capitalize">{{ $abstrpost->status }}</span>
+                                                    @elseif ($abstrpost->status == 'not_accepted')
+                                                        <span class="badge badge-light-danger">Not Accepted</span>
                                                     @endif
                                                 </td>
 
@@ -347,6 +355,12 @@
                                     <div class="border border-danger rounded p-3 h-100">
                                         <div class="text-danger small text-uppercase">Rejected</div>
                                         <div class="fs-3 fw-bold">{{ (int) $abstractReport->rejected }}</div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md">
+                                    <div class="border border-danger rounded p-3 h-100">
+                                        <div class="text-danger small text-uppercase">Not Accepted</div>
+                                        <div class="fs-3 fw-bold">{{ (int) $abstractReport->not_accepted }}</div>
                                     </div>
                                 </div>
                             </div>

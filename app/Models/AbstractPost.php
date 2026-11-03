@@ -32,6 +32,20 @@ class AbstractPost extends Model
         'keywords' => 'array',
     ];
 
+    public function presenterName(): string
+    {
+        $author = $this->main_author;
+        if (is_string($author)) {
+            $author = json_decode($author, true);
+        }
+
+        if (!is_array($author)) {
+            return '';
+        }
+
+        return trim(preg_replace('/\s+/u', ' ', trim(($author['name'] ?? '').' '.($author['lastname'] ?? ''))));
+    }
+
 
     public function user()
     {
@@ -50,6 +64,11 @@ class AbstractPost extends Model
     {
         return $this->hasMany(AbstractPostNote::class)
             ->orderBy('created_at', 'desc');
+    }
+
+    public function emails()
+    {
+        return $this->hasMany(AbstractPostEmail::class)->orderByDesc('id');
     }
 
     public function reviewers()

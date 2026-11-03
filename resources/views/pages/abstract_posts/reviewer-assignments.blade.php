@@ -128,7 +128,7 @@
                                                     $evaluated = $assigned && ($assigned->pivot->average_score !== null || collect(range(1, 5))->contains(function ($number) use ($assigned) {
                                                         return $assigned->pivot->{'score_'.$number} !== null;
                                                     }));
-                                                    $slotLocked = $abstract->status === 'qualified' || $evaluated;
+                                                    $slotLocked = in_array($abstract->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) || $evaluated;
                                                     $canAssign = $slot <= count($assignedReviewerIds) + 1;
                                                 @endphp
                                                 <td>
@@ -156,7 +156,7 @@
                                                     {{ trim(($abstract->main_author['name'] ?? '').' '.($abstract->main_author['lastname'] ?? '')) }}
                                                     @if($abstract->user) — {{ $abstract->user->email }} @endif
                                                 </small>
-                                                <span class="badge badge-light-secondary text-capitalize mt-1">{{ $abstract->status === 'draft' ? 'In progress' : $abstract->status }}</span>
+                                                <span class="badge badge-light-secondary mt-1">{{ $abstract->status === 'draft' ? 'In Progress' : ($abstract->status === 'not_accepted' ? 'Not Accepted' : ucfirst($abstract->status)) }}</span>
                                             </td>
                                         </tr>
                                     @empty
