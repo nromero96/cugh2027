@@ -19,6 +19,11 @@ class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
+    public function fullName(): string
+    {
+        return trim(preg_replace('/\s+/u', ' ', trim($this->name.' '.$this->lastname.' '.$this->second_lastname)));
+    }
+
     /**
      * The attributes that are mass assignable.
      *

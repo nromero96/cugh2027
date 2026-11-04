@@ -36,6 +36,7 @@
                     @forelse($abstracts as $abstract)
                         @php
                             $recipient = $abstract->user;
+                            $accountName = $recipient ? $recipient->fullName() : '';
                             $sentEmail = $abstract->emails->first();
                             $presenterName = $abstract->presenterName();
                             $supportedPresentation = in_array($abstract->presentation_type, ['Oral Presentation', 'Poster'], true);
@@ -61,7 +62,10 @@
                                         <div class="small text-success">Sent: {{ $sentEmail->sent_at ? $sentEmail->sent_at->format('Y-m-d H:i:s') : 'Date unavailable' }}</div>
                                     @endif
                                     <div class="small text-muted">Main author: {{ $presenterName ?: 'Not provided' }}</div>
-                                    <div class="small text-muted">Subject: {{ $sentEmail ? $sentEmail->subject : 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° '.$abstract->id.($presenterName !== '' ? ' - '.$presenterName : '') }}</div>
+                                    @if($presenterName === '' && !$sentEmail)
+                                        <div class="small text-warning mt-1">Main author name is missing. The PDF will not include a name.</div>
+                                    @endif
+                                    <div class="small text-muted">Subject: {{ $sentEmail ? $sentEmail->subject : 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° '.$abstract->id.($accountName !== '' ? ' - '.$accountName : '') }}</div>
                                     @unless($ready || $sentEmail)
                                         <div class="small text-danger mt-1">@if(!$recipient || !filter_var($recipient->email, FILTER_VALIDATE_EMAIL))A valid account email is required.@endif @if(trim((string) $abstract->title) === '')An abstract title is required.@endif @if(!$supportedPresentation)An Oral or Poster presentation type is required.@endif</div>
                                     @endunless

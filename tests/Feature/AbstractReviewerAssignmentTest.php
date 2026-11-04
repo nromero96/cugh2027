@@ -837,6 +837,7 @@ class AbstractReviewerAssignmentTest extends TestCase
             'presentation_type' => 'Oral Presentation',
             'title' => 'Scientific Research & Learning',
         ]);
+        $owner->update(['second_lastname' => 'Surname']);
         $this->actingAs($admin);
 
         $this->withoutMiddleware(self::FORM_MIDDLEWARE)
@@ -855,7 +856,7 @@ class AbstractReviewerAssignmentTest extends TestCase
             $mail->build();
             return $mail->hasTo($owner->email)
                 && $mail->hasReplyTo(AbstractAcceptance::REPLY_TO)
-                && $mail->subject === 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° 1 - Main Author'
+                && $mail->subject === 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° 1 - User 2 Test Surname'
                 && count($mail->attachments) === 1
                 && $mail->attachments[0]['options']['as'] === 'Abstract-Acceptance-1-Oral.pdf';
         });
@@ -863,6 +864,7 @@ class AbstractReviewerAssignmentTest extends TestCase
         $this->assertDatabaseHas('abstract_post_emails', [
             'abstract_post_id' => $abstract->id,
             'recipient_email' => $owner->email,
+            'subject' => 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° 1 - User 2 Test Surname',
             'kind' => 'acceptance',
             'status' => 'sent',
             'attachment_filename' => 'Abstract-Acceptance-1-Oral.pdf',

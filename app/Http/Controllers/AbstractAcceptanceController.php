@@ -99,7 +99,7 @@ class AbstractAcceptanceController extends Controller
                 }
 
                 $data = $this->letterData($locked);
-                $subject = $this->subjectLine($locked, $data['presenterName']);
+                $subject = $this->subjectLine($locked, $locked->user->fullName());
                 $bodyHtml = view('emails.abstract-acceptance', $data)->render();
                 $attachmentFilename = $this->attachmentFilename($locked);
                 $attachmentPath = 'abstract-post-emails/acceptance/'.$locked->id.'/'.Str::uuid().'.pdf';
@@ -171,11 +171,11 @@ class AbstractAcceptanceController extends Controller
         ];
     }
 
-    private function subjectLine(AbstractPost $abstractPost, string $presenterName): string
+    private function subjectLine(AbstractPost $abstractPost, string $accountName): string
     {
         $subject = 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° '.$abstractPost->id;
 
-        return $presenterName !== '' ? $subject.' - '.$presenterName : $subject;
+        return $accountName !== '' ? $subject.' - '.$accountName : $subject;
     }
 
     private function attachmentFilename(AbstractPost $abstractPost): string
