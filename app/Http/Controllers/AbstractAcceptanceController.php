@@ -27,7 +27,11 @@ class AbstractAcceptanceController extends Controller
             $emails->where('kind', 'acceptance')->where('status', 'sent');
         }])->where('status', 'accepted');
 
-        if ($search !== '') {
+        if ($search === '') {
+            $query->whereDoesntHave('emails', function ($emails) {
+                $emails->where('kind', 'acceptance')->where('status', 'sent');
+            });
+        } else {
             $idSearch = ltrim($search, '#');
             $query->where(function ($abstracts) use ($search, $idSearch) {
                 if (ctype_digit($idSearch)) {

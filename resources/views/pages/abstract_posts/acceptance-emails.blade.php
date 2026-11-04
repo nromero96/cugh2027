@@ -31,7 +31,7 @@
                         </div>
                     </form>
 
-                    <p class="text-muted">@if($search !== ''){{ $abstracts->total() }} matching accepted abstracts.@else{{ $abstracts->total() }} accepted abstracts, including notices already sent.@endif Sending records the email and PDF while the abstract remains Accepted.</p>
+                    <p class="text-muted">@if($search !== ''){{ $abstracts->total() }} matching accepted abstracts.@else{{ $abstracts->total() }} accepted abstracts awaiting an acceptance email.@endif Sending records the email and PDF while the abstract remains Accepted.</p>
 
                     @forelse($abstracts as $abstract)
                         @php
@@ -84,7 +84,7 @@
                             </div>
                         </div>
                     @empty
-                        <div class="alert alert-info mb-0">{{ $search !== '' ? 'No accepted abstracts match your search.' : 'No accepted abstracts were found.' }}</div>
+                        <div class="alert alert-info mb-0">{{ $search !== '' ? 'No accepted abstracts match your search.' : 'No accepted abstracts are awaiting acceptance emails.' }}</div>
                     @endforelse
 
                     <div class="mt-3">{{ $abstracts->links() }}</div>

@@ -898,7 +898,7 @@ class AbstractReviewerAssignmentTest extends TestCase
             ->get(route('abstract_posts.emails.attachment', $emailId))->assertForbidden();
     }
 
-    public function test_acceptance_list_includes_all_accepted_types_and_sent_notices()
+    public function test_acceptance_list_includes_all_accepted_types_and_excludes_sent_until_searched()
     {
         Storage::fake('local');
         Mail::fake();
@@ -922,7 +922,7 @@ class AbstractReviewerAssignmentTest extends TestCase
 
         $controller = app(\App\Http\Controllers\AbstractAcceptanceController::class);
         $default = $controller->index(\Illuminate\Http\Request::create('/abstract-acceptance-emails'));
-        $this->assertSame([1, 2, 3, 4], $default->getData()['abstracts']->pluck('id')->all());
+        $this->assertSame([2, 3, 4], $default->getData()['abstracts']->pluck('id')->all());
 
         $byId = $controller->index(\Illuminate\Http\Request::create('/abstract-acceptance-emails', 'GET', ['search' => '#1']));
         $this->assertSame([1], $byId->getData()['abstracts']->pluck('id')->all());
