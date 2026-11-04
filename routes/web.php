@@ -15,6 +15,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\SpecialCodeController;
 use App\Http\Controllers\AbstractPostController;
 use App\Http\Controllers\AbstractRejectionController;
+use App\Http\Controllers\AbstractAcceptanceController;
 use App\Http\Controllers\WorkshopController;
 
 
@@ -217,6 +218,10 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
 
     //Abstracts
+    Route::get('/abstract-acceptance-emails', [AbstractAcceptanceController::class, 'index'])->name('abstract_posts.acceptance_emails.index');
+    Route::get('/abstract-acceptance-emails/{abstractPost}/preview', [AbstractAcceptanceController::class, 'preview'])->name('abstract_posts.acceptance_emails.preview');
+    Route::get('/abstract-acceptance-emails/{abstractPost}/letter', [AbstractAcceptanceController::class, 'previewLetter'])->name('abstract_posts.acceptance_emails.letter');
+    Route::post('/abstract-acceptance-emails/{abstractPost}/send', [AbstractAcceptanceController::class, 'send'])->name('abstract_posts.acceptance_emails.send');
     Route::get('/abstract-rejection-emails', [AbstractRejectionController::class, 'index'])->name('abstract_posts.rejection_emails.index');
     Route::get('/abstract-rejection-emails/{abstractPost}/preview', [AbstractRejectionController::class, 'preview'])->name('abstract_posts.rejection_emails.preview');
     Route::get('/abstract-rejection-emails/{abstractPost}/letter', [AbstractRejectionController::class, 'previewLetter'])->name('abstract_posts.rejection_emails.letter');

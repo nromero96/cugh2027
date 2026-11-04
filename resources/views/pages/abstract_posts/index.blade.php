@@ -141,6 +141,8 @@
                                     @if(\Auth::user()->hasRole('Administrador') && !$rejectedPage)
                                         <a href="{{ route('abstract_posts.assignments') }}" class="btn btn-outline-primary mb-3">Assign</a>
 
+                                        {{-- <a href="{{ route('abstract_posts.acceptance_emails.index') }}" class="btn btn-outline-primary mb-3">Acceptance Emails</a> --}}
+
                                         {{-- <a href="{{ route('abstract_posts.rejection_emails.index') }}" class="btn btn-outline-danger mb-3">Rejection Emails</a> --}}
                                     @endif
                                     @if($rejectedPage)

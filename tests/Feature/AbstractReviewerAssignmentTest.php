@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Http\Controllers\AbstractPostController;
 use App\Mail\AbstractRejection;
+use App\Mail\AbstractAcceptance;
 use App\Exports\AbstractPostExport;
 use App\Models\AbstractPost;
 use App\Models\User;
@@ -821,6 +822,180 @@ class AbstractReviewerAssignmentTest extends TestCase
             'status' => 'submitted',
         ]);
         $this->assertDatabaseCount('abstract_post_notes', 0);
+    }
+
+    public function test_scientific_oral_acceptance_is_sent_once_and_keeps_accepted_status()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(1, $owner->id);
+        $abstract->update([
+            'status' => 'accepted',
+            'abstract_type' => 'Scientific Abstract',
+            'presentation_type' => 'Oral Presentation',
+            'title' => 'Scientific Research & Learning',
+        ]);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.acceptance_emails.preview', $abstract->id))
+            ->assertOk()->assertSee('Good morning,');
+        $pdfPreview = $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.acceptance_emails.letter', $abstract->id))
+            ->assertOk()->assertHeader('Content-Type', 'application/pdf');
+        $this->assertStringStartsWith('%PDF', $pdfPreview->baseResponse->getContent());
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $abstract->id))
+            ->assertRedirect(route('abstract_posts.acceptance_emails.index'));
+
+        Mail::assertSent(AbstractAcceptance::class, function ($mail) use ($owner) {
+            $mail->build();
+            return $mail->hasTo($owner->email)
+                && $mail->hasReplyTo(AbstractAcceptance::REPLY_TO)
+                && $mail->subject === 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° 1 - Main Author'
+                && count($mail->attachments) === 1
+                && $mail->attachments[0]['options']['as'] === 'Abstract-Acceptance-1-Oral.pdf';
+        });
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'accepted']);
+        $this->assertDatabaseHas('abstract_post_emails', [
+            'abstract_post_id' => $abstract->id,
+            'recipient_email' => $owner->email,
+            'kind' => 'acceptance',
+            'status' => 'sent',
+            'attachment_filename' => 'Abstract-Acceptance-1-Oral.pdf',
+        ]);
+        $attachmentPath = DB::table('abstract_post_emails')->value('attachment_path');
+        $emailId = DB::table('abstract_post_emails')->value('id');
+        Storage::disk('local')->assertExists($attachmentPath);
+        $this->assertStringStartsWith('%PDF', Storage::disk('local')->get($attachmentPath));
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.show', $emailId))
+            ->assertOk()->assertSee('Good morning,');
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.attachment', $emailId))
+            ->assertOk();
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $abstract->id))
+            ->assertSessionHasErrors('abstract');
+        Mail::assertSent(AbstractAcceptance::class, 1);
+        $this->assertDatabaseCount('abstract_post_emails', 1);
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'accepted']);
+
+        $this->actingAs($owner);
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.acceptance_emails.index'))->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.acceptance_emails.letter', $abstract->id))->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $abstract->id))->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.show', $emailId))->assertForbidden();
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.emails.attachment', $emailId))->assertForbidden();
+    }
+
+    public function test_acceptance_list_includes_all_accepted_types_and_sent_notices()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $sentOwner = $this->user(2, 3);
+        $pendingOwner = $this->user(3, 3);
+        $sent = $this->abstract(1, $sentOwner->id);
+        $sent->update(['status' => 'accepted', 'abstract_type' => 'Global Health Education Abstract', 'presentation_type' => 'Oral Presentation']);
+        $pending = $this->abstract(2, $pendingOwner->id);
+        $pending->update(['status' => 'accepted', 'abstract_type' => 'Global Health Education Abstract', 'presentation_type' => 'Poster']);
+        $otherType = $this->abstract(3, $pendingOwner->id);
+        $otherType->update(['status' => 'accepted', 'abstract_type' => 'Scientific Abstract', 'presentation_type' => 'Poster']);
+        $panelType = $this->abstract(4, $pendingOwner->id);
+        $panelType->update(['status' => 'accepted', 'abstract_type' => 'Program & Project Abstract', 'presentation_type' => 'Oral Presentation']);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $sent->id))
+            ->assertRedirect(route('abstract_posts.acceptance_emails.index'));
+        $sentOwner->update(['email' => 'changed@example.com']);
+
+        $controller = app(\App\Http\Controllers\AbstractAcceptanceController::class);
+        $default = $controller->index(\Illuminate\Http\Request::create('/abstract-acceptance-emails'));
+        $this->assertSame([1, 2, 3, 4], $default->getData()['abstracts']->pluck('id')->all());
+
+        $byId = $controller->index(\Illuminate\Http\Request::create('/abstract-acceptance-emails', 'GET', ['search' => '#1']));
+        $this->assertSame([1], $byId->getData()['abstracts']->pluck('id')->all());
+        $this->assertSame('sent', $byId->getData()['abstracts']->first()->emails->first()->status);
+
+        $byOriginalEmail = $controller->index(\Illuminate\Http\Request::create('/abstract-acceptance-emails', 'GET', ['search' => 'USER2@EXAMPLE.COM']));
+        $this->assertSame([1], $byOriginalEmail->getData()['abstracts']->pluck('id')->all());
+    }
+
+    public function test_program_and_project_poster_acceptance_uses_poster_attachment_and_optional_author()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $abstract = $this->abstract(2, $owner->id);
+        $abstract->update([
+            'status' => 'accepted',
+            'abstract_type' => 'Program & Project Abstract',
+            'presentation_type' => 'Poster',
+            'main_author' => ['name' => '', 'lastname' => ''],
+        ]);
+        $owner->update(['name' => null, 'lastname' => null, 'second_lastname' => null]);
+        $this->actingAs($admin);
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->get(route('abstract_posts.acceptance_emails.letter', $abstract->id))
+            ->assertOk()->assertHeader('Content-Type', 'application/pdf');
+
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $abstract->id))
+            ->assertRedirect(route('abstract_posts.acceptance_emails.index'));
+
+        Mail::assertSent(AbstractAcceptance::class, function ($mail) {
+            $mail->build();
+            return $mail->subject === 'NOTIFICATION OF ABSTRACT ACCEPTANCE N° 2'
+                && $mail->attachments[0]['options']['as'] === 'Abstract-Acceptance-2-Poster.pdf';
+        });
+        $this->assertDatabaseHas('abstract_posts', ['id' => $abstract->id, 'status' => 'accepted']);
+        $this->assertDatabaseHas('abstract_post_emails', ['abstract_post_id' => $abstract->id, 'kind' => 'acceptance', 'status' => 'sent']);
+    }
+
+    public function test_acceptance_rejects_unsupported_presentation_and_status_and_failed_delivery()
+    {
+        Storage::fake('local');
+        Mail::fake();
+        $admin = $this->user(1, 1);
+        $owner = $this->user(2, 3);
+        $unsupportedPresentation = $this->abstract(1, $owner->id);
+        $unsupportedPresentation->update(['status' => 'accepted', 'abstract_type' => 'Scientific Abstract', 'presentation_type' => 'Oral']);
+        $wrongStatus = $this->abstract(2, $owner->id);
+        $wrongStatus->update(['abstract_type' => 'Global Health Education Abstract', 'presentation_type' => 'Poster']);
+        $eligible = $this->abstract(3, $owner->id);
+        $eligible->update(['status' => 'accepted', 'abstract_type' => 'Global Health Education Abstract', 'presentation_type' => 'Poster']);
+        $this->actingAs($admin);
+
+        foreach ([$unsupportedPresentation, $wrongStatus] as $abstract) {
+            $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+                ->post(route('abstract_posts.acceptance_emails.send', $abstract->id))
+                ->assertSessionHasErrors('abstract');
+            $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+                ->get(route('abstract_posts.acceptance_emails.letter', $abstract->id))
+                ->assertNotFound();
+        }
+        Mail::assertNothingSent();
+
+        Mail::shouldReceive('to')->once()->andThrow(new \RuntimeException('Simulated SMTP failure'));
+        $this->withoutMiddleware(self::FORM_MIDDLEWARE)
+            ->post(route('abstract_posts.acceptance_emails.send', $eligible->id))
+            ->assertSessionHas('error');
+        $this->assertDatabaseHas('abstract_posts', ['id' => $eligible->id, 'status' => 'accepted']);
+        $this->assertDatabaseCount('abstract_post_emails', 0);
+        $this->assertSame([], Storage::disk('local')->allFiles('abstract-post-emails/acceptance'));
     }
 
     public function test_rejection_email_is_personalized_logged_once_and_rejects_only_its_abstract()
