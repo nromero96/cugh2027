@@ -39,6 +39,30 @@
     border-bottom: 1px solid #e3e8f2;
 }
 
+#abstract-status-card { border: 1px solid #e6e8ec; border-radius: 14px; background: #fff; overflow: hidden; box-shadow: 0 4px 18px rgba(26, 35, 51, .06); }
+#abstract-status-card .abstract-status-heading { display: flex; align-items: center; gap: 11px; padding: 17px 20px; border-bottom: 1px solid #eef0f3; background: #fff7f8; }
+#abstract-status-card .abstract-status-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 auto; border-radius: 11px; background: #f7d2d6; color: #a71929; }
+#abstract-status-card .abstract-status-title { margin: 0; color: #27303b; font-size: 16px; font-weight: 700; }
+#abstract-status-card .abstract-status-subtitle { display: block; margin-top: 2px; color: #687384; font-size: 12px; }
+#abstract-status-card .abstract-current-status { margin-left: auto; padding: 6px 10px; border: 1px solid #efc2c8; border-radius: 999px; background: #fff; color: #a71929; font-size: 12px; font-weight: 700; white-space: nowrap; }
+#abstract-status-card .abstract-status-form { padding: 18px 20px 20px; }
+#abstract-status-card .abstract-status-label { margin-bottom: 7px; color: #344054; font-size: 13px; font-weight: 600; }
+#abstract-status-card .form-control, #abstract-status-card .form-select { min-height: 42px; border-color: #d8dfe6; border-radius: 9px; background-color: #fff; color: #344054; }
+#abstract-status-card .form-control:focus, #abstract-status-card .form-select:focus { border-color: #cc1f2f; box-shadow: 0 0 0 3px rgba(204, 31, 47, .12); }
+#abstract-status-card .abstract-status-save { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 42px; border: 1px solid #cc1f2f; border-radius: 9px; background: #cc1f2f; color: #fff; font-weight: 600; white-space: nowrap; }
+#abstract-status-card .abstract-status-save:hover { border-color: #ab1828; background: #ab1828; color: #fff; box-shadow: 0 4px 12px rgba(204, 31, 47, .2); }
+#abstract-status-card .abstract-status-save:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: 2px; }
+#abstract-status-card .abstract-status-history { padding: 17px 20px 19px; border-top: 1px solid #eef0f3; }
+#abstract-status-card .abstract-history-title { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; color: #344054; font-size: 13px; font-weight: 700; }
+#abstract-status-card .abstract-history-count { padding: 3px 8px; border-radius: 999px; background: #f2f4f7; color: #667085; font-size: 11px; }
+#abstract-status-card .abstract-history-list { margin: 0; padding: 0; list-style: none; }
+#abstract-status-card .abstract-history-item { padding: 11px 13px; border: 1px solid #e9edf1; border-radius: 9px; background: #fafbfc; }
+#abstract-status-card .abstract-history-item + .abstract-history-item { margin-top: 9px; }
+#abstract-status-card .abstract-history-comment { margin: 0; color: #344054; font-size: 13px; line-height: 1.45; white-space: pre-wrap; overflow-wrap: anywhere; }
+#abstract-status-card .abstract-history-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 6px; color: #687384; font-size: 12px; }
+#abstract-status-card .abstract-history-empty { margin: 0; color: #687384; font-size: 13px; }
+@media (max-width: 575.98px) { #abstract-status-card .abstract-status-heading { flex-wrap: wrap; } #abstract-status-card .abstract-current-status { margin-left: 51px; } }
+
 .score-legend-item {
     height: 100%;
     padding: 12px 14px;
@@ -421,55 +445,63 @@
                 @endif
 
                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
-                <div class="statbox widget box box-shadow mt-3">
-                    <div class="widget-header py-2 px-3">
-                            <div class="row">
-                                <div class="col-12">
-                                    <h6>Add comment and status</h6>
+                <div class="statbox widget box box-shadow mt-3" id="abstract-status-card">
+                    <div class="abstract-status-heading">
+                        <span class="abstract-status-icon" aria-hidden="true">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 10h16M4 15h10"/><path d="m15 18 2 2 4-5"/></svg>
+                        </span>
+                        <div>
+                            <h6 class="abstract-status-title">{{ \Auth::user()->hasRole('Administrador') && !in_array($abstract_post->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true) ? 'Add comment and status' : 'Internal comments' }}</h6>
+                            <span class="abstract-status-subtitle">Visible to the conference team only</span>
+                        </div>
+                        <span class="abstract-current-status">{{ ucwords(str_replace('_', ' ', $abstract_post->status)) }}</span>
+                    </div>
+                    @if(\Auth::user()->hasRole('Administrador'))
+                        <form class="abstract-status-form" action="{{ route('abstract_posts.updatestatus', $abstract_post->id) }}" method="POST">
+                            @csrf
+                            <div class="row g-3 align-items-end">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label abstract-status-label" for="abstract-status-comment">Comment</label>
+                                    <input type="text" id="abstract-status-comment" class="form-control @error('comment') is-invalid @enderror" placeholder="Add an internal comment" name="comment" value="{{ old('comment') }}" maxlength="1000" required>
+                                    @error('comment')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                            </div>
-
-                            @if(!in_array($abstract_post->status, ['qualified', 'accepted', 'rejected', 'not_accepted'], true))
-                            <form class="row" action="{{ route('abstract_posts.updatestatus', $abstract_post->id) }}" method="POST">
-                                @csrf
-                                <div class="col-7">
-                                    <label class="form-label text-muted mb-0 d-block">Comment:</label>
-                                    <input type="text" class="form-control" placeholder="Comment" name="comment" required>
-                                </div>
-                                <div class="col-3">
-                                    <label class="form-label text-muted mb-0 d-block">Status from <b>{{ $abstract_post->status }}</b> to: </label>
-                                    <select class="form-select" name="status">
-                                        <option value="draft" {{ $abstract_post->status == 'draft' ? 'selected' : '' }}>Draft</option>
-                                        <option value="submitted" {{ $abstract_post->status == 'submitted' ? 'selected' : '' }}>Submitted</option>
-                                        <option value="qualified" {{ $abstract_post->status == 'qualified' ? 'selected' : '' }}>Qualified</option>
-                                        <option value="accepted" {{ $abstract_post->status == 'accepted' ? 'selected' : '' }}>Accepted</option>
-                                        <option value="rejected" {{ $abstract_post->status == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label abstract-status-label" for="abstract-new-status">New status</label>
+                                    <select class="form-select @error('status') is-invalid @enderror" id="abstract-new-status" name="status" required>
+                                        <option value="draft" {{ old('status', $abstract_post->status) == 'draft' ? 'selected' : '' }}>Draft</option>
+                                        <option value="submitted" {{ old('status', $abstract_post->status) == 'submitted' ? 'selected' : '' }}>Submitted</option>
+                                        <option value="qualified" {{ old('status', $abstract_post->status) == 'qualified' ? 'selected' : '' }}>Qualified</option>
+                                        <option value="accepted" {{ old('status', $abstract_post->status) == 'accepted' ? 'selected' : '' }}>Accepted</option>
+                                        <option value="rejected" {{ old('status', $abstract_post->status) == 'rejected' ? 'selected' : '' }}>Rejected</option>
+                                        <option value="not_accepted" {{ old('status', $abstract_post->status) == 'not_accepted' ? 'selected' : '' }}>Not accepted</option>
                                     </select>
+                                    @error('status')<div class="invalid-feedback">{{ $message }}</div>@enderror
                                 </div>
-                                <div class="col-2 pt-2">
-                                    <button class="btn btn-secondary w-100 mt-3">Add</button>
-                                </div>
-                            </form>
-
-                            @endif
-
-                            <div class="row">
-                                <div class="col-12">
-                                    <hr>
+                                <div class="col-12 col-md-3">
+                                    <button type="submit" class="btn abstract-status-save w-100">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                                        Save update
+                                    </button>
                                 </div>
                             </div>
-                        <h6 class="fw-bold text-primary">Comments (for internal use only)</h6>
+                        </form>
+                    @endif
+                    <div class="abstract-status-history">
+                        <h6 class="abstract-history-title">Comment history <span class="abstract-history-count">{{ $abstract_post->notes->count() }}</span></h6>
+                        <ul class="abstract-history-list">
+                            @forelse($abstract_post->notes as $note)
+                                <li class="abstract-history-item">
+                                    <p class="abstract-history-comment">{{ $note->comment ?: 'No comment' }}</p>
+                                    <div class="abstract-history-meta">
+                                        <span>{{ $note->status_change }}</span>
+                                        <time datetime="{{ $note->created_at->toIso8601String() }}">{{ $note->created_at->format('d/m/Y h:i A') }}</time>
+                                    </div>
+                                </li>
+                            @empty
+                                <li class="abstract-history-empty">No comments have been added yet.</li>
+                            @endforelse
+                        </ul>
                     </div>
-
-                    <div class="widget-content widget-content-area pt-0">
-                        @foreach($abstract_post->notes as $note)
-                        <p class="text-black mb-0">{{ $note->comment }}</p>
-                        <small class="text-muted d-block"> {{ $note->status_change }}</small>
-                        <small class="text-muted"> {{ $note->created_at->format('d/m/Y h:i A') }}</small>
-                        <hr class="my-1">
-                        @endforeach
-                    </div>
-
                 </div>
 
                 @endif
