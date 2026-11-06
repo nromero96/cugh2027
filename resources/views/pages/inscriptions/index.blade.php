@@ -27,6 +27,33 @@
         background-color: #eef2f7;
     }
 
+    #inscrip-list tbody td.participant-with-note {
+        position: relative;
+        padding-right: 34px;
+    }
+
+    #inscrip-list .participant-note-indicator {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 21px;
+        height: 21px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #cc1f2f;
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(122, 20, 32, .25);
+    }
+
+    #inscrip-list .participant-note-indicator svg {
+        width: 11px;
+        height: 11px;
+        stroke: #fff;
+    }
+
     #inscrip-list .column-resizer {
         position: absolute;
         top: 0;
@@ -239,13 +266,18 @@
                                                                 </a>
                                                             @endif
                                                         </td>
-                                                        <td>
+                                                        <td class="{{ Auth::user()->hasRole('Administrador') && $inscription->private_note ? 'participant-with-note' : '' }}">
                                                             {{$inscription->user_name.' '.$inscription->user_lastname.' '.$inscription->user_second_lastname}}
                                                             @if($inscription->user_name == '' && $inscription->user_lastname == '' && $inscription->user_second_lastname == '')
                                                                 <span class="text-muted">Unnamed</span>
                                                             @endif
                                                             <br>
                                                             <small class="text-info" style="font-size: 10px;">{{ $inscription->user_email }}</small>
+                                                            @if(Auth::user()->hasRole('Administrador') && $inscription->private_note)
+                                                                <span class="participant-note-indicator" role="img" aria-label="Private note available" title="Private note available">
+                                                                    <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9z"/><path d="M10 21h4"/></svg>
+                                                                </span>
+                                                            @endif
                                                         </td>
                                                         <td>
                                                             {{$inscription->user_nationality}}

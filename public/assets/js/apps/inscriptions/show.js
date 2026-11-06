@@ -68,8 +68,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const elementToCapture = document.querySelector(".ficha-inscripcion");
 
         const ignoreElements = function (element) {
-            // Retorna true para excluir el elemento con la clase 'actionstatus', 'btnprintficha', 'btneditinsc'
-            return element.classList.contains("actionstatus") || element.classList.contains("btnprintficha") || element.classList.contains("btneditinsc");
+            // Exclude controls from the printed registration.
+            return element.classList.contains("actionstatus") || element.classList.contains("btnprintficha") || element.classList.contains("btneditinsc") || element.classList.contains("registration-note-trigger");
 
         };
 

@@ -3,6 +3,115 @@
 
 @section('content')
 
+<style>
+    .ficha-inscripcion .btn.registration-header-action {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 40px;
+        padding: 5px 14px 5px 6px;
+        border-radius: 11px;
+        font-weight: 600;
+        white-space: nowrap;
+        transition: background-color .2s, border-color .2s, box-shadow .2s, transform .2s;
+    }
+    .ficha-inscripcion .btn.registration-header-action:hover { transform: translateY(-1px); }
+    .ficha-inscripcion .btn.registration-note-trigger { position: relative; overflow: visible; border: 1px solid #efc2c8; background: #fff3f4; color: #a71929; box-shadow: 0 2px 8px rgba(122, 20, 32, .08); }
+    .ficha-inscripcion .btn.registration-note-trigger:hover {
+        background: #f7d2d6;
+        border-color: #eaa1aa;
+        color: #8f1422;
+        box-shadow: 0 5px 14px rgba(122, 20, 32, .14);
+    }
+    .registration-header-icon {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        flex: 0 0 auto;
+    }
+    .ficha-inscripcion .btn.registration-note-trigger svg { width: 16px; height: 16px; stroke: currentColor; }
+    .registration-note-alert {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 23px;
+        height: 23px;
+        border: 2px solid #fff;
+        border-radius: 50%;
+        background: #cc1f2f;
+        color: #fff;
+        box-shadow: 0 2px 7px rgba(122, 20, 32, .25);
+        pointer-events: none;
+    }
+    .ficha-inscripcion .btn.registration-note-trigger .registration-note-alert svg { width: 12px; height: 12px; stroke: #fff; }
+    .registration-note-trigger .registration-header-icon { background: #f7d2d6; }
+    .registration-note-trigger:hover .registration-header-icon { background: #f0b8bf; }
+    .ficha-inscripcion .btn.registration-edit-action { border: 1px solid #d8dfe6; background: #fff; color: #344054; box-shadow: 0 2px 8px rgba(31, 41, 55, .07); }
+    .ficha-inscripcion .btn.registration-edit-action svg { width: 28px; height: 28px; padding: 6px; border-radius: 8px; background: #eef1f5; color: #344054; fill: currentColor; flex: 0 0 auto; }
+    .ficha-inscripcion .btn.registration-edit-action:hover { border-color: #bfc9d5; background: #f5f7fa; color: #202938; box-shadow: 0 5px 14px rgba(31, 41, 55, .12); }
+    .ficha-inscripcion .btn.registration-edit-action:hover svg { background: #e1e7ee; color: #202938; }
+    .ficha-inscripcion .btn.registration-print-action { border: 1px solid #cc1f2f; background: #cc1f2f; color: #fff; box-shadow: 0 3px 10px rgba(204, 31, 47, .2); }
+    .ficha-inscripcion .btn.registration-print-action svg { width: 28px; height: 28px; padding: 6px; border-radius: 8px; background: rgba(255, 255, 255, .18); stroke: #fff; flex: 0 0 auto; }
+    .ficha-inscripcion .btn.registration-print-action:hover { border-color: #ab1828; background: #ab1828; color: #fff; box-shadow: 0 5px 14px rgba(204, 31, 47, .28); }
+    .ficha-inscripcion .btn.registration-print-action:hover svg { stroke: #fff; background: rgba(255, 255, 255, .22); }
+    .ficha-inscripcion .btn.registration-header-action:focus-visible,
+    .modal .btn.registration-note-action:focus-visible {
+        outline: 3px solid rgba(204, 31, 47, .25);
+        outline-offset: 2px;
+    }
+    .modal .btn.registration-note-action {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        min-height: 39px;
+        padding: 8px 15px;
+        border-radius: 10px;
+        font-weight: 600;
+        transition: background-color .2s, box-shadow .2s, transform .2s;
+    }
+    .modal .btn.registration-note-action svg { width: 16px; height: 16px; stroke: currentColor; }
+    .modal .btn.registration-note-action:hover { transform: translateY(-1px); }
+    .modal .btn.registration-note-close { border: 1px solid #dce0e5; background: #fff; color: #4b5563; }
+    .modal .btn.registration-note-close:hover { border-color: #c9cfd6; background: #f3f5f7; color: #27303b; }
+    .modal .btn.registration-note-save { border: 1px solid #cc1f2f; background: #cc1f2f; color: #fff; box-shadow: 0 3px 10px rgba(204, 31, 47, .2); }
+    .modal .btn.registration-note-save:hover { border-color: #ab1828; background: #ab1828; color: #fff; box-shadow: 0 5px 14px rgba(204, 31, 47, .28); }
+    #privateNoteModal .modal-content {
+        background: #fff;
+        color: #27303b;
+        border: 1px solid #e6e8ec;
+        border-radius: 16px;
+        box-shadow: 0 18px 50px rgba(14, 23, 38, .2);
+        overflow: hidden;
+    }
+    #privateNoteModal .modal-header,
+    #privateNoteModal .modal-footer { border-color: #e9ebef; }
+    #privateNoteModal .modal-title,
+    #privateNoteModal .form-label { color: #27303b; }
+    #privateNoteModal .form-text { color: #687384; }
+    #privateNoteModal .form-control { background: #fff; color: #27303b; border-color: #cfd5dd; }
+    #privateNoteModal .form-control::placeholder { color: #85909f; }
+    #privateNoteModal .form-control:focus { background: #fff; color: #27303b; border-color: #cc1f2f; box-shadow: 0 0 0 3px rgba(204, 31, 47, .12); }
+    #privateNoteModal .registration-modal-dismiss {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border: 0;
+        border-radius: 9px;
+        background: #f2f4f6;
+        color: #4b5563;
+    }
+    #privateNoteModal .registration-modal-dismiss:hover { background: #f7d2d6; color: #8f1422; }
+    #privateNoteModal .registration-modal-dismiss svg { width: 16px; height: 16px; stroke: currentColor; }
+</style>
 
 <div class="layout-px-spacing">
 
@@ -28,28 +137,47 @@
                 <div class="statbox widget box box-shadow ficha-inscripcion">
                     <div class="widget-header px-3">
                         <div class="row g-3">
-                            <div class="col-md-8 py-3">
+                            <div class="col-md-7 py-3">
                                 <h4 class="px-0 py-0">
                                     {{__("Registration")}} # {{ $inscription->id }}
                                 </h4>
                             </div>
-                            <div class="col-md-4 py-3 text-end">
+                            <div class="col-md-5 py-3 text-end">
+                                <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-2">
 
-                                @if(\Auth::user()->hasRole('Administrador') && $inscription->status !== 'Confirmed')
-                                    {{-- Editar --}}
-                                    <a href="{{ route('inscriptions.edit', $inscription->id) }}" class="btn btn-info px-1 py-1" style="margin-top: -6px;"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16">
-                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
-                                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
-                                    </svg> Editar</a> 
+                                @if(\Auth::user()->hasRole('Administrador'))
+                                    <button type="button" class="btn registration-header-action registration-note-trigger" data-bs-toggle="modal" data-bs-target="#privateNoteModal">
+                                        <span class="registration-header-icon">
+                                            @if($inscription->private_note)
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/></svg>
+                                            @else
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 7v10M7 12h10"/></svg>
+                                            @endif
+                                        </span>
+                                        {{ $inscription->private_note ? 'View Note' : 'Add Note' }}
+                                        @if($inscription->private_note)
+                                            <span class="registration-note-alert" aria-hidden="true">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" focusable="false"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9z"/><path d="M10 21h4"/></svg>
+                                            </span>
+                                        @endif
+                                    </button>
                                 @endif
 
-                                <a href="#" class="btn btn-primary px-1 py-1 btnprintficha" style="margin-top: -6px;">
-                                    <svg width="14" height="14" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                @if(\Auth::user()->hasRole('Administrador') && $inscription->status !== 'Confirmed')
+                                    <a href="{{ route('inscriptions.edit', $inscription->id) }}" class="btn registration-header-action registration-edit-action btneditinsc"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil-square" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+                                        <path d="M15.502 1.94a.5.5 0 0 1 0 .706L14.459 3.69l-2-2L13.502.646a.5.5 0 0 1 .707 0l1.293 1.293zm-1.75 2.456-2-2L4.939 9.21a.5.5 0 0 0-.121.196l-.805 2.414a.25.25 0 0 0 .316.316l2.414-.805a.5.5 0 0 0 .196-.12l6.813-6.814z"/>
+                                        <path fill-rule="evenodd" d="M1 13.5A1.5 1.5 0 0 0 2.5 15h11a1.5 1.5 0 0 0 1.5-1.5v-6a.5.5 0 0 0-1 0v6a.5.5 0 0 1-.5.5h-11a.5.5 0 0 1-.5-.5v-11a.5.5 0 0 1 .5-.5H9a.5.5 0 0 0 0-1H2.5A1.5 1.5 0 0 0 1 2.5z"/>
+                                    </svg> Edit</a>
+                                @endif
+
+                                <a href="#" class="btn registration-header-action registration-print-action btnprintficha" aria-label="Print registration">
+                                    <svg width="14" height="14" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
                                         <path d="M6 9V2h12v7"></path>
                                         <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
                                         <path d="M6 14h12v8H6z"></path>
-                                    </svg>
+                                    </svg> Print
                                 </a>
+                                </div>
 
                                 @if($inscription->status == 'Pagado')
                                     <span class="badge badge-light-success">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
@@ -1103,8 +1231,50 @@
 
 </div>
 
+@if(\Auth::user()->hasRole('Administrador'))
+<div class="modal fade" id="privateNoteModal" tabindex="-1" aria-labelledby="privateNoteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ route('inscriptions.private-note.update', $inscription->id) }}">
+                @csrf
+                @method('PUT')
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privateNoteModalLabel">Private note · Registration #{{ $inscription->id }}</h5>
+                    <button type="button" class="registration-modal-dismiss" data-bs-dismiss="modal" aria-label="Close">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <label for="private_note" class="form-label">Note for administrators</label>
+                    <textarea id="private_note" name="private_note" rows="7" maxlength="5000" class="form-control @error('private_note') is-invalid @enderror" placeholder="Write a private note about this registration...">{{ old('private_note', $inscription->private_note) }}</textarea>
+                    @error('private_note')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="form-text">Only administrators can view or update this note. Clear the text and save to remove it.</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn registration-note-action registration-note-close" data-bs-dismiss="modal">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M5 5l14 14M19 5L5 19"/></svg>
+                        Close
+                    </button>
+                    <button type="submit" class="btn registration-note-action registration-note-save">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 12l5 5L20 6"/></svg>
+                        Update Note
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
+    @if(\Auth::user()->hasRole('Administrador') && $errors->has('private_note'))
+        const privateNoteModal = document.getElementById('privateNoteModal');
+        if (privateNoteModal && typeof bootstrap !== 'undefined') {
+            new bootstrap.Modal(privateNoteModal).show();
+        }
+    @endif
 
     document.querySelectorAll('.confirm-form').forEach(function(form) {
 

@@ -637,12 +637,25 @@ class InscriptionController extends Controller
         }
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
+    /** Update the administrator-only note without changing registration details. */
+    public function updatePrivateNote(Request $request, $id)
+    {
+        abort_unless(auth()->user()?->hasRole('Administrador'), 403);
+
+        $inscription = Inscription::findOrFail($id);
+        $validated = $request->validate([
+            'private_note' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $note = trim((string) ($validated['private_note'] ?? ''));
+        $inscription->private_note = $note === '' ? null : $note;
+        $inscription->save();
+
+        return redirect()->route('inscriptions.show', $inscription->id)
+            ->with('success', 'Private note updated successfully.');
+    }
+
+    /** Show the form for editing the specified resource. */
     public function edit($id)
     {
 

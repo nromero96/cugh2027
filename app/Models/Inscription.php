@@ -10,6 +10,8 @@ class Inscription extends Model
 {
     use HasFactory;
 
+    protected $hidden = ['private_note'];
+
     protected $fillable = [
         'user_id',
         'category_inscription_id',

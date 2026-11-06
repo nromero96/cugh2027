@@ -177,6 +177,7 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
 
     //Inscriptions
     Route::resource('inscriptions', InscriptionController::class)->names('inscriptions');
+    Route::put('inscriptions/{id}/private-note', [InscriptionController::class, 'updatePrivateNote'])->name('inscriptions.private-note.update');
     Route::get('inscriptions-accompanists', [InscriptionController::class, 'indexAccompanists'])->name('inscriptions.accompanists');
     Route::put('inscriptions/{id}/update-status', [InscriptionController::class, 'updateStatus'])->name('inscriptions.updatestatus');
     Route::get('inscriptions-rejects', [InscriptionController::class, 'indexRejects'])->name('inscriptions.rejects');
