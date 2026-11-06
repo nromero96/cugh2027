@@ -3,6 +3,20 @@
 
 @section('content')
 
+<style>
+    #registrationAnswersAccordion .accordion-item { overflow: hidden; border: 1px solid #e6e8ec; border-radius: 12px; background: #fff; }
+    #registrationAnswersAccordion .accordion-button { display: flex; align-items: center; gap: 12px; padding: 15px 18px; background: #fff4f5; color: #27303b; box-shadow: none; }
+    #registrationAnswersAccordion .accordion-button:hover { background: #f7d2d6; }
+    #registrationAnswersAccordion .accordion-button:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: -3px; }
+    #registrationAnswersAccordion .accordion-button::after { display: none; }
+    #registrationAnswersAccordion .registration-answers-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; background: #f7d2d6; color: #a71929; flex: 0 0 auto; }
+    #registrationAnswersAccordion .registration-answers-title { display: block; color: #27303b; font-size: 15px; font-weight: 700; }
+    #registrationAnswersAccordion .registration-answers-subtitle { display: block; color: #687384; font-size: 12px; font-weight: 400; }
+    #registrationAnswersAccordion .registration-answers-chevron { margin-left: auto; color: #a71929; transition: transform .2s; }
+    #registrationAnswersAccordion .accordion-button:not(.collapsed) .registration-answers-chevron { transform: rotate(180deg); }
+    #registrationAnswersAccordion .accordion-body { background: #fff; color: #27303b; }
+    #registrationAnswersAccordion .form-check-label { color: #344054; }
+</style>
 
 <div class="layout-px-spacing">
 
@@ -397,11 +411,17 @@
                             
 
                             <div class="col-md-12 mt-4 questionnaire-readonly">
-                                <div class="alert alert-secondary py-2" role="status">
-                                    Participant questionnaire — read-only for administrators.
-                                </div>
-                                <div class="card">
-                                    <div class="card-body">
+                                <div class="accordion" id="registrationAnswersAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="registrationAnswersHeading">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#registrationAnswersPanel" aria-expanded="false" aria-controls="registrationAnswersPanel">
+                                                <span class="registration-answers-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/><path d="m17 18 2 2 3-4"/></svg></span>
+                                                <span class="text-start"><span class="registration-answers-title">Additional registration questions</span><span class="registration-answers-subtitle">View submitted answers · Read-only for administrators</span></span>
+                                                <svg class="registration-answers-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                                            </button>
+                                        </h2>
+                                        <div id="registrationAnswersPanel" class="accordion-collapse collapse" aria-labelledby="registrationAnswersHeading" data-bs-parent="#registrationAnswersAccordion">
+                                            <div class="accordion-body">
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <label for="sector" class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
@@ -995,6 +1015,8 @@
                                                 
                                             </div>
                                         </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -1028,13 +1050,18 @@
                                                         $active_radio = '';
                                                     }
 
+                                                    $selectedCategoryId = old('category_inscription_id', $myinscription->category_inscription_id);
+                                                    $displayedCategoryFee = $selectedCategoryId == $category->id
+                                                        ? old('price_category', $myinscription->price_category ?? $category->price)
+                                                        : $category->price;
+
                                                 @endphp
 
                                                 @if ($category->type == 'radio' && $category->status == 'active')
                                                     <tr class="category-row" data-membership="{{ $category->membership_type }}">
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
-                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)'], true) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
+                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-catprice-low="{{ $category->price_low }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)'], true) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
                                                                 <label class="form-check-label mb-0 ms-1 cursor-pointer" for="category_{{ $category->id }}">{{ $category->name }}{!! $infomark !!}
                                                                 <small class="text-muted">{!! $category->description !!}</small>
                                                                 </label>
@@ -1056,15 +1083,28 @@
                                                             @endif
                                                         </td>
                                                         <td>
-                                                            <b>US$ <span id="dc_price_{{ $category->id }}">{{ $category->price === '0.00' ? '00' : rtrim(rtrim($category->price, '0'), '.') }}</span></b>
+                                                            <b>US$ <span id="dc_price_{{ $category->id }}">{{ number_format((float) $displayedCategoryFee, 2, '.', '') }}</span></b>
                                                         </td>
                                                     </tr>
 
                                                 @endif
                                             @endforeach
+                                            <tr>
+                                                <td>
+                                                    <label for="price_category" class="fw-semibold mb-0">Fee for this participant</label>
+                                                    <small class="d-block text-muted">This adjustment applies only to this registration.</small>
+                                                </td>
+                                                <td>
+                                                    <div class="input-group input-group-sm">
+                                                        <span class="input-group-text">US$</span>
+                                                        <input type="number" name="price_category" id="price_category" class="form-control text-end @error('price_category') is-invalid @enderror" value="{{ old('price_category', $myinscription->price_category ?? '0.00') }}" min="0" max="999999.99" step="0.01" inputmode="decimal" required aria-label="Fee for this participant">
+                                                    </div>
+                                                    @error('price_category')<small class="text-danger d-block mt-1">{{ $message }}</small>@enderror
+                                                </td>
+                                            </tr>
                                             <tr class="table-secondary">
                                                 <td><b>TOTAL</b></td>
-                                                <td><b>US$ <span id="paymentotal">00</span></b></td>
+                                                <td><b>US$ <span id="paymentotal">{{ number_format((float) old('price_category', $myinscription->price_category ?? 0), 2, '.', '') }}</span></b></td>
                                             </tr>
 
                                         </tbody>
@@ -1207,7 +1247,7 @@
 
                                     <div id="dv_nopayment" class="mt-3 d-none">
                                         <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
-                                            This category has no registration fee.<br>
+                                            This registration has no fee.<br>
                                             Your application will be reviewed before being approved.
                                             <br><br>
                                             You will be notified once the review process is completed.
@@ -1326,4 +1366,83 @@
         .forEach(field => field.disabled = true);
 </script>
 
+@endsection
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const feeInput = document.getElementById('price_category');
+    const totalDisplay = document.getElementById('paymentotal');
+    const countrySelect = document.getElementById('inputCountry');
+    const countryPriceTypes = @json($countries->pluck('price_type', 'id'));
+    const categories = document.querySelectorAll('input[name="category_inscription_id"]');
+
+    function selectedCategory() {
+        return document.querySelector('input[name="category_inscription_id"]:checked');
+    }
+
+    function updateFeeDisplay() {
+        const amount = Number(feeInput.value);
+        if (feeInput.value.trim() === '' || !Number.isFinite(amount) || amount < 0) {
+            totalDisplay.textContent = '—';
+            return;
+        }
+
+        const formattedAmount = amount.toFixed(2);
+        if (totalDisplay.textContent !== formattedAmount) totalDisplay.textContent = formattedAmount;
+        categories.forEach(category => {
+            const priceDisplay = document.getElementById('dc_price_' + category.value);
+            if (!priceDisplay) return;
+            const displayedPrice = category.checked
+                ? formattedAmount
+                : Number(category.dataset.catprice || 0).toFixed(2);
+            if (priceDisplay.textContent !== displayedPrice) priceDisplay.textContent = displayedPrice;
+        });
+        const noPayment = amount === 0;
+        document.getElementById('dv_payment_method').classList.toggle('d-none', noPayment);
+        document.getElementById('dv_nopayment').classList.toggle('d-none', !noPayment);
+        if (noPayment) {
+            document.getElementById('payment_method_none').checked = true;
+            document.getElementById('dv_tranfer').classList.add('d-none');
+            document.getElementById('dv_card').classList.add('d-none');
+        } else if (document.getElementById('payment_method_none').checked) {
+            document.getElementById('payment_method_none').checked = false;
+        }
+    }
+
+    function useCategoryFee() {
+        const category = selectedCategory();
+        if (!category) {
+            feeInput.value = '0.00';
+        } else {
+            const middleIncome = countryPriceTypes[countrySelect.value] === 'Middle Income';
+            const suggested = middleIncome && category.dataset.specialCode !== '1'
+                ? category.dataset.catpriceLow
+                : category.dataset.catprice;
+            feeInput.value = Number(suggested || 0).toFixed(2);
+        }
+        updateFeeDisplay();
+    }
+
+    feeInput.addEventListener('input', updateFeeDisplay);
+    categories.forEach(category => category.addEventListener('change', useCategoryFee));
+    countrySelect.addEventListener('change', useCategoryFee);
+    document.querySelectorAll('input[name="is_cugh_member"], #cugh_membership_type, #cugh_member_institution')
+        .forEach(field => field.addEventListener('change', function () {
+            setTimeout(function () {
+                if (!selectedCategory()) useCategoryFee();
+                else updateFeeDisplay();
+            }, 0);
+        }));
+
+    const specialCategory = document.querySelector('input[name="category_inscription_id"][data-special-code="1"]');
+    if (specialCategory) {
+        new MutationObserver(function () {
+            if (specialCategory.checked && document.getElementById('specialcode_verify').value === 'valid') useCategoryFee();
+        }).observe(specialCategory, { attributes: true, attributeFilter: ['data-catprice'] });
+    }
+
+    updateFeeDisplay();
+});
+</script>
 @endsection

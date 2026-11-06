@@ -553,6 +553,14 @@ const paymentotalElement = document.getElementById('paymentotal');
 
 // Función para calcular el precio total
 function calculateTotalPrice() {
+  // Admin edits can override the fee for this registration. Let the edit form
+  // render that amount after shared category prices finish loading.
+  const adjustedFeeInput = document.getElementById('price_category');
+  if (adjustedFeeInput) {
+    adjustedFeeInput.dispatchEvent(new Event('input', { bubbles: true }));
+    return;
+  }
+
   let totalPrice = 0;
   
   // Suma los valores de los radios seleccionados

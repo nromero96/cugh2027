@@ -758,6 +758,7 @@ class InscriptionController extends Controller
             'solapin_name' => 'nullable|string|max:100',
             'solapin_lastname' => 'nullable|string|max:100',
             'category_inscription_id' => 'required|integer|exists:category_inscriptions,id,status,active',
+            'price_category' => ['required', 'numeric', 'min:0', 'max:999999.99', 'regex:/^\d{1,6}(\.\d{1,2})?$/'],
             'invoice' => 'required|in:yes,no',
             'invoice_type' => 'required|in:Boleta,Factura',
             'invoice_type_document' => 'nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
@@ -768,15 +769,11 @@ class InscriptionController extends Controller
         ]);
 
         $category = CategoryInscription::findOrFail($request->category_inscription_id);
-        $country = Country::findOrFail($request->country);
-        $price = $country->price_type === 'Middle Income'
-            ? (float) $category->price_low
-            : (float) $category->price;
-
         if ($category->name === 'Special Code') {
-            $specialCode = $this->validSpecialCode($request->specialcode, $inscription);
-            $price = $specialCode->payment_required === 'Si' ? (float) $specialCode->amount : 0;
+            $this->validSpecialCode($request->specialcode, $inscription);
         }
+
+        $price = (float) $request->input('price_category');
 
         $allowedPaymentMethods = $price > 0
             ? ['Bank Transfer/Wire', 'Credit/Debit Card']

@@ -4,6 +4,9 @@
 @section('content')
 
 <style>
+    .ficha-inscripcion .bx-text { min-height: calc(1.5em + 8px); line-height: 1.5; }
+    .ficha-inscripcion .registration-confirmed-icon { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; flex: 0 0 auto; border: 1px solid #bfe8d0; border-radius: 50%; background: #eaf7ef; color: #228354; box-shadow: 0 3px 10px rgba(34, 131, 84, .1); }
+    .ficha-inscripcion .registration-confirmed-icon svg { width: 20px; height: 20px; stroke: currentColor; }
     .ficha-inscripcion .btn.registration-header-action {
         display: inline-flex;
         align-items: center;
@@ -111,6 +114,86 @@
     }
     #privateNoteModal .registration-modal-dismiss:hover { background: #f7d2d6; color: #8f1422; }
     #privateNoteModal .registration-modal-dismiss svg { width: 16px; height: 16px; stroke: currentColor; }
+    #registrationAnswersAccordion .accordion-item { overflow: hidden; border: 1px solid #e6e8ec; border-radius: 12px; background: #fff; }
+    #registrationAnswersAccordion .accordion-button { display: flex; align-items: center; gap: 12px; padding: 15px 18px; background: #fff4f5; color: #27303b; box-shadow: none; }
+    #registrationAnswersAccordion .accordion-button:hover { background: #f7d2d6; }
+    #registrationAnswersAccordion .accordion-button:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: -3px; }
+    #registrationAnswersAccordion .accordion-button::after { display: none; }
+    #registrationAnswersAccordion .registration-answers-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 9px; background: #f7d2d6; color: #a71929; flex: 0 0 auto; }
+    #registrationAnswersAccordion .registration-answers-title { display: block; color: #27303b; font-size: 15px; font-weight: 700; }
+    #registrationAnswersAccordion .registration-answers-subtitle { display: block; color: #687384; font-size: 12px; font-weight: 400; }
+    #info_invoice.invoice-file-card { border: 1px solid #e6e8ec; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(26, 35, 51, .06); overflow: hidden; }
+    #info_invoice .invoice-card-heading { display: flex; align-items: center; gap: 11px; padding: 16px 18px; border-bottom: 1px solid #eef0f3; }
+    #info_invoice .invoice-card-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; background: #fff0f2; color: #bd1c2c; }
+    #info_invoice .invoice-card-title { margin: 0; color: #27303b; font-size: 16px; font-weight: 700; }
+    #info_invoice .invoice-card-subtitle { display: block; margin-top: 2px; color: #687384; font-size: 12px; }
+    #info_invoice .invoice-card-body { display: flex; align-items: center; gap: 12px; padding: 16px 18px; }
+    #info_invoice .invoice-file-name { min-width: 0; flex: 1; overflow-wrap: anywhere; color: #344054; font-size: 13px; font-weight: 600; line-height: 1.4; }
+    #info_invoice .invoice-card-actions { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
+    #info_invoice .invoice-card-actions form { margin: 0; }
+    #info_invoice .invoice-card-action { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; padding: 0; border-radius: 9px; transition: background-color .2s, border-color .2s, color .2s; }
+    #info_invoice .invoice-card-action svg { width: 18px; height: 18px; stroke: currentColor; }
+    #info_invoice .invoice-download { border: 1px solid #efc2c8; background: #fff3f4; color: #a71929; }
+    #info_invoice .invoice-download:hover { border-color: #eaa1aa; background: #f7d2d6; color: #8f1422; }
+    #info_invoice .invoice-delete { border: 1px solid #e3e6ea; background: #fff; color: #687384; }
+    #info_invoice .invoice-delete:hover { border-color: #efc2c8; background: #fff3f4; color: #a71929; }
+    #info_invoice .invoice-card-action:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: 2px; }
+    #form_upload_invoice.invoice-upload-card { border: 1px solid #e6e8ec; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(26, 35, 51, .06); overflow: hidden; }
+    #form_upload_invoice .invoice-upload-heading { display: flex; align-items: center; gap: 11px; padding: 16px 18px; border-bottom: 1px solid #eef0f3; }
+    #form_upload_invoice .invoice-upload-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; background: #fff0f2; color: #bd1c2c; }
+    #form_upload_invoice .invoice-upload-title { margin: 0; color: #27303b; font-size: 16px; font-weight: 700; }
+    #form_upload_invoice .invoice-upload-subtitle { display: block; margin-top: 2px; color: #687384; font-size: 12px; }
+    #form_upload_invoice .invoice-upload-body { padding: 16px 18px 18px; }
+    #form_upload_invoice .invoice-upload-label { display: block; margin-bottom: 8px; color: #344054; font-size: 13px; font-weight: 600; }
+    #form_upload_invoice .form-control { border-color: #d8dfe6; border-radius: 9px; color: #344054; }
+    #form_upload_invoice .form-control::file-selector-button { border-color: #eef0f3; background: #f6f7f9; color: #344054; }
+    #form_upload_invoice .form-control:hover::file-selector-button { background: #fff0f2; color: #a71929; }
+    #form_upload_invoice .form-control:focus { border-color: #cc1f2f; box-shadow: 0 0 0 3px rgba(204, 31, 47, .12); }
+    #form_upload_invoice .invoice-upload-hint { display: block; margin-top: 7px; color: #687384; font-size: 12px; }
+    #form_upload_invoice .invoice-upload-submit { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 40px; margin-top: 16px; border: 1px solid #cc1f2f; border-radius: 9px; background: #cc1f2f; color: #fff; font-weight: 600; transition: background-color .2s, border-color .2s, box-shadow .2s; }
+    #form_upload_invoice .invoice-upload-submit:hover { border-color: #ab1828; background: #ab1828; color: #fff; box-shadow: 0 4px 12px rgba(204, 31, 47, .2); }
+    #form_upload_invoice .invoice-upload-submit:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: 2px; }
+    #form_upload_invoice .invoice-upload-submit svg { width: 17px; height: 17px; stroke: currentColor; }
+    .actionstatus.registration-status-card { border: 1px solid #b51b2a; border-radius: 14px; background: #cc1f2f; color: #fff; box-shadow: 0 6px 20px rgba(146, 21, 35, .2); overflow: hidden; }
+    .actionstatus .registration-status-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 18px; border-bottom: 1px solid rgba(255, 255, 255, .22); background: rgba(111, 8, 21, .12); }
+    .actionstatus .registration-status-heading-main { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .actionstatus .registration-status-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; background: rgba(255, 255, 255, .18); color: #fff; }
+    .actionstatus .registration-status-title { margin: 0; color: #fff; font-size: 16px; font-weight: 700; }
+    .actionstatus .registration-status-subtitle { display: block; margin-top: 2px; color: #ffe0e4; font-size: 12px; }
+    .actionstatus .registration-current-status { padding: 6px 10px; border: 1px solid #fff; border-radius: 999px; background: #fff; color: #a71929; font-size: 12px; font-weight: 700; white-space: nowrap; }
+    .actionstatus .registration-status-body { padding: 16px 18px 18px; }
+    .actionstatus .registration-status-label { display: block; margin-bottom: 7px; color: #fff; font-size: 13px; font-weight: 600; }
+    .actionstatus .form-control { min-height: 40px; border-color: #d8dfe6; border-radius: 9px; background: #fff; color: #344054; }
+    .actionstatus .form-control:focus { border-color: #fff; box-shadow: 0 0 0 3px rgba(255, 255, 255, .28); }
+    .actionstatus .registration-status-save { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 40px; border: 1px solid #fff; border-radius: 9px; background: #fff; color: #a71929; font-weight: 600; white-space: nowrap; }
+    .actionstatus .registration-status-save:hover { border-color: #f7d2d6; background: #f7d2d6; color: #8f1422; box-shadow: 0 4px 12px rgba(74, 5, 14, .2); }
+    .actionstatus .registration-status-save:focus-visible { outline: 3px solid rgba(255, 255, 255, .7); outline-offset: 2px; }
+    .actionstatus .registration-status-save svg { width: 17px; height: 17px; stroke: currentColor; }
+    @media (max-width: 575.98px) { .actionstatus .registration-status-heading { align-items: flex-start; flex-direction: column; } .actionstatus .registration-current-status { margin-left: 49px; } }
+    #registrationStatusHistory { border: 1px solid #e6e8ec; border-radius: 14px; background: #fff; box-shadow: 0 4px 18px rgba(26, 35, 51, .06); overflow: hidden; }
+    #registrationStatusHistory .status-history-heading { display: flex; align-items: center; gap: 11px; padding: 16px 18px; border-bottom: 1px solid #eef0f3; }
+    #registrationStatusHistory .status-history-icon { display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; flex: 0 0 auto; border-radius: 10px; background: #fff0f2; color: #bd1c2c; }
+    #registrationStatusHistory .status-history-title { margin: 0; color: #27303b; font-size: 16px; font-weight: 700; }
+    #registrationStatusHistory .status-history-count { margin-left: auto; padding: 5px 9px; border-radius: 999px; background: #f2f4f7; color: #667085; font-size: 12px; font-weight: 700; }
+    #registrationStatusHistory .status-history-list { margin: 0; padding: 16px 18px 18px 18px; list-style: none; }
+    #registrationStatusHistory .status-history-entry { position: relative; margin-left: 10px; padding: 0 0 17px 25px; border-left: 2px solid #e9edf1; }
+    #registrationStatusHistory .status-history-entry:last-child { padding-bottom: 0; border-left-color: transparent; }
+    #registrationStatusHistory .status-history-entry::before { position: absolute; top: 4px; left: -6px; width: 10px; height: 10px; border: 2px solid #fff; border-radius: 50%; background: #cc1f2f; box-shadow: 0 0 0 2px #f7d2d6; content: ''; }
+    #registrationStatusHistory .status-history-action { display: block; color: #344054; font-size: 13px; font-weight: 700; line-height: 1.4; }
+    #registrationStatusHistory .status-history-date { display: block; margin-top: 3px; color: #687384; font-size: 12px; }
+    #registrationStatusHistory .status-history-note { margin: 9px 0 0; padding: 9px 11px; border-radius: 8px; background: #f7f8fa; color: #4b5563; font-size: 13px; line-height: 1.45; overflow-wrap: anywhere; white-space: pre-wrap; }
+    #registrationStatusHistory .status-history-empty { padding: 20px 18px; color: #687384; font-size: 13px; }
+    #registrationStatusHistory .status-history-extra-list { padding-top: 0; }
+    #registrationStatusHistory .status-history-toggle { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 11px 18px; border: 0; border-top: 1px solid #eef0f3; background: #fff; color: #a71929; font-size: 13px; font-weight: 700; transition: background-color .2s; }
+    #registrationStatusHistory .status-history-toggle:hover { background: #fff3f4; color: #8f1422; }
+    #registrationStatusHistory .status-history-toggle:focus-visible { outline: 3px solid rgba(204, 31, 47, .25); outline-offset: -3px; }
+    #registrationStatusHistory .status-history-toggle-icon { display: inline-flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; background: #f7d2d6; font-size: 16px; line-height: 1; }
+    #registrationStatusHistory .status-history-toggle[aria-expanded="false"] .status-history-hide,
+    #registrationStatusHistory .status-history-toggle[aria-expanded="true"] .status-history-show { display: none; }
+    #registrationAnswersAccordion .registration-answers-chevron { margin-left: auto; color: #a71929; transition: transform .2s; }
+    #registrationAnswersAccordion .accordion-button:not(.collapsed) .registration-answers-chevron { transform: rotate(180deg); }
+    #registrationAnswersAccordion .accordion-body { background: #fff; color: #27303b; }
+    #registrationAnswersAccordion .form-check-label { color: #344054; }
 </style>
 
 <div class="layout-px-spacing">
@@ -144,6 +227,12 @@
                             </div>
                             <div class="col-md-5 py-3 text-end">
                                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-2">
+
+                                @if($inscription->status === 'Confirmed')
+                                    <span class="registration-confirmed-icon" role="img" aria-label="Registration confirmed" title="Registration confirmed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                                    </span>
+                                @endif
 
                                 @if(\Auth::user()->hasRole('Administrador'))
                                     <button type="button" class="btn registration-header-action registration-note-trigger" data-bs-toggle="modal" data-bs-target="#privateNoteModal">
@@ -528,26 +617,45 @@
 
                             <div class="col-md-7">
 
-                                @if ($inscription->status != 'Confirmed' && (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')))
-                                    <div class="card px-3 py-3 bg-primary mb-2 actionstatus">
-                                        <label class="form-label mb-1 text-white"><span class="fw-bold">{{ __('Estado de la inscripción') }}</span>: <span>({{ $inscription->status }})</span></label>
-                                        <form class="row" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
+                                @if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
+                                    <div class="card registration-status-card mb-2 actionstatus">
+                                        <div class="registration-status-heading">
+                                            <div class="registration-status-heading-main">
+                                                <span class="registration-status-icon" aria-hidden="true">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg>
+                                                </span>
+                                                <div>
+                                                    <h6 class="registration-status-title">Registration status</h6>
+                                                    <span class="registration-status-subtitle">Update this registration's progress</span>
+                                                </div>
+                                            </div>
+                                            <span class="registration-current-status">{{ $inscription->status }}</span>
+                                        </div>
+                                        <form class="registration-status-body" action="{{ route('inscriptions.updatestatus', ['id' => $inscription->id]) }}" method="POST">
                                             @csrf
                                             @method('PUT')
-                                            <div class="col-md-4">
+                                            <div class="row g-3 align-items-end">
+                                            <div class="col-sm-4">
+                                                <label for="action" class="registration-status-label">New status</label>
                                                 <select name="action" id="action" class="form-control">
                                                     <option value="Draft" @if ($inscription->status == 'Draft') selected @endif >{{ __('Draft') }}</option>
                                                     <option value="Pending" @if ($inscription->status == 'Pending') selected @endif >{{ __('Pending') }}</option>
                                                     <option value="Processing" @if ($inscription->status == 'Processing') selected @endif>{{ __('Processing') }}</option>
                                                     <option value="Paid" @if ($inscription->status == 'Paid') selected @endif>{{ __('Paid') }}</option>
                                                     <option value="Refused" @if ($inscription->status == 'Refused') selected @endif>{{ __('Refused') }}</option>
+                                                    <option value="Confirmed" @if ($inscription->status == 'Confirmed') selected @endif>{{ __('Confirmed') }}</option>
                                                 </select>
                                             </div>
-                                            <div class="col-md-5">
-                                                <input type="text" class="form-control" name="note" id="note" placeholder="Note...">
+                                            <div class="col-sm-5">
+                                                <label for="note" class="registration-status-label">Note</label>
+                                                <input type="text" class="form-control" name="note" id="note" placeholder="Add a note (optional)">
                                             </div>
-                                            <div class="col-md-3">
-                                                <button type="submit" class="btn btn-secondary">{{ __('Update') }}</button>
+                                            <div class="col-sm-3">
+                                                <button type="submit" class="btn registration-status-save w-100">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+                                                    Update
+                                                </button>
+                                            </div>
                                             </div>
                                         </form>
                                     </div>
@@ -566,53 +674,106 @@
 
                                 @endif
 
-                                <div class="card p-2">
-                                    <ul class="mb-0">
-                                        @foreach ($statusnotes as $item)
-                                            <li>
-                                                <b class="text-info">{!! $item->note !!}</b> ({{ $item->created_at }})<br>
-                                                <small>{{ $item->action }}</small>
+                                <div class="card" id="registrationStatusHistory">
+                                    <div class="status-history-heading">
+                                        <span class="status-history-icon" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 7v5l3 2"/></svg>
+                                        </span>
+                                        <h6 class="status-history-title">Status history</h6>
+                                        <span class="status-history-count">{{ $statusnotes->count() }}</span>
+                                    </div>
+                                    @if($statusnotes->isNotEmpty())
+                                        <ol class="status-history-list">
+                                            <li class="status-history-entry">
+                                                <span class="status-history-action">{{ $statusnotes->first()->action }}</span>
+                                                <time class="status-history-date" datetime="{{ $statusnotes->first()->created_at ? $statusnotes->first()->created_at->toIso8601String() : '' }}">{{ $statusnotes->first()->created_at ? $statusnotes->first()->created_at->format('Y-m-d H:i') : '—' }}</time>
+                                                @if($statusnotes->first()->note)
+                                                    <p class="status-history-note">{{ $statusnotes->first()->note }}</p>
+                                                @endif
                                             </li>
-                                        @endforeach
-                                    </ul>
+                                        </ol>
+                                        @if($statusnotes->count() > 1)
+                                            <div class="collapse" id="olderStatusHistory">
+                                                <ol class="status-history-list status-history-extra-list">
+                                                    @foreach ($statusnotes->skip(1) as $item)
+                                                        <li class="status-history-entry">
+                                                            <span class="status-history-action">{{ $item->action }}</span>
+                                                            <time class="status-history-date" datetime="{{ $item->created_at ? $item->created_at->toIso8601String() : '' }}">{{ $item->created_at ? $item->created_at->format('Y-m-d H:i') : '—' }}</time>
+                                                            @if($item->note)
+                                                                <p class="status-history-note">{{ $item->note }}</p>
+                                                            @endif
+                                                        </li>
+                                                    @endforeach
+                                                </ol>
+                                            </div>
+                                            <button type="button" class="status-history-toggle" data-bs-toggle="collapse" data-bs-target="#olderStatusHistory" aria-expanded="false" aria-controls="olderStatusHistory">
+                                                <span class="status-history-toggle-icon status-history-show" aria-hidden="true">+</span>
+                                                <span class="status-history-show">Show {{ $statusnotes->count() - 1 }} older {{ $statusnotes->count() === 2 ? 'change' : 'changes' }}</span>
+                                                <span class="status-history-toggle-icon status-history-hide" aria-hidden="true">−</span>
+                                                <span class="status-history-hide">Hide older changes</span>
+                                            </button>
+                                        @endif
+                                    @else
+                                        <div class="status-history-empty">No status changes have been recorded yet.</div>
+                                    @endif
                                 </div>
 
                             </div>
 
                             <div class="col-md-5">
-                                <div class="card px-2 py-2 @if($inscription->compr_pdf) @else d-none @endif" id="info_invoice">
-                                    <h6>Invoice</h6>
-                                    <div class="d-flex justify-content-center">
-                                        <a href="#" class="me-1 fw-bold">{{ $inscription->compr_pdf }}</a>
-                                        <a href="{{ asset('storage/uploads/invoices/'.$inscription->compr_pdf) }}" target="_blank" class="btn btn-light-primary">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-download"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 11l5 5l5 -5" /><path d="M12 4l0 12" /></svg>    
-                                        </a>
+                                <div class="card invoice-file-card {{ $inscription->compr_pdf ? '' : 'd-none' }}" id="info_invoice">
+                                    <div class="invoice-card-heading">
+                                        <span class="invoice-card-icon" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+                                        </span>
+                                        <div>
+                                            <h6 class="invoice-card-title">Invoice</h6>
+                                            <span class="invoice-card-subtitle">Invoice document</span>
+                                        </div>
+                                    </div>
+                                    <div class="invoice-card-body">
+                                        <span class="invoice-file-name" title="{{ $inscription->compr_pdf }}">{{ $inscription->compr_pdf }}</span>
+                                        <div class="invoice-card-actions">
+                                            <a href="{{ asset('storage/uploads/invoices/'.$inscription->compr_pdf) }}" target="_blank" rel="noopener noreferrer" class="invoice-card-action invoice-download" title="View invoice" aria-label="View invoice">
+                                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                                            </a>
                                         @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
                                             <form action="{{ route('inscriptions.deleteinvoice', ['id' => $inscription->id]) }}" method="POST">
                                                 @csrf
                                                 @method('PUT')
-                                                <button type="submit" class="btn btn-light-danger ms-1">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-trash"><path stroke="none" d="M0 0h24v24H0z" fill="none" /><path d="M4 7l16 0" /><path d="M10 11l0 6" /><path d="M14 11l0 6" /><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12" /><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3" /></svg>
+                                                <button type="submit" class="invoice-card-action invoice-delete" title="Delete invoice" aria-label="Delete invoice">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M10 11v6m4-6v6M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13M9 7V4a1 1 0 0 1 1-1h2"/><path d="M12 3h3a1 1 0 0 1 1 1v3"/></svg>
                                                 </button>
                                             </form>
                                         @endif
-
+                                        </div>
                                     </div>
                                 </div>
                                 
                                 @if(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'))
-                                <div class="card px-2 py-2 @if($inscription->compr_pdf) d-none @endif" id="form_upload_invoice">
-                                    <h6>Upload Invoice</h6>
-                                    <form action="{{ route('inscriptions.uploadinvoice', $inscription->id) }}" method="POST" enctype="multipart/form-data">
+                                <div class="card invoice-upload-card {{ $inscription->compr_pdf ? 'd-none' : '' }}" id="form_upload_invoice">
+                                    <div class="invoice-upload-heading">
+                                        <span class="invoice-upload-icon" aria-hidden="true">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M12 18v-7m0 0-3 3m3-3 3 3"/></svg>
+                                        </span>
+                                        <div>
+                                            <h6 class="invoice-upload-title">Upload invoice</h6>
+                                            <span class="invoice-upload-subtitle">Attach the participant's invoice</span>
+                                        </div>
+                                    </div>
+                                    <form class="invoice-upload-body" action="{{ route('inscriptions.uploadinvoice', $inscription->id) }}" method="POST" enctype="multipart/form-data">
                                         @csrf
                                         @method('PUT')
-                                        <input type="file" class="form-control" name="compr_pdf" id="compr_pdf" accept="application/pdf" required>
-                                        <button type="submit" class="btn btn-primary w-100 mt-2">Upload Invoice</button>
+                                        <label class="invoice-upload-label" for="compr_pdf">Invoice PDF</label>
+                                        <input type="file" class="form-control @error('compr_pdf') is-invalid @enderror" name="compr_pdf" id="compr_pdf" accept=".pdf,application/pdf" aria-describedby="invoice-upload-hint" required>
+                                        <small class="invoice-upload-hint" id="invoice-upload-hint">PDF file, up to 2 MB.</small>
                                         @error('compr_pdf')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
+                                            <span class="text-danger d-block mt-2" role="alert">{{ $message }}</span>
                                         @enderror
+                                        <button type="submit" class="btn invoice-upload-submit w-100">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4m0 0-4 4m4-4 4 4M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg>
+                                            Upload invoice
+                                        </button>
                                     </form>
                                 </div>
                                 @endif
@@ -622,8 +783,17 @@
                             </div>
 
                             <div class="col-md-12 mt-4">
-                                <div class="card">
-                                    <div class="card-body disabled-style">
+                                <div class="accordion" id="registrationAnswersAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="registrationAnswersHeading">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#registrationAnswersPanel" aria-expanded="false" aria-controls="registrationAnswersPanel">
+                                                <span class="registration-answers-icon" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 5h16M4 12h16M4 19h10"/><path d="m17 18 2 2 3-4"/></svg></span>
+                                                <span class="text-start"><span class="registration-answers-title">Additional registration questions</span><span class="registration-answers-subtitle">View the participant's submitted answers</span></span>
+                                                <svg class="registration-answers-chevron" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+                                            </button>
+                                        </h2>
+                                        <div id="registrationAnswersPanel" class="accordion-collapse collapse" aria-labelledby="registrationAnswersHeading" data-bs-parent="#registrationAnswersAccordion">
+                                            <div class="accordion-body disabled-style">
                                         <div class="row">
                                             <div class="col-md-12">
                                                 <label for="sector" class="form-label text-muted mb-0 mt-2">SECTOR <span class="text-danger">*</span> <small>(Check all that apply)</small></label><br>
@@ -1215,6 +1385,8 @@
                                                 </div>
                                                 {!!$errors->first("panel_presenter_moderator", "<span class='text-danger'>:message</span>")!!}
                                                 
+                                            </div>
+                                        </div>
                                             </div>
                                         </div>
                                     </div>

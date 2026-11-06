@@ -75,6 +75,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
         html2canvas(elementToCapture, {
             ignoreElements: ignoreElements,
+            onclone: function (clonedDocument) {
+                const answers = clonedDocument.getElementById("registrationAnswersPanel");
+                if (answers) {
+                    answers.classList.add("show");
+                    answers.style.height = "auto";
+                }
+            },
         }).then(function (canvas) {
             const image = canvas.toDataURL("image/png");
 
