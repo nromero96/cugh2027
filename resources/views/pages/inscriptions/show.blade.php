@@ -63,6 +63,12 @@
     .ficha-inscripcion .btn.registration-print-action svg { width: 28px; height: 28px; padding: 6px; border-radius: 8px; background: rgba(255, 255, 255, .18); stroke: #fff; flex: 0 0 auto; }
     .ficha-inscripcion .btn.registration-print-action:hover { border-color: #ab1828; background: #ab1828; color: #fff; box-shadow: 0 5px 14px rgba(204, 31, 47, .28); }
     .ficha-inscripcion .btn.registration-print-action:hover svg { stroke: #fff; background: rgba(255, 255, 255, .22); }
+    .ficha-inscripcion .btn.registration-invoice-action { border: 1px solid #d6e4da; background: #f4faf6; color: #286b45; box-shadow: 0 2px 8px rgba(34, 131, 84, .08); }
+    .ficha-inscripcion .btn.registration-invoice-action .registration-header-icon { background: #e0f2e7; }
+    .ficha-inscripcion .btn.registration-invoice-action svg { width: 16px; height: 16px; stroke: currentColor; }
+    .ficha-inscripcion .btn.registration-invoice-action:hover { border-color: #b6d8c2; background: #eaf7ef; color: #1e5e39; box-shadow: 0 5px 14px rgba(34, 131, 84, .14); }
+    .ficha-inscripcion .btn.registration-invoice-action:disabled { opacity: .7; transform: none; cursor: wait; }
+    .ficha-inscripcion .registration-invoice-state { display: inline-flex; align-items: center; min-height: 40px; padding: 7px 12px; border: 1px solid #d6e4da; border-radius: 11px; background: #f4faf6; color: #286b45; font-size: 13px; font-weight: 600; }
     .ficha-inscripcion .btn.registration-header-action:focus-visible,
     .modal .btn.registration-note-action:focus-visible {
         outline: 3px solid rgba(204, 31, 47, .25);
@@ -220,12 +226,12 @@
                 <div class="statbox widget box box-shadow ficha-inscripcion">
                     <div class="widget-header px-3">
                         <div class="row g-3">
-                            <div class="col-md-7 py-3">
+                            <div class="col-md-6 py-3">
                                 <h4 class="px-0 py-0">
                                     {{__("Registration")}} # {{ $inscription->id }}
                                 </h4>
                             </div>
-                            <div class="col-md-5 py-3 text-end">
+                            <div class="col-md-6 py-3 text-end">
                                 <div class="d-flex flex-wrap justify-content-end align-items-center gap-2 mb-2">
 
                                 @if($inscription->status === 'Confirmed')
@@ -250,6 +256,30 @@
                                             </span>
                                         @endif
                                     </button>
+                                @endif
+
+                                @if($inscription->status === 'Confirmed' && (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')))
+                                    @if(in_array($inscription->status_compr, [null, 'Ninguna'], true))
+                                        <form id="invoiceRequestForm" class="registration-invoice-form" action="{{ route('inscriptions.requestcomprobante', $inscription->id) }}" method="POST">
+                                            @csrf
+                                            <button type="submit" class="btn registration-header-action registration-invoice-action">
+                                                <span class="registration-header-icon" aria-hidden="true">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></svg>
+                                                </span>
+                                                <span class="registration-invoice-label">Issue Invoice</span>
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="registration-invoice-state">
+                                            @if($inscription->status_compr === 'Solicitado')
+                                                Invoice requested
+                                            @elseif($inscription->status_compr === 'Procesando')
+                                                Invoice request needs review
+                                            @else
+                                                Invoice: {{ $inscription->status_compr }}
+                                            @endif
+                                        </span>
+                                    @endif
                                 @endif
 
                                 @if(\Auth::user()->hasRole('Administrador') && $inscription->status !== 'Confirmed')

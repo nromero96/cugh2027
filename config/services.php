@@ -57,4 +57,9 @@ return [
         'webhook_key' => env('UNIVERSITY_WEBHOOK_KEY'),
     ],
 
+    'invoicing' => [
+        'url_request_invoice' => env('URL_REQUEST_INVOICE'),
+        'api_token' => env('INVOICING_API_TOKEN'),
+    ],
+
 ];

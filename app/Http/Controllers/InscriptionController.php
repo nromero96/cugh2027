@@ -1711,25 +1711,93 @@ class InscriptionController extends Controller
 
     public function requestComprobante(Request $request, $id)
     {
-        // Validar si el usuario logueado es Administrador o Secretaria
-        if (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')) {
-            // Obtener la inscripción
-            $inscription = Inscription::find($id);
+        abort_unless(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'), 403);
 
-            // Actualizar status_compr = Pendiente si el status es Ninguna
-            if ($inscription->status_compr == 'Ninguna') {
-                $inscription->status_compr = 'Pendiente';
-                $inscription->save();
-            } else {
-                // Devolver un mensaje de error en formato JSON
-                return response()->json(['error' => 'Ya se solicitó el comprobante'], 403);
+        $inscription = Inscription::with('user')->findOrFail($id);
+        if ($inscription->status !== 'Confirmed') {
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'Only confirmed registrations can request an invoice.');
+        }
+        if (!in_array($inscription->status_compr, [null, 'Ninguna'], true)) {
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'An invoice has already been requested for this registration.');
+        }
+
+        $url = config('services.invoicing.url_request_invoice');
+        $apiToken = config('services.invoicing.api_token');
+        if (!$url || !$apiToken) {
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'The invoicing service is not configured.');
+        }
+        if (!Str::isUuid($inscription->token) || !$inscription->user || !$inscription->user->fullName()) {
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'The registration needs a valid participant identifier and name before requesting an invoice.');
+        }
+
+        $confirmationNote = StatusNote::where('inscription_id', $id)
+            ->where('action', 'like', "%to 'Confirmed'")
+            ->latest('id')
+            ->first();
+        $authorizedDate = $confirmationNote && $confirmationNote->created_at
+            ? $confirmationNote->created_at->toDateString()
+            : ($inscription->updated_at ? $inscription->updated_at->toDateString() : now()->toDateString());
+
+        // Claim the request before contacting the external service so two clicks cannot send it twice.
+        $claimed = Inscription::whereKey($id)
+            ->where('status', 'Confirmed')
+            ->where(function ($query) {
+                $query->whereNull('status_compr')->orWhere('status_compr', 'Ninguna');
+            })
+            ->update(['status_compr' => 'Procesando']);
+        if (!$claimed) {
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'An invoice request is already in progress or has been sent.');
+        }
+
+        try {
+            $response = Http::withToken($apiToken)->acceptJson()->timeout(15)->post($url, [
+                'uuid' => $inscription->token,
+                'usuario_id' => (string) $inscription->user_id,
+                'usuario_nombre' => $inscription->user->fullName(),
+                'estado_inscripcion' => 'AUTORIZADO_EMISION',
+                'fecha_autorizado' => $authorizedDate,
+            ]);
+
+            $explicitRejection = $response->json('success') === false || (bool) $response->json('error');
+            if (!$response->successful() || $explicitRejection) {
+                Log::warning('Invoice request rejected by invoicing service.', [
+                    'inscription_id' => $id,
+                    'http_status' => $response->status(),
+                ]);
+                $definitivelyRejected = $explicitRejection || ($response->status() >= 400 && $response->status() < 500);
+                if ($definitivelyRejected) {
+                    Inscription::whereKey($id)->where('status_compr', 'Procesando')
+                        ->update(['status_compr' => 'Ninguna']);
+                }
+                return redirect()->route('inscriptions.show', $id)
+                    ->with('error', $definitivelyRejected
+                        ? 'The invoicing service rejected the request. Please review it before trying again.'
+                        : 'The invoice request outcome is unknown. Please verify it with the invoicing service; this request is locked to prevent duplicates.');
             }
 
-            // Devolver "ok" como indicador de éxito
-            return response()->json(['status' => 'ok']);
-        } else {
-            // Devolver un mensaje de error en formato JSON
-            return response()->json(['error' => 'No tiene permisos para solicitar comprobante'], 403);
+            $markedRequested = Inscription::whereKey($id)->where('status_compr', 'Procesando')
+                ->update(['status_compr' => 'Solicitado']);
+            if (!$markedRequested) {
+                Log::error('Invoice request accepted but local status was not updated.', ['inscription_id' => $id]);
+                return redirect()->route('inscriptions.show', $id)
+                    ->with('error', 'The invoicing service accepted the request, but the local status could not be updated. Please review this registration.');
+            }
+
+            return redirect()->route('inscriptions.show', $id)
+                ->with('success', 'Invoice request sent successfully.');
+        } catch (\Throwable $exception) {
+            Log::error('Invoice request outcome is unknown.', [
+                'inscription_id' => $id,
+                'exception' => get_class($exception),
+            ]);
+            // A timeout may occur after the service accepts the request. Keep the claim to avoid a duplicate.
+            return redirect()->route('inscriptions.show', $id)
+                ->with('error', 'The invoice request outcome is unknown. Please verify it with the invoicing service; this request is locked to prevent duplicates.');
         }
     }
 
