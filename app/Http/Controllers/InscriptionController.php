@@ -1711,9 +1711,10 @@ class InscriptionController extends Controller
 
     public function requestComprobante(Request $request, $id)
     {
-        abort_unless(\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria'), 403);
+        $requestingUser = \Auth::user();
+        abort_unless($requestingUser->hasRole('Administrador') || $requestingUser->hasRole('Secretaria'), 403);
 
-        $inscription = Inscription::with('user')->findOrFail($id);
+        $inscription = Inscription::findOrFail($id);
         if ($inscription->status !== 'Confirmed') {
             return redirect()->route('inscriptions.show', $id)
                 ->with('error', 'Only confirmed registrations can request an invoice.');
@@ -1729,9 +1730,9 @@ class InscriptionController extends Controller
             return redirect()->route('inscriptions.show', $id)
                 ->with('error', 'The invoicing service is not configured.');
         }
-        if (!Str::isUuid($inscription->token) || !$inscription->user || !$inscription->user->fullName()) {
+        if (!Str::isUuid($inscription->token) || !$requestingUser->fullName()) {
             return redirect()->route('inscriptions.show', $id)
-                ->with('error', 'The registration needs a valid participant identifier and name before requesting an invoice.');
+                ->with('error', 'A valid registration identifier and requesting user name are required before requesting an invoice.');
         }
 
         $confirmationNote = StatusNote::where('inscription_id', $id)
@@ -1757,10 +1758,18 @@ class InscriptionController extends Controller
         try {
             $response = Http::withToken($apiToken)->acceptJson()->timeout(15)->post($url, [
                 'uuid' => $inscription->token,
-                'usuario_id' => (string) $inscription->user_id,
-                'usuario_nombre' => $inscription->user->fullName(),
+                'usuario_id' => (string) $requestingUser->id,
+                'usuario_nombre' => $requestingUser->fullName(),
                 'estado_inscripcion' => 'AUTORIZADO_EMISION',
                 'fecha_autorizado' => $authorizedDate,
+            ]);
+
+            $responseBody = $response->body();
+            Log::info('Invoicing API response.', [
+                'inscription_id' => $id,
+                'http_status' => $response->status(),
+                'response_body' => substr($responseBody, 0, 16384),
+                'response_truncated' => strlen($responseBody) > 16384,
             ]);
 
             $explicitRejection = $response->json('success') === false || (bool) $response->json('error');
@@ -1794,6 +1803,7 @@ class InscriptionController extends Controller
             Log::error('Invoice request outcome is unknown.', [
                 'inscription_id' => $id,
                 'exception' => get_class($exception),
+                'exception_message' => substr($exception->getMessage(), 0, 1000),
             ]);
             // A timeout may occur after the service accepts the request. Keep the claim to avoid a duplicate.
             return redirect()->route('inscriptions.show', $id)

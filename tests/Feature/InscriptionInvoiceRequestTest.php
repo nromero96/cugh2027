@@ -116,8 +116,8 @@ class InscriptionInvoiceRequestTest extends TestCase
                 && $request->hasHeader('Authorization', 'Bearer test-bearer-token')
                 && $request->data() === [
                     'uuid' => '230df0ed-2661-41f7-a463-579ef8f75ffd',
-                    'usuario_id' => '3',
-                    'usuario_nombre' => 'Alvaro Bernal',
+                    'usuario_id' => '1',
+                    'usuario_nombre' => 'Admin',
                     'estado_inscripcion' => 'AUTORIZADO_EMISION',
                     'fecha_autorizado' => '2026-09-17',
                 ];
@@ -138,6 +138,20 @@ class InscriptionInvoiceRequestTest extends TestCase
 
         $this->assertSame('Ninguna', Inscription::find(7)->status_compr);
         Http::assertNothingSent();
+    }
+
+    public function test_request_records_secretary_when_secretary_issues_invoice()
+    {
+        Http::fake(['https://example.test/invoice' => Http::response(['success' => true], 202)]);
+
+        $this->actingAs(User::find(2))->post(route('inscriptions.requestcomprobante', 7))
+            ->assertSessionHas('success');
+
+        Http::assertSent(function ($request) {
+            return $request['uuid'] === '230df0ed-2661-41f7-a463-579ef8f75ffd'
+                && $request['usuario_id'] === '2'
+                && $request['usuario_nombre'] === 'Secretary';
+        });
     }
 
     public function test_rejected_api_request_can_be_retried_without_marking_it_requested()

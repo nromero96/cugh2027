@@ -272,11 +272,7 @@
                                     @else
                                         <span class="registration-invoice-state">
                                             @if($inscription->status_compr === 'Solicitado')
-                                                Invoice requested
-                                            @elseif($inscription->status_compr === 'Procesando')
-                                                Invoice request needs review
-                                            @else
-                                                Invoice: {{ $inscription->status_compr }}
+                                                Invoiced
                                             @endif
                                         </span>
                                     @endif
