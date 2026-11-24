@@ -542,7 +542,7 @@ class InscriptionController extends Controller
             'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
             'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
             'invoice_type_document' => 'exclude_if:payment_method,none|nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
-            'invoice_ruc' => 'exclude_if:payment_method,none|nullable|string|max:50',
+            'invoice_ruc' => $this->billingDocumentNumberRules($request),
             'invoice_social_reason' => 'exclude_if:payment_method,none|nullable|string|max:200',
             'invoice_address' => 'exclude_if:payment_method,none|nullable|string|max:50',
             'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
@@ -756,6 +756,17 @@ class InscriptionController extends Controller
             ->with('availableSpecialCodes', app(RegistrationCoupon::class)->assignedToEmail($user->email));
     }
 
+    private function billingDocumentNumberRules(Request $request, bool $required = false): array
+    {
+        $lengthRule = match ($request->input('invoice_type_document')) {
+            'RUC' => 'digits:11',
+            'DNI' => 'digits:8',
+            default => 'max:11',
+        };
+
+        return ['exclude_if:payment_method,none', $required ? 'required' : 'nullable', 'string', $lengthRule];
+    }
+
     public function storeMyInscription(Request $request){
 
         $action = $request->input('action');
@@ -835,7 +846,7 @@ class InscriptionController extends Controller
                 'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
                 'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
                 'invoice_type_document' => 'exclude_if:payment_method,none|required|in:ID Tax Payer,RUC,DNI,Passport,Other',
-                'invoice_ruc' => 'exclude_if:payment_method,none|required|string',
+                'invoice_ruc' => $this->billingDocumentNumberRules($request, required: true),
                 'invoice_social_reason' => 'exclude_if:payment_method,none|required|string',
                 'invoice_address' => 'exclude_if:payment_method,none|required|string|max:50',
                 'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
@@ -914,7 +925,7 @@ class InscriptionController extends Controller
                 'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
                 'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
                 'invoice_type_document' => 'exclude_if:payment_method,none|nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
-                'invoice_ruc' => 'exclude_if:payment_method,none|nullable|string',
+                'invoice_ruc' => $this->billingDocumentNumberRules($request),
                 'invoice_social_reason' => 'exclude_if:payment_method,none|nullable|string',
                 'invoice_address' => 'exclude_if:payment_method,none|nullable|string|max:50',
                 'payment_method' => 'nullable|in:none,Bank Transfer/Wire,Credit/Debit Card',

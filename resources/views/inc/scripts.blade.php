@@ -101,7 +101,7 @@
             <script src="{{ asset('plugins/src/filepond/filepond.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginFileValidateType.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.js') }}"></script>
-            <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}"></script>
+            <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}.{{ filemtime(public_path('assets/js/apps/inscriptions/my-inscription.js')) }}"></script>
             @break
         @case('inscriptions_create')
             {{-- Inscriptions --}}
@@ -120,7 +120,7 @@
             <script src="{{ asset('plugins/src/filepond/filepond.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginFileValidateType.min.js') }}"></script>
             <script src="{{ asset('plugins/src/filepond/FilePondPluginImagePreview.min.js') }}"></script>
-            <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}"></script>
+            <script src="{{asset('assets/js/apps/inscriptions/my-inscription.js')}}?v={{ config('app.version') }}.{{ filemtime(public_path('assets/js/apps/inscriptions/my-inscription.js')) }}"></script>
             @break
 
         @case('beneficiarios_becas')

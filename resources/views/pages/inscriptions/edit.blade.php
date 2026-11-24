@@ -1228,7 +1228,7 @@
                                                     </select>
                                                 </div>
                                                 <div class="w-75">
-                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" class="form-control no-spaces rounded-0 rounded-end @error('invoice_ruc') is-invalid @enderror" placeholder="Document Number" value="{{ old('invoice_ruc', $myinscription->invoice_ruc ?? '') }}">
+                                                    <input type="text" name="invoice_ruc" id="invoice_ruc" maxlength="{{ match (old('invoice_type_document', $myinscription->invoice_type_document ?? '')) { 'RUC' => 11, 'DNI' => 8, default => 11 } }}" class="form-control no-spaces rounded-0 rounded-end @error('invoice_ruc') is-invalid @enderror" placeholder="Document Number" value="{{ old('invoice_ruc', $myinscription->invoice_ruc ?? '') }}">
                                                 </div>
                                             </div>
                                             {!!$errors->first("invoice_type_document", "<span class='text-danger'>:message</span><br>")!!}
