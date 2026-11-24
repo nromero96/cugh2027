@@ -1057,7 +1057,7 @@
 
                                                 @endphp
 
-                                                @if ($category->type == 'radio' && $category->status == 'active')
+                                                @if ($category->type == 'radio' && $category->status == 'active' && ($category->name !== 'Special Code' || $myinscription->category_inscription_id == $category->id))
                                                     <tr class="category-row" data-membership="{{ $category->membership_type }}">
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
@@ -1067,20 +1067,7 @@
                                                                 </label>
                                                             </div>
 
-                                                            @if ($category->id == '6')
 
-                                                                <div class="d-sm-inline-block">
-                                                                    <div id="dv_specialcode" class="input-group mt-1 mb-0 d-none">
-                                                                        <input type="text" name="specialcode" id="specialcode" class="form-control convert_mayus" placeholder="Enter Code" value="{{ old('specialcode', $myinscription->special_code) }}" autocomplete="off">
-                                                                        <button class="btn btn-secondary d-none" type="button" id="clear_specialcode" style="border-radius: 0px 6px 6px 0px;">Clear</button>
-                                                                        <button class="btn btn-primary px-2 px-sm-3" type="button" id="validate_specialcode">Validate</button>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="d-inline-block" id="sms_valid_vc">
-                                                                    <!-- Mensaje -->
-                                                                </div>
-                                                                <input type="hidden" name="specialcode_verify" id="specialcode_verify" value="">
-                                                            @endif
                                                         </td>
                                                         <td>
                                                             <b>US$ <span id="dc_price_{{ $category->id }}">{{ number_format((float) $displayedCategoryFee, 2, '.', '') }}</span></b>
@@ -1109,10 +1096,45 @@
 
                                         </tbody>
                                     </table>
+                                    @if($availableSpecialCodes->isNotEmpty())
+                                        @php
+                                            $savedSpecialCode = old('specialcode', optional($category_inscriptions->firstWhere('id', $myinscription->category_inscription_id))->name === 'Special Code' ? '' : $myinscription->special_code);
+                                            $selectedSpecialCode = $availableSpecialCodes->first(fn ($code) => strcasecmp($code->code, (string) $savedSpecialCode) === 0);
+                                        @endphp
+                                        <div class="special-code-panel" id="dv_specialcode">
+                                            <div class="special-code-toggle">
+                                                <span class="special-code-icon" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.41 20.6a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82Z"/><circle cx="7.5" cy="7.5" r="1"/></svg></span>
+                                                <span class="special-code-heading"><strong>{{ $availableSpecialCodes->count() === 1 ? 'You have a Special Code' : 'Your Special Codes' }}</strong><small>Assigned to {{ $user->email }}</small></span>
+                                            </div>
+                                            <div class="special-code-content">
+                                                @foreach($availableSpecialCodes as $availableCode)
+                                                    <div class="special-code-option">
+                                                        <span class="special-code-details">
+                                                            <strong class="special-code-value">{{ $availableCode->code }}</strong>
+                                                            @if($availableCode->description)
+                                                                <small class="special-code-description">{{ $availableCode->description }}</small>
+                                                            @endif
+                                                        </span>
+                                                        <button type="button" class="special-code-use" data-code="{{ $availableCode->code }}">Validate</button>
+                                                    </div>
+                                                @endforeach
+                                                <input type="hidden" name="specialcode" id="specialcode" value="{{ $selectedSpecialCode ? $selectedSpecialCode->code : '' }}">
+                                                <input type="hidden" name="specialcode_verify" id="specialcode_verify" value="">
+                                                <input type="hidden" id="special_code_inscription_id" value="{{ $myinscription->id }}">
+                                                <button type="button" id="validate_specialcode" hidden>Apply Special Code</button>
+                                                <div id="sms_valid_vc" class="special-code-feedback" aria-live="polite"></div>
+                                                @if(optional($category_inscriptions->firstWhere('id', $myinscription->category_inscription_id))->name === 'Special Code' && $myinscription->special_code)
+                                                    <small class="d-block text-muted">Legacy special code: {{ $myinscription->special_code }}</small>
+                                                @endif
+                                                @error('specialcode') <small class="text-danger d-block">{{ $message }}</small> @enderror
+                                            </div>
+                                        </div>
+                                    @endif
                                 </div>
 
-                                <div id="dv_document_file" class="d-none">
-                                    <small class="text-danger"><b>Note:</b> <span id="note_selected_category">* Enrollment Certificate for the 2026 academic year (Mandatory).</span></small>
+                                <div id="dv_document_file" class="card border shadow-sm mt-3 mb-0 d-none">
+                                    <div class="card-body p-3">
+                                    <small class="text-danger d-block"><b>Note:</b> <span id="note_selected_category">* Enrollment Certificate for the 2026 academic year (Mandatory).</span></small>
 
                                     <label for="document_file" class="form-label mt-2 mb-0">
                                         <span class="fw-bold">Attach supporting documentation for your selected category:</span>
@@ -1151,11 +1173,12 @@
                                         </div>
                                     </div>
                                     @endif
+                                    </div>
                                 </div>
 
                             </div>
 
-                            <div class="col-md-12" id="dv_invoice">
+                            <div class="col-md-12 d-none" id="dv_invoice">
                                 <div class="card px-3 py-3">
                                     <label for="" class="form-label fw-bold">
                                         Billing information
@@ -1223,7 +1246,7 @@
 
                             <div class="col-md-12" id="dv_payment">
                                 <div class="card px-3 py-3">
-                                    <label for="" class="form-label fw-bold text-center">METHOD OF PAYMENT</label>
+                                    <label for="" id="payment_method_title" class="form-label fw-bold text-center d-none">METHOD OF PAYMENT</label>
 
 
                                     <!-- RADIO OCULTO: NO PAYMENT -->
@@ -1245,12 +1268,9 @@
                                         </div>
                                     </div>
 
-                                    <div id="dv_nopayment" class="mt-3 d-none">
+                                    <div id="dv_nopayment" class="d-none">
                                         <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
-                                            This registration has no fee.<br>
-                                            Your application will be reviewed before being approved.
-                                            <br><br>
-                                            You will be notified once the review process is completed.
+                                            No payment required. We will review your registration and notify you of the decision.
                                         </div>
                                     </div>
 
@@ -1398,7 +1418,12 @@ document.addEventListener('DOMContentLoaded', function () {
                 : Number(category.dataset.catprice || 0).toFixed(2);
             if (priceDisplay.textContent !== displayedPrice) priceDisplay.textContent = displayedPrice;
         });
-        const noPayment = amount === 0;
+        const couponStatus = document.getElementById('specialcode_verify');
+        const noPayment = couponStatus?.value === 'valid'
+            ? couponStatus.dataset.paymentRequired === 'No'
+            : amount === 0;
+        window.setInscriptionBillingVisibility(!noPayment);
+        document.getElementById('payment_method_title').classList.toggle('d-none', noPayment);
         document.getElementById('dv_payment_method').classList.toggle('d-none', noPayment);
         document.getElementById('dv_nopayment').classList.toggle('d-none', !noPayment);
         if (noPayment) {
@@ -1411,6 +1436,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function useCategoryFee() {
+        if (document.getElementById('specialcode_verify')?.value === 'valid') return;
         const category = selectedCategory();
         if (!category) {
             feeInput.value = '0.00';
@@ -1434,13 +1460,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 else updateFeeDisplay();
             }, 0);
         }));
-
-    const specialCategory = document.querySelector('input[name="category_inscription_id"][data-special-code="1"]');
-    if (specialCategory) {
-        new MutationObserver(function () {
-            if (specialCategory.checked && document.getElementById('specialcode_verify').value === 'valid') useCategoryFee();
-        }).observe(specialCategory, { attributes: true, attributeFilter: ['data-catprice'] });
-    }
 
     updateFeeDisplay();
 });

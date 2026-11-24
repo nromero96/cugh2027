@@ -55,12 +55,12 @@
                                     <td>{{ $datainscription->category_inscription_name }}</td>
                                 </tr>
                                 <tr>
-                                    <td><strong>Paid Amount</strong></td>
+                                    <td><strong>Registration fee</strong></td>
                                     <td><strong>US$ {{ $datainscription->total }}</strong></td>
                                 </tr>
                                 <tr style="background-color:#f9f9f9;">
                                     <td><strong>Payment Method</strong></td>
-                                    <td>{{ $datainscription->payment_method }}</td>
+                                    <td>{{ $datainscription->payment_method === 'none' ? 'No payment required' : $datainscription->payment_method }}</td>
                                 </tr>
                             </table>
 
@@ -68,8 +68,12 @@
                             <div style="margin-top:25px; padding:15px; border-left:4px solid #F2A413; background-color:#fff8e6;">
                                 <p style="margin:0; font-size:13px; color:#555;">
                                     <strong style="color:#CC1F2F;">Important:</strong> 
-                                    Final confirmation will be sent once payment verification is completed. 
-                                    Invoicing may take up to <strong>4 working days</strong>.
+                                    @if($datainscription->payment_method === 'none')
+                                        Your registration is being reviewed. Final confirmation will be sent once approved.
+                                    @else
+                                        Final confirmation will be sent once payment verification is completed.
+                                        Invoicing may take up to <strong>4 working days</strong>.
+                                    @endif
                                 </p>
                             </div>
 

@@ -5,14 +5,25 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\SpecialCode;
 use App\Models\Inscription;
+use App\Models\CategoryInscription;
+use App\Services\RegistrationCoupon;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
-
-//Log
-use Illuminate\Support\Facades\Log;
 
 
 class SpecialCodeController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(function ($request, $next) {
+            if ($request->routeIs('specialcodes.validatespecialcode')) {
+                return $next($request);
+            }
+            abort_unless(auth()->check() && auth()->user()->hasRole('Administrador'), 403);
+            return $next($request);
+        });
+    }
     /**
      * Display a listing of the resource.
      *
@@ -28,12 +39,12 @@ class SpecialCodeController extends Controller
         ];
         //$specialcodes = SpecialCode::orderBy('id', 'desc')->get();
 
-        $specialcodes = SpecialCode::select('special_codes.*', DB::raw('COUNT(inscriptions.id) as used_count'))
-            ->leftJoin('inscriptions', function($join) {
-                $join->on('special_codes.code', '=', 'inscriptions.special_code')
-                    ->where('inscriptions.status', '!=', 'Rechazado');
-            })
-            ->groupBy('special_codes.id', 'special_codes.code', 'special_codes.amount', 'special_codes.description', 'special_codes.status', 'special_codes.payment_required', 'special_codes.quantity', 'special_codes.expiration', 'special_codes.created_at', 'special_codes.updated_at')
+        $specialcodes = SpecialCode::with(['categories', 'allowedEmails'])->select('special_codes.*')
+            ->selectSub(function ($query) {
+                $query->from('inscriptions')->selectRaw('COUNT(*)')
+                    ->whereColumn('inscriptions.special_code', 'special_codes.code')
+                    ->whereNotIn('inscriptions.status', ['Draft', 'Refused', 'Rechazado']);
+            }, 'used_count')
             ->orderBy('special_codes.id', 'desc')
             ->get();
 
@@ -55,7 +66,7 @@ class SpecialCodeController extends Controller
             'has_scrollspy' => 0,
             'scrollspy_offset' => '',
         ];
-        return view('pages.specialcodes.create')->with($data);
+        return view('pages.specialcodes.create')->with($data)->with('categories', CategoryInscription::where('status', 'active')->where('name', '!=', 'Special Code')->orderBy('order')->get());
     }
 
     /**
@@ -68,25 +79,50 @@ class SpecialCodeController extends Controller
     {
         //validate
         $this->validate($request, [
-            'code' => 'required|unique:special_codes',
-            'amount' => 'required|numeric',
+            'code' => 'required|string|max:100|unique:special_codes,code',
+            'amount' => 'required|numeric|min:0|max:999999.99',
             'description' => 'nullable',
-            'quantity' => 'required|numeric',
+            'quantity' => 'required|integer|min:1',
             'expiration' => 'required|date',
-            'payment_required' => 'required',
+            'payment_required' => 'required|in:Si,No',
+            'status' => 'required|in:Activo,Inactivo',
+            'usage_rule' => 'required|in:limited,single_use,per_email',
+            'allowed_emails' => 'required|string|max:50000',
+            'categories' => 'required|array|min:1',
+            'categories.*' => ['integer', 'distinct', Rule::exists('category_inscriptions', 'id')->where(function ($query) {
+                $query->where('status', 'active')->where('name', '!=', 'Special Code');
+            })],
         ]);
+        $allowedEmails = RegistrationCoupon::normalizeAllowedEmails($request->input('allowed_emails'));
+        if (!$allowedEmails) {
+            throw ValidationException::withMessages(['allowed_emails' => 'Enter at least one authorized email address.']);
+        }
+        if ($request->input('payment_required') === 'Si' && (float) $request->input('amount') <= 0) {
+            throw ValidationException::withMessages(['amount' => 'Enter an amount greater than zero when payment is required.']);
+        }
 
         //create
-        $specialcode = new SpecialCode;
-        $specialcode->code = $request->input('code');
-        $specialcode->amount = $request->input('amount');
-        $specialcode->description = $request->input('description');
-        $specialcode->quantity = $request->input('quantity');
-        $specialcode->expiration = $request->input('expiration');
-        $specialcode->payment_required = $request->input('payment_required');
-        $specialcode->status = $request->input('status');
-        $specialcode->save();
-        return redirect()->route('specialcodes.index')->with('success', '¡Código especial creado con éxito!');
+        DB::beginTransaction();
+        try {
+            $specialcode = new SpecialCode;
+            $specialcode->code = strtoupper(trim($request->input('code')));
+            $specialcode->amount = $request->input('amount');
+            $specialcode->description = $request->input('description');
+            $specialcode->quantity = $request->input('usage_rule') === 'single_use' ? 1 : $request->input('quantity');
+            $specialcode->expiration = $request->input('expiration');
+            $specialcode->payment_required = $request->input('payment_required');
+            $specialcode->status = $request->input('status');
+            $specialcode->usage_rule = $request->input('usage_rule');
+            $specialcode->allowed_email = null;
+            $specialcode->save();
+            $specialcode->categories()->sync($request->input('categories'));
+            $this->syncAllowedEmails($specialcode, $allowedEmails);
+            DB::commit();
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
+        return redirect()->route('specialcodes.index')->with('success', 'Special Code created successfully.');
     }
 
     /**
@@ -114,8 +150,8 @@ class SpecialCodeController extends Controller
             'has_scrollspy' => 0,
             'scrollspy_offset' => '',
         ];
-        $specialcode = SpecialCode::find($id);
-        return view('pages.specialcodes.edit')->with($data)->with('specialcode', $specialcode);
+        $specialcode = SpecialCode::with(['categories', 'allowedEmails'])->findOrFail($id);
+        return view('pages.specialcodes.edit')->with($data)->with('specialcode', $specialcode)->with('categories', CategoryInscription::where('status', 'active')->where('name', '!=', 'Special Code')->orderBy('order')->get());
     }
 
     /**
@@ -129,25 +165,55 @@ class SpecialCodeController extends Controller
     {
         //validate update
         $this->validate($request, [
-            'amount' => 'required|numeric',
+            'amount' => 'required|numeric|min:0|max:999999.99',
             'description' => 'nullable',
-            'quantity' => 'required|numeric',
+            'quantity' => 'required|integer|min:1',
             'expiration' => 'required|date',
-            'payment_required' => 'required',
-            'status' => 'required',
+            'payment_required' => 'required|in:Si,No',
+            'status' => 'required|in:Activo,Inactivo',
+            'usage_rule' => 'required|in:limited,single_use,per_email',
+            'allowed_emails' => 'required|string|max:50000',
+            'categories' => 'required|array|min:1',
+            'categories.*' => ['integer', 'distinct', Rule::exists('category_inscriptions', 'id')->where(function ($query) {
+                $query->where('status', 'active')->where('name', '!=', 'Special Code');
+            })],
         ]);
+        $allowedEmails = $request->has('allowed_emails')
+            ? RegistrationCoupon::normalizeAllowedEmails($request->input('allowed_emails'))
+            : null;
+        if (!$allowedEmails) {
+            throw ValidationException::withMessages(['allowed_emails' => 'Enter at least one authorized email address.']);
+        }
+        if ($request->input('payment_required') === 'Si' && (float) $request->input('amount') <= 0) {
+            throw ValidationException::withMessages(['amount' => 'Enter an amount greater than zero when payment is required.']);
+        }
 
         //update
-        $specialcode = SpecialCode::find($id);
-        $specialcode->amount = $request->input('amount');
-        $specialcode->description = $request->input('description');
-        $specialcode->quantity = $request->input('quantity');
-        $specialcode->expiration = $request->input('expiration');
-        $specialcode->payment_required = $request->input('payment_required');
-        $specialcode->status = $request->input('status');
-        $specialcode->save();
+        DB::beginTransaction();
+        try {
+            $specialcode = SpecialCode::findOrFail($id);
+            $specialcode->amount = $request->input('amount');
+            $specialcode->description = $request->input('description');
+            $specialcode->quantity = $request->input('usage_rule') === 'single_use' ? 1 : $request->input('quantity');
+            $specialcode->expiration = $request->input('expiration');
+            $specialcode->payment_required = $request->input('payment_required');
+            $specialcode->status = $request->input('status');
+            $specialcode->usage_rule = $request->input('usage_rule');
+            if ($allowedEmails !== null) {
+                $specialcode->allowed_email = null;
+            }
+            $specialcode->save();
+            $specialcode->categories()->sync($request->input('categories'));
+            if ($allowedEmails !== null) {
+                $this->syncAllowedEmails($specialcode, $allowedEmails);
+            }
+            DB::commit();
+        } catch (\Throwable $exception) {
+            DB::rollBack();
+            throw $exception;
+        }
         //return edit page
-        return redirect()->route('specialcodes.edit', $specialcode->id)->with('success', '¡Código especial actualizado con éxito!');
+        return redirect()->route('specialcodes.edit', $specialcode->id)->with('success', 'Special Code updated successfully.');
 
     }
 
@@ -162,77 +228,50 @@ class SpecialCodeController extends Controller
         //
     }
 
-    
-    public function validateSpecialCode(Request $request)
+    private function syncAllowedEmails(SpecialCode $coupon, array $emails): void
     {
-        $code = $request->input('code');
-        $specialcode = SpecialCode::where('code', $code)->first();
-
-        if (!$specialcode) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid special fee code.',
-            ]);
+        $coupon->allowedEmails()->delete();
+        foreach (array_chunk($emails, 200) as $chunk) {
+            DB::table('special_code_allowed_emails')->insert(array_map(function ($email) use ($coupon) {
+                return ['special_code_id' => $coupon->id, 'email' => $email];
+            }, $chunk));
         }
-
-        // Verificar si la fecha de expiración es igual o inferior a la fecha actual
-        $expirationDate = \Carbon\Carbon::parse($specialcode->expiration);
-        $currentDate = \Carbon\Carbon::now();
-        if ($expirationDate->lte($currentDate)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Special fee code has expired.',
-            ]);
-        }
-
-        // verificar si status es activo
-        if ($specialcode->status != 'Activo') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Special fee code is not active.',
-            ]);
-        }
-
-        // Verificar si el código especial está agotado en todas las inscripciones
-        $usedCount = Inscription::where('special_code', $code)
-                                    ->where('status', '!=', 'Rechazado')
-                                    ->count();
-        if ($usedCount >= $specialcode->quantity) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Special fee code has reached its usage limit.',
-            ]);
-        }
-
-        // Verificar si el usuario logueado ya ha utilizado el código en su inscripción
-        $userId = \Auth::user()->id; // Obtener el ID del usuario logueado
-        $userUsedCount = Inscription::where('special_code', $code)
-            ->where('user_id', $userId)
-            ->whereNotIn('status', ['Refused', 'Draft'])
-            ->count();
-
-        if ($userUsedCount > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Special fee code already used.',
-            ]);
-        }
-
-        // Verificar si el código especial requiere pago
-        if ($specialcode->payment_required == 'Si') {
-            $amount = $specialcode->amount;
-        } else {
-            $amount = 0;
-        }
-
-        return response()->json([
-            'success' => true,
-            'message' => $specialcode->description,
-            'price' => $amount,
-            'payment_required' => $specialcode->payment_required,
-            'description' => $specialcode->description,
-        ]);
-
     }
 
+    public function validateSpecialCode(Request $request, RegistrationCoupon $coupons)
+    {
+        $request->validate([
+            'code' => 'required|string|max:100',
+            'category_inscription_id' => 'required|integer|exists:category_inscriptions,id',
+            'email' => 'nullable|email',
+            'inscription_id' => 'nullable|integer',
+        ]);
+        try {
+            $inscription = auth()->user()->hasRole('Administrador') && $request->filled('inscription_id')
+                ? Inscription::findOrFail($request->input('inscription_id'))
+                : Inscription::where('user_id', auth()->id())->first();
+            $accountEmail = $inscription && auth()->user()->hasRole('Administrador') && $request->filled('inscription_id')
+                ? $inscription->user->email
+                : auth()->user()->email;
+            $formEmail = $request->input('email', $accountEmail);
+            if (!auth()->user()->hasRole('Administrador') && strcasecmp(trim($formEmail), trim($accountEmail)) !== 0) {
+                throw ValidationException::withMessages(['specialcode' => 'Use the email address of your account to apply this Special Code.']);
+            }
+            $coupon = $coupons->check(
+                $request->input('code'),
+                (int) $request->input('category_inscription_id'),
+                $formEmail,
+                $inscription ? $inscription->id : null
+            );
+        } catch (ValidationException $exception) {
+            return response()->json(['success' => false, 'message' => $exception->errors()['specialcode'][0]]);
+        }
+        return response()->json([
+            'success' => true,
+            'message' => $coupon->description ?: 'Special Code applied.',
+            'price' => (float) $coupon->amount,
+            'amount' => (float) $coupon->amount,
+            'payment_required' => $coupon->payment_required,
+        ]);
+    }
 }

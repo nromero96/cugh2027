@@ -12,11 +12,10 @@ use App\Models\Inscription;
 use App\Models\TemporaryFile;
 use App\Models\Accompanist;
 use App\Models\Statusnote;
-use App\Models\SpecialCode;
-use App\Models\BeneficiarioBeca;
 use App\Models\Country;
 use App\Models\MemberInstitution;
 use App\Models\MemberIndividual;
+use App\Services\RegistrationCoupon;
 
 
 use Illuminate\Support\Facades\Storage;
@@ -31,7 +30,6 @@ use DB;
 
 use Maatwebsite\Excel\Facades\Excel;
 
-use Carbon\Carbon;
 
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -71,11 +69,7 @@ class InscriptionController extends Controller
                     if(strcasecmp($search, 'pendiente pagar') === 0){
                         $query->where('inscriptions.status', 'Pending')
                         ->where('inscriptions.payment_method', 'Credit/Debit Card')
-                        ->where('inscriptions.total', '>', 0)
-                        ->where(function ($subQuery) {
-                            $subQuery->whereNull('inscriptions.special_code')
-                                ->orWhere('inscriptions.special_code', '');
-                        });
+                        ->where('inscriptions.total', '>', 0);
                     } else {
                         // Si la búsqueda comienza con #, buscar exactamente inscriptions.id
                         if (strpos($search, '#') === 0) {
@@ -337,228 +331,13 @@ class InscriptionController extends Controller
      */
     public function create()
     {
-        $id = \Auth::user()->id;
-
-        $data = [
-            'category_name' => 'inscriptions',
-            'page_name' => 'inscriptions_create',
-            'has_scrollspy' => 0,
-            'scrollspy_offset' => '',
-        ];
-
-        $user = User::find($id);
-
-        
-        //get CategoryInscription
-        $category_inscriptions = CategoryInscription::orderBy('order', 'asc')->get();
-
-        return view('pages.inscriptions.create')->with($data)->with('user', $user)->with('category_inscriptions', $category_inscriptions);
+        return redirect()->route('inscriptions.myinscription');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
+    /** Legacy resource endpoint; new registrations use storeMyInscription. */
     public function store(Request $request)
     {
-
-        $amount_especialcode = 0;
-        //si $request->category_inscription_id == 7 validar que exista el código especial
-        if($request->category_inscription_id == 7){
-            //get amount code special
-            $specialcode = SpecialCode::where('code', $request->specialcode)->first();
-            if($specialcode){
-                $amount_especialcode = $specialcode->amount;
-            }else{
-                return redirect()->route('inscriptions.create')->with('error', 'The special code does not exist.');
-            }
-        }
-
-        //get logged user id
-        $iduser = \Auth::user()->id;
-
-        //validar si el usuario ya tiene en la misma categoría
-        $verificarinscription = Inscription::where('user_id', $iduser)
-                                            ->where('category_inscription_id', $request->category_inscription_id)
-                                            ->where('status', '!=', 'Rechazado')
-                                            ->first();
-        if($verificarinscription){
-            return redirect()->route('inscriptions.create')->with('error', 'He already has an application in process in that category.');
-        }
-
-        //verificar si existe acompañante en la inscripcion, registrar y devolver id
-        if($request->accompanist != ''){
-            $accompanist = new Accompanist();
-            $accompanist->accompanist_name = $request->accompanist_name;
-            $accompanist->accompanist_typedocument = $request->accompanist_typedocument;
-            $accompanist->accompanist_numdocument = $request->accompanist_numdocument;
-            $accompanist->accompanist_solapin = $request->accompanist_solapin;
-            $accompanist->save();
-            $data_accompanist_id = $accompanist->id;
-        }else{
-            $data_accompanist_id = null;
-        }
-
-        //insert data
-        $inscription = new Inscription();
-        $inscription->user_id = $iduser;
-        $inscription->category_inscription_id = $request->category_inscription_id;
-        
-        $category_inscription = CategoryInscription::find($request->category_inscription_id);
-        
-        //si $amount_especialcode es mayor a 0, poner el precio del código especial
-        if($amount_especialcode > 0){
-            $inscription->price_category = $amount_especialcode;
-        }else{
-            $inscription->price_category = $category_inscription->price;
-        }
-
-        if($request->accompanist != ''){
-            $inscription->accompanist_id = $data_accompanist_id;
-            $category_inscription_accompanist = CategoryInscription::where('name', 'Acompañante')->first();
-            
-            if($request->category_inscription_id == 9 || $request->category_inscription_id == 11){
-                $inscription->price_accompanist = 0;
-            }else{
-                $inscription->price_accompanist = $category_inscription_accompanist->price;
-            }
-        }else{
-            $inscription->accompanist_id = $data_accompanist_id;
-            $inscription->price_accompanist = 0;
-        }
-
-
-        if($request->category_inscription_id == 9 || $request->category_inscription_id == 11){
-            $inscription->total = 0;
-        }else{
-            $inscription->total = $inscription->price_category + $inscription->price_accompanist;
-        }
-
-        $inscription->special_code = $request->specialcode;
-        $inscription->invoice = $request->invoice;
-        $inscription->invoice_ruc = $request->invoice_ruc;
-        $inscription->invoice_social_reason = $request->invoice_social_reason;
-        $inscription->invoice_address = $request->invoice_address;
-        $inscription->payment_method = $request->payment_method;
-        $inscription->voucher_file = '';
-        $inscription->save();
-
-        $temporaryfile_document_file = TemporaryFile::where('folder', $request->document_file)->first();
-        if($temporaryfile_document_file){
-            Storage::move('public/uploads/tmp/'.$request->document_file.'/'.$temporaryfile_document_file->filename, 'public/uploads/document_file/'.$temporaryfile_document_file->filename);
-            $inscription->document_file = $temporaryfile_document_file->filename;
-            $inscription->save();
-            rmdir(storage_path('app/public/uploads/tmp/'.$request->document_file));
-            $temporaryfile_document_file->delete();
-        }
-
-        $temporaryfile_voucher_file = TemporaryFile::where('folder', $request->voucher_file)->first();
-        if($temporaryfile_voucher_file){
-            Storage::move('public/uploads/tmp/'.$request->voucher_file.'/'.$temporaryfile_voucher_file->filename, 'public/uploads/voucher_file/'.$temporaryfile_voucher_file->filename);
-            $inscription->voucher_file = $temporaryfile_voucher_file->filename;
-            $inscription->save();
-            rmdir(storage_path('app/public/uploads/tmp/'.$request->voucher_file));
-            $temporaryfile_voucher_file->delete();
-        }
-
-        if($request->payment_method == 'Transfer/Deposit'){
-
-            $beneficiariobeca = BeneficiarioBeca::where('email', \Auth::user()->email)->first();
-            if($beneficiariobeca && $request->category_inscription_id == '4' && $inscription->total == 0){
-                $inscription->status = 'Pagado';
-            }else{
-                $inscription->status = 'Procesando';
-            }
-
-            $inscription->save();
-
-            //send email
-            $user = User::find($iduser);
-            $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-            ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
-            ->where('inscriptions.id', $inscription->id)
-            ->first();
-            $data = [
-                'user' => $user,
-                'datainscription' => $datainscription,
-            ];
-
-            Mail::to($user->email)
-                ->cc(config('services.correonotificacion.inscripcion'))
-                ->send(new \App\Mail\InscriptionCreated($data));
-
-
-            //redirect
-            return redirect()->route('inscriptions.index')->with('success', 'Inscripción realizada con éxito');
-        } else if($request->payment_method == 'Card'){
-
-            //verica si es beneficiario beca y el monto es 0
-            $beneficiariobeca = BeneficiarioBeca::where('email', \Auth::user()->email)->first();
-            if($beneficiariobeca && $inscription->total == 0){
-                $inscription->status = 'Pendiente';
-            }else{
-                $inscription->status = 'Pendiente';
-            }
-
-            $inscription->save();
-
-            //send email
-            $user = User::find($iduser);
-            $datainscription = Inscription::join('category_inscriptions', 'inscriptions.category_inscription_id', '=', 'category_inscriptions.id')
-            ->select('inscriptions.*', 'category_inscriptions.name as category_inscription_name')
-            ->where('inscriptions.id', $inscription->id)
-            ->first();
-            $data = [
-                'user' => $user,
-                'datainscription' => $datainscription,
-            ];
-
-            Mail::to($user->email)
-                ->cc(config('services.correonotificacion.inscripcion'))
-                ->send(new \App\Mail\InscriptionCreated($data));
-
-            
-            $tipo_comprobante = '';
-            if($inscription->invoice == 'yes'){
-                $tipo_comprobante = 'Factura';
-            } else {
-                $tipo_comprobante = 'Boleta';
-            }
-
-            $params = [
-                'forma_de_pago'        => $inscription->payment_method ?? '',
-                'dato_transferencia'   => 'URL_VOUCHER',
-                'codigo_comercio'      => '',
-                'codigo_tarifario'     => '',
-                'moneda'               => 'USD',
-                'monto'                => $inscription->total,
-                'correo'               => $user->email,
-                'nombre_completo'      => $user->name,
-                'apellido_completo'    => $user->lastname ?? '', $user->second_lastname ?? '',
-                'codigo_pais'          => $user->phone_code,
-                'numero_celular'       => $user->phone_number ?? '',
-                'pais_origen'          => $user->country ?? '',
-                'tipo_documento'       => $user->document_type ?? '',
-                'numero_documento'     => $user->document_number ?? '',
-                'tipo_comprobante'     => $tipo_comprobante ?? '',
-                'razon_social'         => $inscription->razon_social ?? '',
-                'direccion_fiscal'     => $inscription->direccion_fiscal ?? '',
-                'numero_inscripcion'   => $inscription->id,
-                'ciudad'               => $user->city ?? '',
-            ];
-
-            $url = 'https://dev.dbtwhloljaupc.amplifyapp.com/?' . http_build_query($params);
-
-            return redirect($url);
-
-            //redirect to payment page with inscription id
-            //return redirect()->route('inscriptions.paymentniubiz', ['inscription' => $inscription->id]);
-        }
-
-        
-
+        return redirect()->route('inscriptions.myinscription')->with('error', 'Please use the current registration form.');
     }
 
     /**
@@ -691,6 +470,7 @@ class InscriptionController extends Controller
             'myinscription'         => $inscription, // Ya tienes la inscripción cargada
             'paymentcards'          => Payment::where('inscription_id', $id)->orderBy('id', 'desc')->get(),
             'ismemberindividual'    => MemberIndividual::where('email', $user->email)->where('is_active', 1)->exists(),
+            'availableSpecialCodes' => app(RegistrationCoupon::class)->assignedToEmail($user->email),
         ];
 
         // 3. Compactar data para una vista más limpia
@@ -759,31 +539,39 @@ class InscriptionController extends Controller
             'solapin_lastname' => 'nullable|string|max:100',
             'category_inscription_id' => 'required|integer|exists:category_inscriptions,id,status,active',
             'price_category' => ['required', 'numeric', 'min:0', 'max:999999.99', 'regex:/^\d{1,6}(\.\d{1,2})?$/'],
-            'invoice' => 'required|in:yes,no',
-            'invoice_type' => 'required|in:Boleta,Factura',
-            'invoice_type_document' => 'nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
-            'invoice_ruc' => 'nullable|string|max:50',
-            'invoice_social_reason' => 'nullable|string|max:200',
-            'invoice_address' => 'nullable|string|max:50',
+            'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
+            'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
+            'invoice_type_document' => 'exclude_if:payment_method,none|nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
+            'invoice_ruc' => 'exclude_if:payment_method,none|nullable|string|max:50',
+            'invoice_social_reason' => 'exclude_if:payment_method,none|nullable|string|max:200',
+            'invoice_address' => 'exclude_if:payment_method,none|nullable|string|max:50',
             'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
+            'specialcode' => 'nullable|string|max:100',
         ]);
 
         $category = CategoryInscription::findOrFail($request->category_inscription_id);
-        if ($category->name === 'Special Code') {
-            $this->validSpecialCode($request->specialcode, $inscription);
+        $legacyCategory = $category->name === 'Special Code' && $inscription->category_inscription_id == $category->id;
+        if ($category->name === 'Special Code' && !$legacyCategory) {
+            throw ValidationException::withMessages(['category_inscription_id' => 'Please select a current registration category.']);
         }
 
         $price = (float) $request->input('price_category');
+        $coupon = null;
+        if ($request->filled('specialcode') && !$legacyCategory) {
+            $coupon = app(\App\Services\RegistrationCoupon::class)->check($request->specialcode, (int) $category->id, $request->email, $inscription->id);
+            $price = (float) $coupon->amount;
+        }
 
-        $allowedPaymentMethods = $price > 0
+        $paymentRequired = $coupon ? $coupon->payment_required === 'Si' : $price > 0;
+        $allowedPaymentMethods = $paymentRequired
             ? ['Bank Transfer/Wire', 'Credit/Debit Card']
             : ['none'];
 
         if (!in_array($request->payment_method, $allowedPaymentMethods, true)) {
             throw ValidationException::withMessages([
-                'payment_method' => $price > 0
+                'payment_method' => $paymentRequired
                     ? 'Please select a valid payment method for this registration fee.'
-                    : 'No payment method is required for this category.',
+                    : 'No payment method is required for this registration.',
             ]);
         }
 
@@ -810,6 +598,9 @@ class InscriptionController extends Controller
 
         DB::beginTransaction();
         try {
+            if ($coupon) {
+                $coupon = app(\App\Services\RegistrationCoupon::class)->check($coupon->code, (int) $category->id, $request->email, $inscription->id, true);
+            }
             foreach ([
                 'salutation', 'name', 'lastname', 'second_lastname', 'degrees', 'other_degrees',
                 'is_cugh_member', 'cugh_membership_type', 'cugh_member_institution', 'job_title',
@@ -825,16 +616,17 @@ class InscriptionController extends Controller
             $inscription->category_inscription_id = $category->id;
             $inscription->price_category = $price;
             $inscription->total = $price;
-            $inscription->special_code = $category->name === 'Special Code' ? $request->specialcode : null;
-            $inscription->invoice = $request->invoice;
-            $inscription->invoice_type = $request->invoice_type;
-            $inscription->invoice_type_document = $request->invoice_type_document;
-            $inscription->invoice_ruc = $request->invoice_ruc;
-            $inscription->invoice_social_reason = $request->invoice_social_reason;
-            $inscription->invoice_address = $request->invoice_address;
+            $inscription->special_code = $coupon ? $coupon->code : ($legacyCategory ? $inscription->special_code : null);
+            $inscription->special_code_email = $coupon ? strtolower(trim($request->email)) : ($legacyCategory ? $inscription->special_code_email : null);
+            $inscription->invoice = $request->payment_method === 'none' ? 'no' : $request->invoice;
+            $inscription->invoice_type = $request->payment_method === 'none' ? null : $request->invoice_type;
+            $inscription->invoice_type_document = $request->payment_method === 'none' ? null : $request->invoice_type_document;
+            $inscription->invoice_ruc = $request->payment_method === 'none' ? null : $request->invoice_ruc;
+            $inscription->invoice_social_reason = $request->payment_method === 'none' ? null : $request->invoice_social_reason;
+            $inscription->invoice_address = $request->payment_method === 'none' ? null : $request->invoice_address;
             $inscription->payment_method = $request->payment_method;
 
-            if ($request->payment_method === 'Credit/Debit Card' && $inscription->voucher_file) {
+            if ($request->payment_method !== 'Bank Transfer/Wire' && $inscription->voucher_file) {
                 $voucherToDelete = $inscription->voucher_file;
                 $inscription->voucher_file = null;
             }
@@ -960,7 +752,8 @@ class InscriptionController extends Controller
             ->with('memberinstitutions', $memberinstitutions)
             ->with('myinscription', $myinscription)
             ->with('paymentcards', $paymentcards)
-            ->with('ismemberindividual', $ismemberindividual);
+            ->with('ismemberindividual', $ismemberindividual)
+            ->with('availableSpecialCodes', app(RegistrationCoupon::class)->assignedToEmail($user->email));
     }
 
     public function storeMyInscription(Request $request){
@@ -1039,13 +832,14 @@ class InscriptionController extends Controller
 
                 //data inscription
                 'category_inscription_id' => 'required|integer|exists:category_inscriptions,id,status,active',
-                'invoice' => 'required|in:yes,no',
-                'invoice_type' => 'required|in:Boleta,Factura',
-                'invoice_type_document' => 'required|in:ID Tax Payer,RUC,DNI,Passport,Other',
-                'invoice_ruc' => 'required|string',
-                'invoice_social_reason' => 'required|string',
-                'invoice_address' => 'required|string|max:50',
+                'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
+                'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
+                'invoice_type_document' => 'exclude_if:payment_method,none|required|in:ID Tax Payer,RUC,DNI,Passport,Other',
+                'invoice_ruc' => 'exclude_if:payment_method,none|required|string',
+                'invoice_social_reason' => 'exclude_if:payment_method,none|required|string',
+                'invoice_address' => 'exclude_if:payment_method,none|required|string|max:50',
                 'payment_method' => 'required|in:none,Bank Transfer/Wire,Credit/Debit Card',
+                'specialcode' => 'nullable|string|max:100',
                 'action' => 'required|in:register,save',
             ];
 
@@ -1117,13 +911,14 @@ class InscriptionController extends Controller
 
                 //data inscription
                 'category_inscription_id' => 'nullable|integer|exists:category_inscriptions,id,status,active',
-                'invoice' => 'required|in:yes,no',
-                'invoice_type' => 'required|in:Boleta,Factura',
-                'invoice_type_document' => 'nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
-                'invoice_ruc' => 'nullable|string',
-                'invoice_social_reason' => 'nullable|string',
-                'invoice_address' => 'nullable|string|max:50',
+                'invoice' => 'exclude_if:payment_method,none|required|in:yes,no',
+                'invoice_type' => 'exclude_if:payment_method,none|required|in:Boleta,Factura',
+                'invoice_type_document' => 'exclude_if:payment_method,none|nullable|in:ID Tax Payer,RUC,DNI,Passport,Other',
+                'invoice_ruc' => 'exclude_if:payment_method,none|nullable|string',
+                'invoice_social_reason' => 'exclude_if:payment_method,none|nullable|string',
+                'invoice_address' => 'exclude_if:payment_method,none|nullable|string|max:50',
                 'payment_method' => 'nullable|in:none,Bank Transfer/Wire,Credit/Debit Card',
+                'specialcode' => 'nullable|string|max:100',
                 'action' => 'required|in:register,save',
             ];
         }
@@ -1144,6 +939,9 @@ class InscriptionController extends Controller
             ? Country::find($request->country)
             : null;
         $specialCode = null;
+        if ($categoryInscription && $categoryInscription->name === 'Special Code' && ($action === 'register' || $inscription->category_inscription_id != $categoryInscription->id)) {
+            throw ValidationException::withMessages(['category_inscription_id' => 'Please select a current registration category.']);
+        }
         $priceCategory = 0;
         $documentToDelete = null;
         $voucherToDelete = null;
@@ -1159,6 +957,17 @@ class InscriptionController extends Controller
                 : (float) $categoryInscription->price;
         }
 
+        if ($request->filled('specialcode')) {
+            if (!$categoryInscription) {
+                throw ValidationException::withMessages(['category_inscription_id' => 'Please select a registration category before applying a coupon.']);
+            }
+            if (strcasecmp(trim($request->email), trim(\Auth::user()->email)) !== 0) {
+                throw ValidationException::withMessages(['specialcode' => 'Use the email address of your account to apply this Special Code.']);
+            }
+            $specialCode = app(RegistrationCoupon::class)->check($request->specialcode, (int) $categoryInscription->id, \Auth::user()->email, $inscription->id);
+            $priceCategory = (float) $specialCode->amount;
+        }
+
         if ($action === 'register') {
             $membershipType = $this->verifiedMembershipType($request, \Auth::user());
 
@@ -1168,28 +977,22 @@ class InscriptionController extends Controller
                 ]);
             }
 
-            if ($categoryInscription->name === 'Special Code') {
-                $specialCode = $this->validSpecialCode($request->specialcode, $inscription);
-                $priceCategory = $specialCode->payment_required === 'Si'
-                    ? (float) $specialCode->amount
-                    : 0;
-            }
-
             if ($documentRequired && !$inscription->document_file && !$this->temporaryUploadExists($request->document_file)) {
                 throw ValidationException::withMessages([
                     'document_file' => 'You must attach supporting documentation confirming your current student enrollment.',
                 ]);
             }
 
-            $allowedPaymentMethods = $priceCategory > 0
+            $paymentRequired = $specialCode ? $specialCode->payment_required === 'Si' : $priceCategory > 0;
+            $allowedPaymentMethods = $paymentRequired
                 ? ['Bank Transfer/Wire', 'Credit/Debit Card']
                 : ['none'];
 
             if (!in_array($request->payment_method, $allowedPaymentMethods, true)) {
                 throw ValidationException::withMessages([
-                    'payment_method' => $priceCategory > 0
+                    'payment_method' => $paymentRequired
                         ? 'Please select a valid payment method for this registration fee.'
-                        : 'No payment method is required for this category.',
+                        : 'No payment method is required for this registration.',
                 ]);
             }
 
@@ -1207,19 +1010,8 @@ class InscriptionController extends Controller
         DB::beginTransaction();
 
         try {
-            if ($specialCode) {
-                SpecialCode::whereKey($specialCode->id)->lockForUpdate()->first();
-
-                $usedCount = Inscription::where('special_code', $specialCode->code)
-                    ->where('id', '!=', $inscription->id)
-                    ->whereNotIn('status', ['Draft', 'Refused', 'Rechazado'])
-                    ->count();
-
-                if ($usedCount >= (int) $specialCode->quantity) {
-                    throw ValidationException::withMessages([
-                        'specialcode' => 'Special fee code has reached its usage limit.',
-                    ]);
-                }
+            if ($specialCode && $action === 'register') {
+                $specialCode = app(RegistrationCoupon::class)->check($specialCode->code, (int) $categoryInscription->id, \Auth::user()->email, $inscription->id, true);
             }
 
             // Actualizar usuario
@@ -1297,16 +1089,17 @@ class InscriptionController extends Controller
             $inscription->total = $priceCategory;
 
 
-            $inscription->special_code = $request->specialcode;
-            $inscription->invoice = $request->invoice;
-            $inscription->invoice_type = $request->invoice_type;
-            $inscription->invoice_type_document = $request->invoice_type_document;
-            $inscription->invoice_ruc = $request->invoice_ruc;
-            $inscription->invoice_social_reason = $request->invoice_social_reason;
-            $inscription->invoice_address = $request->invoice_address;
+            $inscription->special_code = $specialCode ? $specialCode->code : null;
+            $inscription->special_code_email = $specialCode ? strtolower(trim($request->email)) : null;
+            $inscription->invoice = $request->payment_method === 'none' ? 'no' : $request->invoice;
+            $inscription->invoice_type = $request->payment_method === 'none' ? null : $request->invoice_type;
+            $inscription->invoice_type_document = $request->payment_method === 'none' ? null : $request->invoice_type_document;
+            $inscription->invoice_ruc = $request->payment_method === 'none' ? null : $request->invoice_ruc;
+            $inscription->invoice_social_reason = $request->payment_method === 'none' ? null : $request->invoice_social_reason;
+            $inscription->invoice_address = $request->payment_method === 'none' ? null : $request->invoice_address;
             $inscription->payment_method = $request->payment_method;
 
-            if ($request->payment_method === 'Credit/Debit Card' && $inscription->voucher_file) {
+            if ($request->payment_method !== 'Bank Transfer/Wire' && $inscription->voucher_file) {
                 $voucherToDelete = $inscription->voucher_file;
                 $inscription->voucher_file = null;
             }
@@ -1393,6 +1186,10 @@ class InscriptionController extends Controller
                 }
             }
 
+
+            if ($request->payment_method === 'none') {
+                return redirect()->route('inscriptions.index')->with('success', 'Registration submitted successfully. No payment is required.');
+            }
 
             //Send Data to UPCH
             $url = config('services.upch.url_send_data').'/' . $inscription->token;
@@ -1622,30 +1419,6 @@ class InscriptionController extends Controller
         }
 
         return 'non-member';
-    }
-
-    private function validSpecialCode(?string $code, Inscription $inscription): SpecialCode
-    {
-        $specialCode = SpecialCode::where('code', trim((string) $code))->first();
-
-        if (!$specialCode || $specialCode->status !== 'Activo') {
-            throw ValidationException::withMessages(['specialcode' => 'Invalid or inactive special fee code.']);
-        }
-
-        if (!$specialCode->expiration || Carbon::parse($specialCode->expiration)->lte(now())) {
-            throw ValidationException::withMessages(['specialcode' => 'Special fee code has expired.']);
-        }
-
-        $usedCount = Inscription::where('special_code', $specialCode->code)
-            ->where('id', '!=', $inscription->id)
-            ->whereNotIn('status', ['Draft', 'Refused', 'Rechazado'])
-            ->count();
-
-        if ($usedCount >= (int) $specialCode->quantity) {
-            throw ValidationException::withMessages(['specialcode' => 'Special fee code has reached its usage limit.']);
-        }
-
-        return $specialCode;
     }
 
     private function temporaryUploadExists($folder): bool

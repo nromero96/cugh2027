@@ -592,7 +592,7 @@
                                         </div>
                                     @endif
 
-                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->status == 'Pending')
+                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->status == 'Pending' && $inscription->total > 0)
                                         <div class="row mt-1">
                                             <div class="col-12">
                                                 <label class="form-label fw-bold mb-0">Pending Payment:</label><br>

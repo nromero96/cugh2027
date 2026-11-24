@@ -57,7 +57,7 @@ class InscriptionPrivateNoteTest extends TestCase
             $table->decimal('price_category', 8, 2)->nullable();
             $table->decimal('total', 8, 2)->nullable();
             foreach ([
-                'special_code', 'invoice', 'invoice_type', 'invoice_type_document',
+                'special_code', 'special_code_email', 'invoice', 'invoice_type', 'invoice_type_document',
                 'invoice_ruc', 'invoice_social_reason', 'invoice_address', 'payment_method',
                 'voucher_file', 'document_file',
             ] as $field) {
@@ -195,5 +195,73 @@ class InscriptionPrivateNoteTest extends TestCase
         $this->put($url, array_merge($data, ['price_category' => '0.00', 'payment_method' => 'none']))
             ->assertRedirect(route('inscriptions.edit', 7));
         $this->assertDatabaseHas('inscriptions', ['id' => 7, 'price_category' => 0, 'total' => 0]);
+    }
+
+    public function test_coupon_amount_controls_paid_or_free_registration_even_when_nonzero()
+    {
+        $this->withoutMiddleware([
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \App\Http\Middleware\CheckInscription::class,
+            \App\Http\Middleware\EnsureStatusActive::class,
+        ]);
+        Schema::create('special_codes', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->decimal('amount', 8, 2);
+            $table->string('status');
+            $table->string('payment_required');
+            $table->integer('quantity');
+            $table->date('expiration');
+            $table->string('usage_rule');
+            $table->string('allowed_email')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('special_code_categories', function (Blueprint $table) {
+            $table->unsignedBigInteger('special_code_id');
+            $table->unsignedBigInteger('category_inscription_id');
+        });
+        Schema::create('special_code_allowed_emails', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('special_code_id');
+            $table->string('email');
+        });
+        DB::table('special_codes')->insert([
+            'id' => 1, 'code' => 'PROMO', 'amount' => 320, 'status' => 'Activo',
+            'payment_required' => 'Si', 'quantity' => 2, 'usage_rule' => 'per_email',
+            'expiration' => now('America/Lima')->addDay()->toDateString(),
+            'allowed_email' => 'owner@example.com',
+        ]);
+        DB::table('special_code_categories')->insert(['special_code_id' => 1, 'category_inscription_id' => 1]);
+        DB::table('inscriptions')->where('id', 7)->update(['status' => 'Draft', 'category_inscription_id' => 1]);
+        $data = [
+            'name' => 'Owner', 'email' => 'owner@example.com', 'is_cugh_member' => '0',
+            'country' => 1, 'category_inscription_id' => 1, 'price_category' => '50.00',
+            'invoice' => 'no', 'invoice_type' => 'Boleta', 'payment_method' => 'Credit/Debit Card',
+            'specialcode' => 'promo',
+        ];
+        $this->actingAs(User::find(1))->put(route('inscriptions.update', 7), $data)
+            ->assertRedirect(route('inscriptions.edit', 7));
+        $this->assertDatabaseHas('inscriptions', ['id' => 7, 'price_category' => 320, 'total' => 320, 'special_code' => 'PROMO']);
+
+        DB::table('special_codes')->where('id', 1)->update(['payment_required' => 'No']);
+        $noPaymentData = array_diff_key($data, array_flip(['invoice', 'invoice_type']));
+        $noPaymentData['payment_method'] = 'none';
+        $noPaymentData['invoice_type_document'] = 'invalid billing value';
+        $this->put(route('inscriptions.update', 7), $noPaymentData)
+            ->assertRedirect(route('inscriptions.edit', 7));
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => 7, 'price_category' => 320, 'total' => 320,
+            'payment_method' => 'none', 'special_code' => 'PROMO',
+            'special_code_email' => 'owner@example.com',
+            'invoice' => 'no', 'invoice_type' => null,
+            'invoice_type_document' => null,
+        ]);
+
+        $this->actingAs(User::find(2))->post(route('specialcodes.validatespecialcode'), [
+            'code' => 'PROMO', 'category_inscription_id' => 1, 'email' => 'other@example.com',
+        ])->assertOk()->assertJson(['success' => false]);
+        $this->post(route('specialcodes.validatespecialcode'), [
+            'code' => 'PROMO', 'category_inscription_id' => 1, 'email' => 'owner@example.com',
+        ])->assertOk()->assertJson(['success' => true, 'price' => 320, 'payment_required' => 'No']);
     }
 }

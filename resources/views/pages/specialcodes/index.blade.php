@@ -14,7 +14,7 @@
                     <div class="widget-header pt-4">
                         <div class="row">
                             <div class="col-xl-12 col-md-12 col-sm-12 col-12 text-end">
-                                <a href="{{ route('specialcodes.create') }}" class="btn btn-primary mb-4 ms-3 me-3">{{__("Nuevo Código")}}</a>
+                                <a href="{{ route('specialcodes.create') }}" class="btn btn-primary mb-4 ms-3 me-3">New Special Code</a>
                             </div>
                         </div>
                     </div>
@@ -24,12 +24,14 @@
                                 <thead>
                                     <tr>
                                         <th scope="col">{{__("Código")}}</th>
-                                        <th scope="col">{{__("Monto")}}</th>
-                                        <th scope="col">{{__("Cant.")}}</th>
-                                        <th scope="col">{{__("Usado")}}</th>
+                                        <th scope="col">Amount / Payment</th>
+                                        <th scope="col">Categories</th>
+                                        <th scope="col">Usage rule</th>
+                                        <th scope="col">Quantity</th>
+                                        <th scope="col">Used</th>
                                         <th scope="col">{{__("Descripción")}}</th>
-                                        <th scope="col">{{__("Expira")}}</th>
-                                        <th scope="col">{{__("Estado")}}</th>
+                                        <th scope="col">Expires</th>
+                                        <th scope="col">Status</th>
                                         <th scope="col">{{__("")}}</th>
                                     </tr>
                                 </thead>
@@ -40,7 +42,17 @@
                                                 {{$specialcode->code}}
                                             </td>
                                             <td>
-                                                US$ {{$specialcode->amount}}
+                                                US$ {{ number_format((float) $specialcode->amount, 2) }}<br>
+                                                <small>{{ $specialcode->payment_required === 'Si' ? 'Payment required' : 'No payment required' }}</small>
+                                            </td>
+                                            <td>{{ $specialcode->categories->pluck('name')->join(', ') ?: 'Not configured' }}</td>
+                                            <td>
+                                                {{ ['limited' => 'Up to quantity', 'single_use' => 'One use total', 'per_email' => 'One per email'][$specialcode->usage_rule] ?? $specialcode->usage_rule }}
+                                                @if($specialcode->allowedEmails->isNotEmpty())
+                                                    <br><small>{{ $specialcode->allowedEmails->count() }} authorized emails</small>
+                                                @elseif($specialcode->allowed_email)
+                                                    <br><small>{{ $specialcode->allowed_email }}</small>
+                                                @endif
                                             </td>
                                             <td>
                                                 {{$specialcode->quantity}}

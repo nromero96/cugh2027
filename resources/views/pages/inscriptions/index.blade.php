@@ -138,7 +138,7 @@
                                                     <span class="badge badge-light-info">{{ $inscription->status .' ('.$payment_method.')' }}</span>
                                                 @elseif ($inscription->status == 'Pending')
                                                     <span class="badge badge-light-warning">{{ $inscription->status .' ('.$payment_method.')' }}</span>
-                                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0) )
+                                                    @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0)
                                                         <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pay")}}</a>
                                                     @endif
                                                 @elseif ($inscription->status == 'Refused')
@@ -308,7 +308,7 @@
                                                                 <span class="badge badge-light-info">{{ $inscription->status .' ('.$textmp.')' }}</span>
                                                             @elseif ($inscription->status == 'Pending')
                                                                 <span class="badge badge-light-warning">{{ $inscription->status .' ('.$textmp.')' }}</span>
-                                                                @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0 && ($inscription->special_code == '' || $inscription->price_accompanist > 0) )
+                                                                @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0)
                                                                     <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pay")}}</a>
                                                                 @endif
 

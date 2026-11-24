@@ -70,7 +70,7 @@
                                     @endphp
 
                                     <td><strong>Payment Method</strong></td>
-                                    <td>{!! $datainscription->payment_method . $card_number !!}</td>
+                                    <td>{!! $datainscription->payment_method === 'none' ? 'No payment required' : e($datainscription->payment_method) . $card_number !!}</td>
                                 </tr>
                                 <tr style="background-color:#f9f9f9;">
                                     <td><strong>Status</strong></td>

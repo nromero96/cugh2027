@@ -416,8 +416,8 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if(selectedRadioCategoryInscription.dataset.specialCode === '1' && document.getElementById('specialcode_verify').value === ''){
-            alert('Please enter and validate a valid special fee code.');
+        if(document.getElementById('specialcode')?.value.trim() && document.getElementById('specialcode_verify')?.value !== 'valid'){
+            alert('Please apply a valid Special Code before registering.');
             return false;
         }
     
@@ -440,13 +440,12 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-        if(selectedRadioCategoryInscription.dataset.specialCode === '1' && document.getElementById('specialcode_verify').value === ''){
-            alert('Please enter and validate a valid special fee code.');
-            const specialcode = document.getElementById('specialcode');
-            specialcode.focus();
+        if (document.getElementById('specialcode')?.value.trim() && document.getElementById('specialcode_verify')?.value !== 'valid') {
+            alert('Please apply a valid Special Code before saving.');
+            document.getElementById('specialcode').focus();
             return false;
         }
-    
+
         return true; // La validación pasa
     }
 
@@ -552,61 +551,54 @@ const categoryRadioButtons = document.querySelectorAll('input[type="radio"][name
 const paymentotalElement = document.getElementById('paymentotal');
 
 // Función para calcular el precio total
-function calculateTotalPrice() {
-  // Admin edits can override the fee for this registration. Let the edit form
-  // render that amount after shared category prices finish loading.
-  const adjustedFeeInput = document.getElementById('price_category');
-  if (adjustedFeeInput) {
-    adjustedFeeInput.dispatchEvent(new Event('input', { bubbles: true }));
-    return;
-  }
+let appliedCoupon = null;
+function setBillingVisibility(paymentRequired) {
+  const billing = document.getElementById('dv_invoice');
+  if (!billing) return;
 
-  let totalPrice = 0;
-  
-  // Suma los valores de los radios seleccionados
-  categoryRadioButtons.forEach(radio => {
-    if (radio.checked) {
-      const catPrice = parseFloat(radio.getAttribute('data-catprice'));
-      totalPrice += catPrice;
-    }
+  billing.classList.toggle('d-none', !paymentRequired);
+  billing.querySelectorAll('input, select, textarea').forEach(field => {
+    field.disabled = !paymentRequired;
   });
-  
-
-
-    if(totalPrice == 0){
-         //Ocultar dv_payment_method
-        document.getElementById('dv_payment_method').classList.add('d-none');
-        //marcar radio payment_method_none
-        document.getElementById('payment_method_none').checked = true;
-        //mostrar dv_payment_method_none
-        document.getElementById('dv_nopayment').classList.remove('d-none');
-        //Ocultar dv_tranfer
-        document.getElementById('dv_tranfer').classList.add('d-none');
-        //Ocultar dv_card
-        document.getElementById('dv_card').classList.add('d-none');
-       
-    }else{
-        //Mostrar dv_payment_method
-        document.getElementById('dv_payment_method').classList.remove('d-none');
-        //desmarcar radio payment_method_none
-        document.getElementById('payment_method_none').checked = false;
-        //ocultar dv_payment_method_none
-        document.getElementById('dv_nopayment').classList.add('d-none');
-        
-    }
-
-
-  // Actualiza el elemento HTML con el precio total
-  paymentotalElement.textContent = totalPrice; // Ajusta el formato según necesites
 }
+window.setInscriptionBillingVisibility = setBillingVisibility;
 
-
-// Agrega un event listener para los cambios en los radios y checkboxes
+function calculateTotalPrice() {
+  const selected = document.querySelector('input[name="category_inscription_id"]:checked');
+  const basePrice = selected ? Number(selected.dataset.catprice || 0) : 0;
+  const registrationFee = appliedCoupon ? Number(appliedCoupon.price) : basePrice;
+  const paymentRequired = appliedCoupon ? appliedCoupon.payment_required === 'Si' : registrationFee > 0;
+  const feeInput = document.getElementById('price_category');
+  if (feeInput) {
+    if (appliedCoupon) feeInput.value = registrationFee.toFixed(2);
+    feeInput.readOnly = Boolean(appliedCoupon);
+    feeInput.dispatchEvent(new Event('input', { bubbles: true }));
+  } else {
+    setBillingVisibility(paymentRequired);
+    paymentotalElement.textContent = registrationFee.toFixed(2);
+    const noPayment = !paymentRequired;
+    document.getElementById('payment_method_title').classList.toggle('d-none', noPayment);
+    document.getElementById('dv_payment_method').classList.toggle('d-none', noPayment);
+    document.getElementById('dv_nopayment').classList.toggle('d-none', !noPayment);
+    if (noPayment) {
+      document.getElementById('payment_method_none').checked = true;
+      document.getElementById('dv_tranfer').classList.add('d-none');
+      document.getElementById('dv_card').classList.add('d-none');
+    } else if (document.getElementById('payment_method_none').checked) {
+      document.getElementById('payment_method_none').checked = false;
+    }
+  }
+  if (selected && !feeInput) {
+    const priceDisplay = document.getElementById('dc_price_' + selected.value);
+    if (priceDisplay) priceDisplay.textContent = registrationFee.toFixed(2);
+  }
+}
 
 categoryRadioButtons.forEach(radio => {
   radio.addEventListener('change', function (e) {
-      calculateTotalPrice();
       handleCategoryRadioButtons(e.target.value);
+      calculateTotalPrice();
+      if (inputSpecialCode?.value.trim()) btnValidateSpecialCode?.click();
   });
 });
 
@@ -621,9 +613,7 @@ const dvDocumentFile = document.getElementById('dv_document_file');
 const inputDocumentFile = document.getElementById('document_file');
 const dvSpecialCode = document.getElementById('dv_specialcode');
 const inputSpecialCode = document.getElementById('specialcode');
-const txtPriceSpecialCode = document.getElementById('dc_price_5');
 const btnValidateSpecialCode = document.getElementById('validate_specialcode');
-const btnClearSpecialCode = document.getElementById('clear_specialcode');
 const specialCodeVerify = document.getElementById('specialcode_verify');
 const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 
@@ -633,75 +623,46 @@ const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 const selectedRadioCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
 const selectedValueCategory = selectedRadioCategory ? selectedRadioCategory.value : null;
 
-function handleCategoryRadioButtons(selectedValueCategory){
-    
-    if(!selectedValueCategory) return;
+function resetCoupon(clearInput = false) {
+    appliedCoupon = null;
+    const feeInput = document.getElementById('price_category');
+    if (feeInput) feeInput.readOnly = false;
+    if (!inputSpecialCode || !specialCodeVerify) return;
+    dvSpecialCode?.classList.remove('is-invalid', 'is-shaking');
+    document.querySelectorAll('.special-code-option.is-invalid').forEach(option => option.classList.remove('is-invalid'));
+    specialCodeVerify.value = '';
+    delete specialCodeVerify.dataset.paymentRequired;
+    if (clearInput) inputSpecialCode.value = '';
+    descriptionSpecialCode.className = 'special-code-feedback';
+    descriptionSpecialCode.setAttribute('aria-live', 'polite');
+    descriptionSpecialCode.textContent = '';
+    btnValidateSpecialCode.classList.remove('d-none');
+    document.querySelectorAll('.special-code-use').forEach(button => {
+        button.textContent = 'Validate';
+        button.classList.remove('is-applied');
+    });
+}
 
+function showSpecialCodeError(message, code) {
+    const option = Array.from(document.querySelectorAll('.special-code-use'))
+        .find(button => button.dataset.code.toLowerCase() === code.toLowerCase())?.closest('.special-code-option');
+    option?.classList.add('is-invalid');
+    dvSpecialCode?.classList.remove('is-shaking');
+    if (dvSpecialCode) void dvSpecialCode.offsetWidth;
+    dvSpecialCode?.classList.add('is-invalid', 'is-shaking');
+    descriptionSpecialCode.className = 'special-code-feedback text-danger';
+    descriptionSpecialCode.setAttribute('aria-live', 'assertive');
+    descriptionSpecialCode.textContent = message;
+}
+
+function handleCategoryRadioButtons(selectedValueCategory) {
     const selectedCategory = document.querySelector(`input[name="category_inscription_id"][value="${selectedValueCategory}"]`);
-    const requiresDocument = selectedCategory && selectedCategory.dataset.requiresDocument === '1';
-
-    dvDocumentFile.classList.toggle('d-none', !requiresDocument);
-
-    if(selectedValueCategory === '3' || selectedValueCategory === '4' || selectedValueCategory === '5'){
-        
-        inputSpecialCode.value = '';
-        inputSpecialCode.removeAttribute('required');
-        inputSpecialCode.removeAttribute('readonly');
-        txtPriceSpecialCode.textContent = '00';
-        descriptionSpecialCode.textContent = '';
-        specialCodeVerify.value = '';
-        btnValidateSpecialCode.classList.remove('d-none');
-        btnClearSpecialCode.classList.add('d-none');
-
-    }else if(selectedValueCategory === '1' || selectedValueCategory === '2'){
-        
-        //Special code required not validation
-        dvSpecialCode.classList.add('d-none');
-        inputSpecialCode.value = '';
-        inputSpecialCode.removeAttribute('required');
-        inputSpecialCode.removeAttribute('readonly');
-        txtPriceSpecialCode.textContent = '00';
-        descriptionSpecialCode.textContent = '';
-        specialCodeVerify.value = '';
-        btnValidateSpecialCode.classList.remove('d-none');
-        btnClearSpecialCode.classList.add('d-none');
-
-      } else if(selectedValueCategory === '6'){
-        
-        //Special code required validation
-        dvSpecialCode.classList.remove('d-none');
-        inputSpecialCode.setAttribute('required', 'required');
-        inputSpecialCode.removeAttribute('readonly');
-        txtPriceSpecialCode.textContent = '00';
-        descriptionSpecialCode.textContent = '';
-        specialCodeVerify.value = '';
-        btnValidateSpecialCode.classList.remove('d-none');
-        btnClearSpecialCode.classList.add('d-none');
-      }else{
-        
-        //Special code required not validation
-        dvSpecialCode.classList.add('d-none');
-        inputSpecialCode.value = '';
-        inputSpecialCode.removeAttribute('required');
-        inputSpecialCode.removeAttribute('readonly');
-        txtPriceSpecialCode.textContent = '00';
-        descriptionSpecialCode.textContent = '';
-        specialCodeVerify.value = '';
-        btnValidateSpecialCode.classList.remove('d-none');
-        btnClearSpecialCode.classList.add('d-none');
-      
-    }
-
-    const radioCategory = document.getElementById('category_6');
-    radioCategory.setAttribute('data-catprice', '00');
-
+    dvDocumentFile.classList.toggle('d-none', !(selectedCategory && selectedCategory.dataset.requiresDocument === '1'));
+    resetCoupon(false);
 }
 
-if(selectedValueCategory){
-    handleCategoryRadioButtons(selectedValueCategory);
-}
+if (selectedValueCategory) handleCategoryRadioButtons(selectedValueCategory);
 
-//if  clic in radio invoice if value is yes add class in dv_invoice_info
 const dvInvoiceInfo = document.getElementById('dv_invoice_info');
 const inputInvoice = document.querySelectorAll('input[type="radio"][name="invoice"]');
 const inputInvoiceRuc = document.getElementById('invoice_ruc');
@@ -769,72 +730,68 @@ document.getElementById('cugh_member_institution').addEventListener('change', fu
 });
 
 //validate specialcode when click validate_specialcode button
-btnValidateSpecialCode.addEventListener('click', function(){
-
-  //valida si el campo esta vacio
-    if(inputSpecialCode.value === ''){
-        alert('Enter a special code.');
-        return false;
+if (btnValidateSpecialCode) btnValidateSpecialCode.addEventListener('click', function () {
+  const selected = document.querySelector('input[name="category_inscription_id"]:checked');
+  if (!selected || !inputSpecialCode.value.trim()) {
+    showSpecialCodeError('Select a category and enter a Special Code.', inputSpecialCode.value.trim());
+    return;
+  }
+  dvSpecialCode?.classList.remove('is-invalid', 'is-shaking');
+  document.querySelectorAll('.special-code-option.is-invalid').forEach(option => option.classList.remove('is-invalid'));
+  descriptionSpecialCode.className = 'special-code-feedback text-muted';
+  descriptionSpecialCode.setAttribute('aria-live', 'polite');
+  descriptionSpecialCode.textContent = 'Validating Special Code...';
+  const params = new URLSearchParams({
+    code: inputSpecialCode.value.trim(),
+    category_inscription_id: selected.value,
+    email: document.querySelector('input[name="email"]').value.trim(),
+    _token: document.querySelector('meta[name="csrf-token"]').content
+  });
+  const targetInscription = document.getElementById('special_code_inscription_id');
+  if (targetInscription) params.set('inscription_id', targetInscription.value);
+  fetch(baseurl + '/validate-specialcode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params
+  }).then(response => response.json()).then(response => {
+    if (document.querySelector('input[name="category_inscription_id"]:checked')?.value !== selected.value || inputSpecialCode.value.trim() !== params.get('code')) return;
+    if (response.success) {
+      appliedCoupon = response;
+      specialCodeVerify.value = 'valid';
+      specialCodeVerify.dataset.paymentRequired = response.payment_required;
+      btnValidateSpecialCode.classList.add('d-none');
+      document.querySelectorAll('.special-code-use').forEach(button => {
+        const selectedCode = button.dataset.code.toUpperCase() === inputSpecialCode.value.trim().toUpperCase();
+        button.textContent = selectedCode ? 'Validated' : 'Validate';
+        button.classList.toggle('is-applied', selectedCode);
+      });
+      descriptionSpecialCode.className = 'special-code-feedback text-success';
+      descriptionSpecialCode.textContent = response.payment_required === 'No'
+        ? `Applied. Registration fee: US$ ${Number(response.price || 0).toFixed(2)}. No payment required.`
+        : `Applied. Registration fee: US$ ${Number(response.price || 0).toFixed(2)}.`;
+    } else {
+      resetCoupon(true);
+      showSpecialCodeError(response.message || 'Invalid Special Code.', params.get('code'));
     }
-
-  const radioCategory = document.getElementById('category_6');
-    //verifica si el existe via ajax javascript
-  const url = baseurl + '/validate-specialcode';
-  const code = inputSpecialCode.value;
-
-  const xhr = new XMLHttpRequest();
-  xhr.open('POST', url, true);
-  xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded'); // Configura el tipo de contenido
-
-  xhr.onreadystatechange = function () {
-    if (xhr.readyState === 4) {
-      if (xhr.status === 200) {
-        const response = JSON.parse(xhr.responseText);
-        if (response.success) {
-          txtPriceSpecialCode.textContent = Math.floor(response.price);
-          inputSpecialCode.setAttribute('readonly', 'readonly');
-          descriptionSpecialCode.innerHTML = '<span class="text-success">'+response.message+'</span>'
-          btnClearSpecialCode.classList.remove('d-none');
-          btnValidateSpecialCode.classList.add('d-none');
-          specialCodeVerify.value = 'valid';
-          radioCategory.setAttribute('data-catprice', Math.floor(response.price));
-          
-
-        } else {
-          descriptionSpecialCode.innerHTML = '<span class="text-danger">'+response.message+'</span>';
-          txtPriceSpecialCode.textContent = '00';
-          inputSpecialCode.removeAttribute('readonly');
-          specialCodeVerify.value = '';
-          radioCategory.setAttribute('data-catprice', '0.00');
-        }
-
-        calculateTotalPrice();
-
-      } else {
-        alert('Error en la solicitud.');
-      }
-    }
-  };
-
-  // Configura los datos a enviar en la solicitud POST
-  const token = $('meta[name="csrf-token"]').attr('content');
-  const params = `code=${code}&_token=${token}`;
-  
-  xhr.send(params);
-
-    
-});
-
-btnClearSpecialCode.addEventListener('click', function(){
-    inputSpecialCode.value = '';
-    txtPriceSpecialCode.textContent = '00';
-    inputSpecialCode.removeAttribute('readonly');
-    descriptionSpecialCode.textContent = '';
-    btnClearSpecialCode.classList.add('d-none');
-    btnValidateSpecialCode.classList.remove('d-none');
-    specialCodeVerify.value = '';
     calculateTotalPrice();
+  }).catch(() => {
+    resetCoupon(true);
+    showSpecialCodeError('Could not validate this Special Code. Please try again.', params.get('code'));
+    calculateTotalPrice();
+  });
 });
+
+document.querySelectorAll('.special-code-use').forEach(button => {
+  button.addEventListener('click', function () {
+    inputSpecialCode.value = button.dataset.code;
+    btnValidateSpecialCode.click();
+  });
+});
+const couponEmail = document.querySelector('input[name="email"]');
+if (couponEmail) couponEmail.addEventListener('change', function () {
+  if (appliedCoupon) { resetCoupon(true); calculateTotalPrice(); }
+});
+if (inputSpecialCode?.value.trim() && selectedValueCategory) btnValidateSpecialCode.click();
 
 const inputPaymentMethod = document.querySelectorAll('input[type="radio"][name="payment_method"]');
 const dvTranfer = document.getElementById('dv_tranfer');
