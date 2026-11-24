@@ -6,6 +6,7 @@ use App\Models\Inscription;
 use App\Models\User;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Schema;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
@@ -32,8 +33,20 @@ class InscriptionPrivateNoteTest extends TestCase
                 'occupation', 'occupation_other', 'workplace', 'address', 'city', 'state', 'country',
                 'work_phone_code', 'work_phone_code_city', 'work_phone_number', 'phone_code',
                 'phone_number', 'whatsapp_code', 'whatsapp_number', 'solapin_name', 'solapin_lastname',
+                'other_sector', 'other_area_of_work', 'other_how_did_you_hear_about',
+                'other_why_attending', 'ability_to_present_work', 'other_how_is_your_attendance_funded',
+                'other_your_areas_of_focus_in_global_health', 'other_obstacles_to_attending_cughs_conferences',
+                'receive_news_and_updates', 'contact_info', 'oral_poster_abstract_presenter',
+                'panel_presenter_moderator',
             ] as $field) {
                 $table->string($field)->nullable();
+            }
+            foreach ([
+                'sector', 'area_of_work', 'how_did_you_hear_about', 'why_attending',
+                'how_is_your_attendance_funded', 'your_areas_of_focus_in_global_health',
+                'obstacles_to_attending_cughs_conferences',
+            ] as $field) {
+                $table->text($field)->nullable();
             }
             $table->timestamps();
         });
@@ -74,6 +87,7 @@ class InscriptionPrivateNoteTest extends TestCase
             $table->id();
             $table->string('name');
             $table->string('status');
+            $table->string('membership_type')->default('all');
             $table->decimal('price', 8, 2);
             $table->decimal('price_low', 8, 2)->nullable();
         });
@@ -263,5 +277,75 @@ class InscriptionPrivateNoteTest extends TestCase
         $this->post(route('specialcodes.validatespecialcode'), [
             'code' => 'PROMO', 'category_inscription_id' => 1, 'email' => 'owner@example.com',
         ])->assertOk()->assertJson(['success' => true, 'price' => 320, 'payment_required' => 'No']);
+    }
+
+    public function test_no_payment_special_code_confirms_registration_and_sends_confirmation_email()
+    {
+        $this->withoutMiddleware([
+            \App\Http\Middleware\VerifyCsrfToken::class,
+            \App\Http\Middleware\CheckInscription::class,
+            \App\Http\Middleware\EnsureStatusActive::class,
+        ]);
+        Mail::fake();
+
+        Schema::create('special_codes', function (Blueprint $table) {
+            $table->id();
+            $table->string('code');
+            $table->decimal('amount', 8, 2);
+            $table->string('status');
+            $table->string('payment_required');
+            $table->integer('quantity');
+            $table->date('expiration');
+            $table->string('usage_rule');
+            $table->string('allowed_email')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('special_code_categories', function (Blueprint $table) {
+            $table->unsignedBigInteger('special_code_id');
+            $table->unsignedBigInteger('category_inscription_id');
+        });
+        Schema::create('special_code_allowed_emails', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('special_code_id');
+            $table->string('email');
+        });
+        DB::table('special_codes')->insert([
+            'id' => 1, 'code' => 'PROMO', 'amount' => 120, 'status' => 'Activo',
+            'payment_required' => 'No', 'quantity' => 1, 'usage_rule' => 'single_use',
+            'expiration' => now('America/Lima')->addDay()->toDateString(),
+            'allowed_email' => 'owner@example.com',
+        ]);
+        DB::table('special_code_categories')->insert(['special_code_id' => 1, 'category_inscription_id' => 1]);
+        DB::table('inscriptions')->where('id', 7)->update(['status' => 'Draft']);
+
+        $data = [
+            'action' => 'register', 'salutation' => 'Ms', 'name' => 'Owner',
+            'second_lastname' => 'Tester', 'degrees' => 'Other', 'is_cugh_member' => '0',
+            'job_title' => 'Researcher', 'email' => 'owner@example.com',
+            'document_type' => 'Passport', 'document_number' => '12345',
+            'nationality' => 'Test Country', 'gender' => 'Female', 'occupation' => 'Researcher',
+            'workplace' => 'Test University', 'address' => 'Test Address', 'city' => 'Lima',
+            'state' => 'Lima', 'country' => 1, 'phone_code' => '+51', 'phone_number' => '123456789',
+            'solapin_name' => 'Owner', 'solapin_lastname' => 'Tester',
+            'sector' => ['Academic'], 'area_of_work' => ['Research'],
+            'how_did_you_hear_about' => ['Email'], 'why_attending' => ['Networking'],
+            'how_is_your_attendance_funded' => ['Self-funded'],
+            'your_areas_of_focus_in_global_health' => ['Health'],
+            'obstacles_to_attending_cughs_conferences' => ['None'],
+            'receive_news_and_updates' => 'yes', 'contact_info' => 'yes',
+            'oral_poster_abstract_presenter' => 'no', 'panel_presenter_moderator' => 'no',
+            'category_inscription_id' => 1, 'payment_method' => 'none', 'specialcode' => 'promo',
+        ];
+
+        $this->actingAs(User::find(2))->post(route('inscriptions.storemyinscription'), $data)
+            ->assertRedirect(route('inscriptions.index'));
+        $this->assertDatabaseHas('inscriptions', [
+            'id' => 7, 'status' => 'Confirmed', 'payment_method' => 'none',
+            'price_category' => 120, 'total' => 120, 'special_code' => 'PROMO',
+        ]);
+        Mail::assertSent(\App\Mail\InscriptionConfirmed::class, function ($mail) {
+            return $mail->hasTo('owner@example.com') && $mail->datainscription->special_code === 'PROMO';
+        });
+        Mail::assertNotSent(\App\Mail\InscriptionCreated::class);
     }
 }

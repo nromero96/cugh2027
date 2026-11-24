@@ -54,6 +54,12 @@
                                     <td><strong>Category</strong></td>
                                     <td>{{ $datainscription->category_inscription_name }}</td>
                                 </tr>
+                                @if(!empty($datainscription->special_code))
+                                <tr>
+                                    <td><strong>Special Code</strong></td>
+                                    <td><strong style="color:#CC1F2F;">{{ $datainscription->special_code }}</strong></td>
+                                </tr>
+                                @endif
                                 <tr>
                                     <td><strong>Registration fee</strong></td>
                                     <td><strong>US$ {{ $datainscription->total }}</strong></td>

@@ -1225,7 +1225,7 @@
 
                                     <div id="dv_nopayment" class="d-none">
                                         <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
-                                            No payment required. We will review your registration and notify you of the decision.
+                                            Once your registration has been successfully completed, you will receive a confirmation e-mail.
                                         </div>
                                     </div>
 
