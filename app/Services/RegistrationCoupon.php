@@ -18,6 +18,7 @@ class RegistrationCoupon
         }
 
         return SpecialCode::query()
+            ->with('categories')
             ->where('status', 'Activo')
             ->whereDate('expiration', '>=', Carbon::now('America/Lima')->toDateString())
             ->where(function ($query) use ($email) {
@@ -59,8 +60,12 @@ class RegistrationCoupon
         if (!$coupon->expiration || Carbon::parse($coupon->expiration, 'America/Lima')->endOfDay()->lt(Carbon::now('America/Lima'))) {
             $this->fail('This Special Code has expired.');
         }
-        if (!$coupon->categories()->whereKey($categoryId)->exists()) {
+        $category = $coupon->categories()->whereKey($categoryId)->first();
+        if (!$category) {
             $this->fail('This Special Code does not apply to the selected category.');
+        }
+        if ($category->name === 'Special Code' && ((float) $coupon->amount !== 0.0 || $coupon->payment_required !== 'No')) {
+            $this->fail('The Special Code category requires a zero amount and no payment.');
         }
         $allowedEmails = $coupon->allowedEmails()->pluck('email')->map(fn ($value) => strtolower(trim($value)))->all();
         if ($allowedEmails && !in_array($email, $allowedEmails, true)) {

@@ -1026,11 +1026,11 @@
 
                                                 @endphp
 
-                                                @if ($category->type == 'radio' && $category->status == 'active' && $category->name !== 'Special Code')
+                                                @if ($category->type == 'radio' && $category->status == 'active' && ($category->name !== 'Special Code' || $availableSpecialCodes->contains(fn ($code) => $code->categories->contains($category))))
                                                     <tr class="category-row" data-membership="{{ $category->membership_type }}">
                                                         <td>
                                                             <div class="form-check form-check-primary me-1">
-                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)'], true) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}}>
+                                                                <input type="{{ $category->type }}" id="category_{{ $category->id }}" name="category_inscription_id" value="{{ $category->id }}" class="form-check-input cursor-pointer" data-catprice="{{ $category->price }}" data-requires-document="{{ in_array($category->name, ['Student (Member)', 'Student (Non-Member)'], true) ? 1 : 0 }}" data-special-code="{{ $category->name === 'Special Code' ? 1 : 0 }}" {{ old('category_inscription_id', $myinscription->category_inscription_id) == $category->id ? 'checked' : '' }} {{$active_radio}} @if($category->name === 'Special Code') disabled data-coupon-locked="1" @endif>
                                                                 <label class="form-check-label mb-0 ms-1 cursor-pointer" for="category_{{ $category->id }}">{{ $category->name }}{!! $infomark !!}
                                                                 <small class="text-muted">{!! $category->description !!}</small>
                                                                 </label>
@@ -1052,6 +1052,7 @@
 
                                         </tbody>
                                     </table>
+                                    @error('specialcode') <small class="text-danger d-block">{{ $message }}</small> @enderror
                                     @if($availableSpecialCodes->isNotEmpty())
                                         @php
                                             $savedSpecialCode = old('specialcode', $myinscription->special_code);
@@ -1067,18 +1068,20 @@
                                                     <div class="special-code-option">
                                                         <span class="special-code-details">
                                                             <strong class="special-code-value">{{ $availableCode->code }}</strong>
+                                                            @if($availableCode->categories->isNotEmpty())
+                                                                <small class="special-code-description">{{ $availableCode->categories->count() === 1 ? 'Category' : 'Categories' }}: {{ $availableCode->categories->sortBy('order')->pluck('name')->implode(', ') }}</small>
+                                                            @endif
                                                             @if($availableCode->description)
                                                                 <small class="special-code-description">{{ $availableCode->description }}</small>
                                                             @endif
                                                         </span>
-                                                        <button type="button" class="special-code-use" data-code="{{ $availableCode->code }}">Validate</button>
+                                                        <button type="button" class="special-code-use" data-code="{{ $availableCode->code }}" data-standalone="{{ $availableCode->categories->contains('name', 'Special Code') ? 1 : 0 }}">Validate</button>
                                                     </div>
                                                 @endforeach
                                                 <input type="hidden" name="specialcode" id="specialcode" value="{{ $selectedSpecialCode ? $selectedSpecialCode->code : '' }}">
                                                 <input type="hidden" name="specialcode_verify" id="specialcode_verify" value="">
                                                 <button type="button" id="validate_specialcode" hidden>Apply Special Code</button>
                                                 <div id="sms_valid_vc" class="special-code-feedback" aria-live="polite"></div>
-                                                @error('specialcode') <small class="text-danger d-block">{{ $message }}</small> @enderror
                                             </div>
                                         </div>
                                     @endif

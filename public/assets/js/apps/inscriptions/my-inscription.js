@@ -480,6 +480,11 @@ document.addEventListener("DOMContentLoaded", function () {
             alert("You must select a category.");
             return false;
         }
+
+        if (selectedRadioCategoryInscription.dataset.specialCode === '1' && document.getElementById('specialcode_verify')?.value !== 'valid') {
+            alert('Apply a valid Special Code for this category.');
+            return false;
+        }
     
         const hasDocumentFile = document.getElementById('has_document_file').value === '1';
     
@@ -625,7 +630,11 @@ categoryRadioButtons.forEach(radio => {
   radio.addEventListener('change', function (e) {
       handleCategoryRadioButtons(e.target.value);
       calculateTotalPrice();
-      if (inputSpecialCode?.value.trim()) btnValidateSpecialCode?.click();
+      if (selectedCouponButton()?.dataset.standalone === '1') {
+          inputSpecialCode.value = '';
+      } else if (inputSpecialCode?.value.trim()) {
+          btnValidateSpecialCode?.click();
+      }
   });
 });
 
@@ -650,8 +659,20 @@ const descriptionSpecialCode = document.getElementById('sms_valid_vc');
 const selectedRadioCategory = document.querySelector('input[type="radio"][name="category_inscription_id"]:checked');
 const selectedValueCategory = selectedRadioCategory ? selectedRadioCategory.value : null;
 
+const standaloneCategory = document.querySelector('input[name="category_inscription_id"][data-special-code="1"]');
+
+function selectedCouponButton() {
+    const code = inputSpecialCode?.value.trim().toUpperCase();
+    return Array.from(document.querySelectorAll('.special-code-use'))
+        .find(button => button.dataset.code.toUpperCase() === code);
+}
+
 function resetCoupon(clearInput = false) {
     appliedCoupon = null;
+    if (standaloneCategory?.dataset.couponLocked === '1') {
+        standaloneCategory.checked = false;
+        standaloneCategory.disabled = true;
+    }
     const feeInput = document.getElementById('price_category');
     if (feeInput) feeInput.readOnly = false;
     if (!inputSpecialCode || !specialCodeVerify) return;
@@ -749,7 +770,8 @@ document.getElementById('cugh_member_institution').addEventListener('change', fu
 
 //validate specialcode when click validate_specialcode button
 if (btnValidateSpecialCode) btnValidateSpecialCode.addEventListener('click', function () {
-  const selected = document.querySelector('input[name="category_inscription_id"]:checked');
+  const currentCategory = document.querySelector('input[name="category_inscription_id"]:checked');
+  const selected = selectedCouponButton()?.dataset.standalone === '1' ? standaloneCategory : currentCategory;
   if (!selected || !inputSpecialCode.value.trim()) {
     showSpecialCodeError('Select a category and enter a Special Code.', inputSpecialCode.value.trim());
     return;
@@ -765,6 +787,10 @@ if (btnValidateSpecialCode) btnValidateSpecialCode.addEventListener('click', fun
     email: document.querySelector('input[name="email"]').value.trim(),
     _token: document.querySelector('meta[name="csrf-token"]').content
   });
+  const isCurrentValidation = () =>
+    document.querySelector('input[name="category_inscription_id"]:checked') === currentCategory
+    && inputSpecialCode.value.trim() === params.get('code')
+    && document.querySelector('input[name="email"]').value.trim() === params.get('email');
   const targetInscription = document.getElementById('special_code_inscription_id');
   if (targetInscription) params.set('inscription_id', targetInscription.value);
   fetch(baseurl + '/validate-specialcode', {
@@ -772,8 +798,13 @@ if (btnValidateSpecialCode) btnValidateSpecialCode.addEventListener('click', fun
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params
   }).then(response => response.json()).then(response => {
-    if (document.querySelector('input[name="category_inscription_id"]:checked')?.value !== selected.value || inputSpecialCode.value.trim() !== params.get('code')) return;
+    if (!isCurrentValidation()) return;
     if (response.success) {
+      if (selected === standaloneCategory) {
+        standaloneCategory.disabled = false;
+        standaloneCategory.checked = true;
+        dvDocumentFile.classList.add('d-none');
+      }
       appliedCoupon = response;
       specialCodeVerify.value = 'valid';
       specialCodeVerify.dataset.paymentRequired = response.payment_required;
@@ -793,6 +824,7 @@ if (btnValidateSpecialCode) btnValidateSpecialCode.addEventListener('click', fun
     }
     calculateTotalPrice();
   }).catch(() => {
+    if (!isCurrentValidation()) return;
     resetCoupon(true);
     showSpecialCodeError('Could not validate this Special Code. Please try again.', params.get('code'));
     calculateTotalPrice();
@@ -809,7 +841,7 @@ const couponEmail = document.querySelector('input[name="email"]');
 if (couponEmail) couponEmail.addEventListener('change', function () {
   if (appliedCoupon) { resetCoupon(true); calculateTotalPrice(); }
 });
-if (inputSpecialCode?.value.trim() && selectedValueCategory) btnValidateSpecialCode.click();
+if (inputSpecialCode?.value.trim() && (selectedValueCategory || selectedCouponButton()?.dataset.standalone === '1')) btnValidateSpecialCode.click();
 
 const inputPaymentMethod = document.querySelectorAll('input[type="radio"][name="payment_method"]');
 const dvTranfer = document.getElementById('dv_tranfer');

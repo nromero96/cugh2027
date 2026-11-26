@@ -66,7 +66,7 @@ class SpecialCodeController extends Controller
             'has_scrollspy' => 0,
             'scrollspy_offset' => '',
         ];
-        return view('pages.specialcodes.create')->with($data)->with('categories', CategoryInscription::where('status', 'active')->where('name', '!=', 'Special Code')->orderBy('order')->get());
+        return view('pages.specialcodes.create')->with($data)->with('categories', CategoryInscription::where('status', 'active')->orderBy('order')->get());
     }
 
     /**
@@ -90,16 +90,14 @@ class SpecialCodeController extends Controller
             'allowed_emails' => 'required|string|max:50000',
             'categories' => 'required|array|min:1',
             'categories.*' => ['integer', 'distinct', Rule::exists('category_inscriptions', 'id')->where(function ($query) {
-                $query->where('status', 'active')->where('name', '!=', 'Special Code');
+                $query->where('status', 'active');
             })],
         ]);
         $allowedEmails = RegistrationCoupon::normalizeAllowedEmails($request->input('allowed_emails'));
         if (!$allowedEmails) {
             throw ValidationException::withMessages(['allowed_emails' => 'Enter at least one authorized email address.']);
         }
-        if ($request->input('payment_required') === 'Si' && (float) $request->input('amount') <= 0) {
-            throw ValidationException::withMessages(['amount' => 'Enter an amount greater than zero when payment is required.']);
-        }
+        $this->validateCouponPayment($request);
 
         //create
         DB::beginTransaction();
@@ -151,7 +149,7 @@ class SpecialCodeController extends Controller
             'scrollspy_offset' => '',
         ];
         $specialcode = SpecialCode::with(['categories', 'allowedEmails'])->findOrFail($id);
-        return view('pages.specialcodes.edit')->with($data)->with('specialcode', $specialcode)->with('categories', CategoryInscription::where('status', 'active')->where('name', '!=', 'Special Code')->orderBy('order')->get());
+        return view('pages.specialcodes.edit')->with($data)->with('specialcode', $specialcode)->with('categories', CategoryInscription::where('status', 'active')->orderBy('order')->get());
     }
 
     /**
@@ -175,7 +173,7 @@ class SpecialCodeController extends Controller
             'allowed_emails' => 'required|string|max:50000',
             'categories' => 'required|array|min:1',
             'categories.*' => ['integer', 'distinct', Rule::exists('category_inscriptions', 'id')->where(function ($query) {
-                $query->where('status', 'active')->where('name', '!=', 'Special Code');
+                $query->where('status', 'active');
             })],
         ]);
         $allowedEmails = $request->has('allowed_emails')
@@ -184,9 +182,7 @@ class SpecialCodeController extends Controller
         if (!$allowedEmails) {
             throw ValidationException::withMessages(['allowed_emails' => 'Enter at least one authorized email address.']);
         }
-        if ($request->input('payment_required') === 'Si' && (float) $request->input('amount') <= 0) {
-            throw ValidationException::withMessages(['amount' => 'Enter an amount greater than zero when payment is required.']);
-        }
+        $this->validateCouponPayment($request);
 
         //update
         DB::beginTransaction();
@@ -226,6 +222,23 @@ class SpecialCodeController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function validateCouponPayment(Request $request): void
+    {
+        $amount = (float) $request->input('amount');
+        $requiresPayment = $request->input('payment_required') === 'Si';
+
+        if (($amount !== 0.0 || $requiresPayment) && CategoryInscription::query()
+            ->whereIn('id', $request->input('categories'))
+            ->where('name', 'Special Code')
+            ->exists()) {
+            throw ValidationException::withMessages(['amount' => 'The Special Code category requires a zero amount and no payment.']);
+        }
+
+        if ($requiresPayment && $amount <= 0) {
+            throw ValidationException::withMessages(['amount' => 'Enter an amount greater than zero when payment is required.']);
+        }
     }
 
     private function syncAllowedEmails(SpecialCode $coupon, array $emails): void

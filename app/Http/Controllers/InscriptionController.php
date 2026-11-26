@@ -550,14 +550,17 @@ class InscriptionController extends Controller
         ]);
 
         $category = CategoryInscription::findOrFail($request->category_inscription_id);
-        $legacyCategory = $category->name === 'Special Code' && $inscription->category_inscription_id == $category->id;
-        if ($category->name === 'Special Code' && !$legacyCategory) {
-            throw ValidationException::withMessages(['category_inscription_id' => 'Please select a current registration category.']);
+        $legacyCategory = $category->name === 'Special Code'
+            && $inscription->category_inscription_id == $category->id
+            && $inscription->special_code
+            && !$inscription->special_code_email;
+        if ($category->name === 'Special Code' && !$legacyCategory && !$request->filled('specialcode')) {
+            throw ValidationException::withMessages(['specialcode' => 'Apply a valid Special Code for this category.']);
         }
 
         $price = (float) $request->input('price_category');
         $coupon = null;
-        if ($request->filled('specialcode') && !$legacyCategory) {
+        if ($request->filled('specialcode')) {
             $coupon = app(\App\Services\RegistrationCoupon::class)->check($request->specialcode, (int) $category->id, $request->email, $inscription->id);
             $price = (float) $coupon->amount;
         }
@@ -950,8 +953,8 @@ class InscriptionController extends Controller
             ? Country::find($request->country)
             : null;
         $specialCode = null;
-        if ($categoryInscription && $categoryInscription->name === 'Special Code' && ($action === 'register' || $inscription->category_inscription_id != $categoryInscription->id)) {
-            throw ValidationException::withMessages(['category_inscription_id' => 'Please select a current registration category.']);
+        if ($action === 'register' && $categoryInscription?->name === 'Special Code' && !$request->filled('specialcode')) {
+            throw ValidationException::withMessages(['specialcode' => 'Apply a valid Special Code for this category.']);
         }
         $priceCategory = 0;
         $documentToDelete = null;

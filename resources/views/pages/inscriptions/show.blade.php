@@ -259,7 +259,7 @@
                                 @endif
 
                                 @if($inscription->status === 'Confirmed' && (\Auth::user()->hasRole('Administrador') || \Auth::user()->hasRole('Secretaria')))
-                                    @if(in_array($inscription->status_compr, [null, 'Ninguna'], true))
+                                    @if(blank($inscription->special_code) && in_array($inscription->status_compr, [null, 'Ninguna'], true))
                                         <form id="invoiceRequestForm" class="registration-invoice-form" action="{{ route('inscriptions.requestcomprobante', $inscription->id) }}" method="POST">
                                             @csrf
                                             <button type="submit" class="btn registration-header-action registration-invoice-action">
@@ -269,12 +269,8 @@
                                                 <span class="registration-invoice-label">Issue Invoice</span>
                                             </button>
                                         </form>
-                                    @else
-                                        <span class="registration-invoice-state">
-                                            @if($inscription->status_compr === 'Solicitado')
-                                                Invoiced
-                                            @endif
-                                        </span>
+                                    @elseif($inscription->status_compr === 'Solicitado')
+                                        <span class="registration-invoice-state">Invoiced</span>
                                     @endif
                                 @endif
 
