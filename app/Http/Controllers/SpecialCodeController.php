@@ -29,7 +29,7 @@ class SpecialCodeController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
         $data = [
             'category_name' => 'specialcodes',
@@ -37,7 +37,7 @@ class SpecialCodeController extends Controller
             'has_scrollspy' => 0,
             'scrollspy_offset' => '',
         ];
-        //$specialcodes = SpecialCode::orderBy('id', 'desc')->get();
+        $search = trim($request->validate(['search' => 'nullable|string|max:255'])['search'] ?? '');
 
         $specialcodes = SpecialCode::with(['categories', 'allowedEmails'])->select('special_codes.*')
             ->selectSub(function ($query) {
@@ -45,12 +45,23 @@ class SpecialCodeController extends Controller
                     ->whereColumn('inscriptions.special_code', 'special_codes.code')
                     ->whereNotIn('inscriptions.status', ['Draft', 'Refused', 'Rechazado']);
             }, 'used_count')
+            ->when($search !== '', function ($query) use ($search) {
+                $pattern = '%' . mb_strtolower($search) . '%';
+
+                $query->where(function ($matches) use ($pattern) {
+                    $matches->whereRaw('LOWER(code) LIKE ?', [$pattern])
+                        ->orWhereRaw('LOWER(description) LIKE ?', [$pattern])
+                        ->orWhereRaw('LOWER(allowed_email) LIKE ?', [$pattern])
+                        ->orWhereHas('categories', fn ($categories) => $categories->whereRaw('LOWER(name) LIKE ?', [$pattern]))
+                        ->orWhereHas('allowedEmails', fn ($emails) => $emails->whereRaw('LOWER(email) LIKE ?', [$pattern]));
+                });
+            })
             ->orderBy('special_codes.id', 'desc')
             ->get();
 
 
 
-        return view('pages.specialcodes.index')->with($data)->with('specialcodes', $specialcodes);
+        return view('pages.specialcodes.index')->with($data)->with(compact('specialcodes', 'search'));
     }
 
     /**

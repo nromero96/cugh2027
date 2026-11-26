@@ -12,10 +12,16 @@
             <div class="col-lg-12 layout-top-spacing">
                 <div class="statbox widget box box-shadow">
                     <div class="widget-header pt-4">
-                        <div class="row">
-                            <div class="col-xl-12 col-md-12 col-sm-12 col-12 text-end">
-                                <a href="{{ route('specialcodes.create') }}" class="btn btn-primary mb-4 ms-3 me-3">New Special Code</a>
-                            </div>
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 px-3 mb-4">
+                            <form action="{{ route('specialcodes.index') }}" method="GET" role="search" class="d-flex flex-wrap align-items-center gap-2">
+                                <label for="special-code-search" class="visually-hidden">Search Special Codes</label>
+                                <input type="search" id="special-code-search" name="search" class="form-control w-auto" value="{{ $search }}" maxlength="255" placeholder="Code, description, category or email">
+                                <button type="submit" class="btn btn-outline-primary">Search</button>
+                                @if($search !== '')
+                                    <a href="{{ route('specialcodes.index') }}" class="btn btn-outline-secondary">Clear</a>
+                                @endif
+                            </form>
+                            <a href="{{ route('specialcodes.create') }}" class="btn btn-primary">New Special Code</a>
                         </div>
                     </div>
                     <div class="widget-content widget-content-area pt-0">
@@ -36,7 +42,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach ($specialcodes as $specialcode)
+                                    @forelse ($specialcodes as $specialcode)
                                         <tr>
                                             <td>
                                                 {{$specialcode->code}}
@@ -49,9 +55,11 @@
                                             <td>
                                                 {{ ['limited' => 'Up to quantity', 'single_use' => 'One use total', 'per_email' => 'One per email'][$specialcode->usage_rule] ?? $specialcode->usage_rule }}
                                                 @if($specialcode->allowedEmails->isNotEmpty())
-                                                    <br><small>{{ $specialcode->allowedEmails->count() }} authorized emails</small>
+                                                    @foreach($specialcode->allowedEmails->sortBy('email') as $allowedEmail)
+                                                        <small class="d-block text-break">{{ $allowedEmail->email }}</small>
+                                                    @endforeach
                                                 @elseif($specialcode->allowed_email)
-                                                    <br><small>{{ $specialcode->allowed_email }}</small>
+                                                    <small class="d-block text-break">{{ $specialcode->allowed_email }}</small>
                                                 @endif
                                             </td>
                                             <td>
@@ -77,7 +85,11 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                    @endforeach
+                                    @empty
+                                        <tr>
+                                            <td colspan="10" class="text-center">{{ $search === '' ? 'No Special Codes yet.' : 'No Special Codes match your search.' }}</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
