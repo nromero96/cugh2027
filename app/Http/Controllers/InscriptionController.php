@@ -1165,8 +1165,7 @@ class InscriptionController extends Controller
                 return redirect()->route('inscriptions.myinscription')->with('success', 'Draft saved successfully. Registration is not completed yet.');
             }else{
                 if ($request->payment_method == 'Bank Transfer/Wire' || $request->payment_method == 'none') {
-                    $confirmedBySpecialCode = $specialCode && $request->payment_method === 'none';
-                    $inscription->status = $confirmedBySpecialCode ? 'Confirmed' : 'Processing';
+                    $inscription->status = 'Processing';
                     $inscription->save();
 
                     // Enviar correo
@@ -1187,9 +1186,7 @@ class InscriptionController extends Controller
                     try {
                         Mail::to($user->email)
                             ->cc(config('services.correonotificacion.inscripcion'))
-                            ->send($confirmedBySpecialCode
-                                ? new \App\Mail\InscriptionConfirmed($data)
-                                : new \App\Mail\InscriptionCreated($data));
+                            ->send(new \App\Mail\InscriptionCreated($data));
                     } catch (\Exception $mailException) {
                         Log::error('Registration saved, but confirmation email failed: '.$mailException->getMessage());
                     }
@@ -1205,9 +1202,7 @@ class InscriptionController extends Controller
 
 
             if ($request->payment_method === 'none') {
-                return redirect()->route('inscriptions.index')->with('success', $specialCode
-                    ? 'Registration confirmed successfully. No payment is required.'
-                    : 'Registration submitted successfully. No payment is required.');
+                return redirect()->route('inscriptions.index')->with('success', 'Registration submitted successfully. No payment is required.');
             }
 
             //Send Data to UPCH

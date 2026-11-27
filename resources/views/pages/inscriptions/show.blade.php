@@ -290,15 +290,6 @@
                                 </a>
                                 </div>
 
-                                @if($inscription->status == 'Pagado')
-                                    <span class="badge badge-light-success">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
-                                @elseif ($inscription->status == 'Procesando')
-                                    <span class="badge badge-light-info">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
-                                @elseif ($inscription->status == 'Pending Payment')
-                                    <span class="badge badge-light-warning">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
-                                @elseif ($inscription->status == 'Rechazado')
-                                    <span class="badge badge-light-danger">{{ $inscription->status .' ('.$inscription->payment_method.')' }}</span>
-                                @endif
                                 <span class="d-block">{{ $inscription->created_at }}</span>
                             </div>
                         </div>

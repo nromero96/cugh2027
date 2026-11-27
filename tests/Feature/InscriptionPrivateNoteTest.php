@@ -279,7 +279,7 @@ class InscriptionPrivateNoteTest extends TestCase
         ])->assertOk()->assertJson(['success' => true, 'price' => 320, 'payment_required' => 'No']);
     }
 
-    public function test_no_payment_special_code_confirms_registration_and_sends_confirmation_email()
+    public function test_no_payment_special_code_sets_processing_and_sends_pre_registration_email()
     {
         $this->withoutMiddleware([
             \App\Http\Middleware\VerifyCsrfToken::class,
@@ -340,12 +340,12 @@ class InscriptionPrivateNoteTest extends TestCase
         $this->actingAs(User::find(2))->post(route('inscriptions.storemyinscription'), $data)
             ->assertRedirect(route('inscriptions.index'));
         $this->assertDatabaseHas('inscriptions', [
-            'id' => 7, 'status' => 'Confirmed', 'payment_method' => 'none',
+            'id' => 7, 'status' => 'Processing', 'payment_method' => 'none',
             'price_category' => 120, 'total' => 120, 'special_code' => 'PROMO',
         ]);
-        Mail::assertSent(\App\Mail\InscriptionConfirmed::class, function ($mail) {
+        Mail::assertSent(\App\Mail\InscriptionCreated::class, function ($mail) {
             return $mail->hasTo('owner@example.com') && $mail->datainscription->special_code === 'PROMO';
         });
-        Mail::assertNotSent(\App\Mail\InscriptionCreated::class);
+        Mail::assertNotSent(\App\Mail\InscriptionConfirmed::class);
     }
 }
