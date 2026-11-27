@@ -295,8 +295,10 @@
                                                             @php
                                                                 if($inscription->payment_method == 'Credit/Debit Card'){
                                                                     $textmp = 'TC';
-                                                                }else{
+                                                                }elseif($inscription->payment_method == 'Bank Transfer/Wire'){
                                                                     $textmp = 'DT';
+                                                                }else{
+                                                                    $textmp = '';
                                                                 }
                                                             @endphp
 
