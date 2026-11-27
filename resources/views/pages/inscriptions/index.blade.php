@@ -294,30 +294,30 @@
                                                         <td>
                                                             @php
                                                                 if($inscription->payment_method == 'Credit/Debit Card'){
-                                                                    $textmp = 'TC';
+                                                                    $textmp = '(TC)';
                                                                 }elseif($inscription->payment_method == 'Bank Transfer/Wire'){
-                                                                    $textmp = 'DT';
+                                                                    $textmp = '(DT)';
                                                                 }else{
                                                                     $textmp = '';
                                                                 }
                                                             @endphp
 
                                                             @if($inscription->status == 'Paid')
-                                                                <span class="badge badge-light-secondary">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-secondary">{{ $inscription->status .' '.$textmp }}</span>
                                                             @elseif ($inscription->status == 'Confirmed')
-                                                                <span class="badge badge-light-success">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-success">{{ $inscription->status .' '.$textmp }}</span>
                                                             @elseif ($inscription->status == 'Processing')
-                                                                <span class="badge badge-light-info">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-info">{{ $inscription->status .' '.$textmp }}</span>
                                                             @elseif ($inscription->status == 'Pending')
-                                                                <span class="badge badge-light-warning">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-warning">{{ $inscription->status .' '.$textmp }}</span>
                                                                 @if($inscription->payment_method == 'Credit/Debit Card' && $inscription->total > 0)
                                                                     <a href="{{ url(config('services.upch.url_send_data') . '/' . $inscription->token) }}" class="btn btn-primary me-1 btn-sm px-2 py-1">{{__("Pay")}}</a>
                                                                 @endif
 
                                                             @elseif ($inscription->status == 'Draft')
-                                                                <span class="badge badge-light-primary">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-primary">{{ $inscription->status .' '.$textmp }}</span>
                                                             @elseif ($inscription->status == 'Refused')
-                                                                <span class="badge badge-light-danger">{{ $inscription->status .' ('.$textmp.')' }}</span>
+                                                                <span class="badge badge-light-danger">{{ $inscription->status .' '.$textmp }}</span>
                                                             @endif
 
                                                             @if($inscription->compr_pdf)
