@@ -34,6 +34,7 @@ use App\Http\Controllers\CertificadoController;
 use App\Http\Controllers\CategoryInscriptionController;
 use App\Http\Controllers\CountryController;
 use App\Http\Controllers\MemberInstitutionController;
+use App\Http\Controllers\MemberIndividualController;
 use App\Http\Controllers\PanelController;
 use App\Http\Controllers\ReviewerCandidateController;
 
@@ -275,8 +276,13 @@ Route::group(['middleware' => ['auth', 'check.inscription', 'ensureStatusActive'
     Route::resource('invitations', InvitationController::class)->names('invitations');
 
     //Member Institution
-    Route::resource('member-institutions', MemberInstitutionController::class)->names('member_institutions');
-    Route::post('member-institutions-update-status', [MemberInstitutionController::class, 'updateStatus'])->name('member_institutions_update_status');
+    Route::middleware('admin.only')->group(function () {
+        Route::resource('member-institutions', MemberInstitutionController::class)->only(['index', 'store'])->names('member_institutions');
+        Route::get('member-institutions/{id}/registration-emails', [MemberInstitutionController::class, 'registrationEmails'])->name('member_institutions.registration_emails');
+        Route::post('member-institutions-update-status', [MemberInstitutionController::class, 'updateStatus'])->name('member_institutions_update_status');
+        Route::get('member-individuals', [MemberIndividualController::class, 'index'])->name('member_individuals.index');
+        Route::post('member-individuals', [MemberIndividualController::class, 'store'])->name('member_individuals.store');
+    });
 
 
     //Panel

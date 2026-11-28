@@ -324,10 +324,13 @@
 
 
         @case('member_institutions')
-            {{-- Users Create --}}
             <link href="{{ asset('assets/css/light/forms/switches.css') }}" rel="stylesheet" type="text/css" />
             <link href="{{ asset('assets/css/dark/forms/switches.css') }}" rel="stylesheet" type="text/css" />
+            <link href="{{ asset('assets/css/apps/member-institutions.css') }}?v={{ filemtime(public_path('assets/css/apps/member-institutions.css')) }}" rel="stylesheet" type="text/css" />
 
+            @break
+        @case('member_individuals')
+            <link href="{{ asset('assets/css/apps/member-institutions.css') }}?v={{ filemtime(public_path('assets/css/apps/member-institutions.css')) }}" rel="stylesheet" type="text/css" />
             @break
 
     

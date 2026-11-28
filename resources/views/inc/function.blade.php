@@ -61,6 +61,10 @@ if (!function_exists('setTitle')) :
             echo __('Crear Código Especial') . $admin_name;
         elseif ($page_name === 'specialcodes_edit'):
             echo __('Editar Código Especial') . $admin_name;
+        elseif ($page_name === 'member_institutions'):
+            echo 'Member Institutions' . $admin_name;
+        elseif ($page_name === 'member_individuals'):
+            echo 'Individual Members' . $admin_name;
         
 
         //Int. Works
